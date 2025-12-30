@@ -1,0 +1,24 @@
+Package: golf
+Type: Package
+Title: Analyzes Golf Scorecards
+Version: 1.0.0
+Author: c(person("Erik", "Larsen", "elarsen48736@gmail.com", role = c("aut", "cre")))
+Maintainer: Erik Larsen <elarsen48736@gmail.com>
+Description: This package takes a golf scorecard and summarizes the results, depending on the provided input (which kinds of strokes are tallied; whether an index is provided).
+License: GPL (>= 3)
+Encoding: UTF-8
+Imports:
+    dplyr,
+    tidyr,
+    lubridate,
+    assertthat
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends:
+  R (>= 4.5.0)
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
