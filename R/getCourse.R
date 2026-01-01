@@ -11,6 +11,7 @@
 #'    "Arizona National"
 #'    "Quarry Pines"
 #'    "El Rio"
+#'    "Crooked Tree"
 #'
 #' @param date a string in YYYY-MM-DD format, specifying the date played
 #' 
@@ -322,7 +323,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Fred|Enke|Fred Enke') |> any() ) {
     Scorecard <- data.frame(course = 'Fred Enke',
-                            date = date,
+                            date = lubridate::as_date(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -413,7 +414,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'El Rio') |> any() ) {
     Scorecard <- data.frame(course = 'El Rio',
-                            date = date,
+                            date = lubridate::as_date(date),
                             tees = tees,
                             to_par = 70,
                             slope = NA,
@@ -504,7 +505,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Sewailo') |> any() ) {
     Scorecard <- data.frame(course = 'Sewailo',
-                            date = date,
+                            date = lubridate::as_date(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -595,7 +596,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'AZN|Arizona National|National') |> any() ){
     Scorecard <- data.frame(course = 'Arizona National',
-                            date = date,
+                            date = lubridate::as_date(date),
                             tees = tees,
                             to_par = 71,
                             slope = NA,
@@ -686,7 +687,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Quarry|Quarry Pines|QP') |> any() ){
     Scorecard <- data.frame(course = 'Quarry Pines',
-                            date = date,
+                            date = lubridate::as_date(date),
                             tees = tees,
                             to_par = 71,
                             slope = NA,
@@ -774,6 +775,97 @@ getCourse <- function(course, date, tees){
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.1,
                                          grepl(tees, pattern = 'white') ~ 66.7,
                                          !grepl(tees, pattern = 'blue|white|combo') ~ 68.8)
+      )
+  } else if ( grepl(course, pattern = 'Crooked')) {
+    Scorecard <- data.frame(course = 'Crooked Tree',
+                            date = lubridate::as_date(date),
+                            tees = tees,
+                            to_par = 72,
+                            slope = NA,
+                            course_rating = NA)
+    if ( grepl(tees, pattern = 'blue') |> any() ) {
+      Scorecard <- Scorecard |> 
+        dplyr::mutate(
+          hole_1 = 370,
+          hole_2 = 170,
+          hole_3 = 373,
+          hole_4 = 575,
+          hole_5 = 375,
+          hole_6 = 485,
+          hole_7 = 134,
+          hole_8 = 550,
+          hole_9 = 396,
+          hole_10 = 381,
+          hole_11 = 527,
+          hole_12 = 360,
+          hole_13 = 175,
+          hole_14 = 429,
+          hole_15 = 590,
+          hole_16 = 252,
+          hole_17 = 375,
+          hole_18 = 443
+        )|> 
+        tidyr::pivot_longer(cols = c(tidyr::contains("hole_")), names_to = 'hole', values_to = 'yds')
+    } else if ( grepl(tees, pattern = 'white') |> any() ) {
+      Scorecard <- Scorecard |> 
+        dplyr::mutate(
+          hole_1 = 336,
+          hole_2 = 153,
+          hole_3 = 349,
+          hole_4 = 490,
+          hole_5 = 347,
+          hole_6 = 364,
+          hole_7 = 130,
+          hole_8 = 512,
+          hole_9 = 353,
+          hole_10 = 363,
+          hole_11 = 482,
+          hole_12 = 341,
+          hole_13 = 147,
+          hole_14 = 397,
+          hole_15 = 521,
+          hole_16 = 191,
+          hole_17 = 356,
+          hole_18 = 352
+        )|> 
+        tidyr::pivot_longer(cols = c(tidyr::contains("hole_")), names_to = 'hole', values_to = 'yds')
+    } else {
+      Scorecard <- Scorecard |> 
+        dplyr::mutate(
+          hole_1 = 370,
+          hole_2 = 170,
+          hole_3 = 373,
+          hole_4 = 575,
+          hole_5 = 375,
+          hole_6 = 364,
+          hole_7 = 134,
+          hole_8 = 512,
+          hole_9 = 396,
+          hole_10 = 381,
+          hole_11 = 527,
+          hole_12 = 360,
+          hole_13 = 175,
+          hole_14 = 397,
+          hole_15 = 521,
+          hole_16 = 252,
+          hole_17 = 375,
+          hole_18 = 352
+        )|> 
+        tidyr::pivot_longer(cols = c(tidyr::contains("hole_")), names_to = 'hole', values_to = 'yds')
+    }
+    Scorecard <- Scorecard |> 
+      dplyr::mutate(
+        par = c(4, 3, 4, 5, 4, 4, 3, 5, 4,
+                4, 5, 4, 3, 4, 5, 3, 4, 4),
+        hole_handicap = c(4, 18, 10, 8, 14, 12, 16, 2, 6,
+                          9, 7, 11, 15, 5, 1, 17, 3, 13),
+        tees = tees,
+        slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 133,
+                                 grepl(tees, pattern = 'white') ~ 123,
+                                 !grepl(tees, pattern = 'white|blue') ~ 129),
+        course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 72.5,
+                                         grepl(tees, pattern = 'white') ~ 68.6,
+                                         !grepl(tees, pattern = 'blue|white') ~ 70.6)
       )
   }
   Card <- Scorecard

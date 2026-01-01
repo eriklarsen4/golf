@@ -15,7 +15,8 @@ getCourse(course, date, tees)
 "Sewailo"
 "Arizona National"
 "Quarry Pines"
-"El Rio"}
+"El Rio"
+"Crooked Tree"}
 
 \item{date}{a string in YYYY-MM-DD format, specifying the date played}
 
