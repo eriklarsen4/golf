@@ -219,7 +219,7 @@ getCourse <- function(course, date, tees){
     Scorecard <- Scorecard |> 
       dplyr::mutate(
         par = c(4, 3, 5, 4, 3, 5, 4, 4, 3,
-                4, 3, 4, 5, 5, 5, 5, 3, 4),
+                4, 3, 4, 5, 4, 4, 4, 3, 4),
         hole_handicap = c(9, 5, 13, 17, 11, 15, 1, 3, 7,
                           10, 16, 6, 18, 4, 14, 8, 12, 2),
         tees = tees,

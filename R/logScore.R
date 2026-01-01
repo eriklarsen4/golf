@@ -92,14 +92,14 @@ logScore <- function(Scorecard, hole_by_hole, GHIN = NULL, index = NULL, FIR = N
     dplyr::mutate(OUT = sum(.data$gross[c(1:9)]),
                   IN = sum(.data$gross[c(10:18)])) |> 
     dplyr::mutate(is_gross_birdie = dplyr::case_when(.data$gross - .data$par == -1 ~ T, TRUE ~ F),
-                  is_gross_eagle_better = dplyr::case_when(.data$gross - .data$par < -2 ~ T, TRUE ~ F),
+                  is_gross_eagle_better = dplyr::case_when(.data$gross - .data$par < -1 ~ T, TRUE ~ F),
                   is_gross_par = dplyr::case_when(.data$gross - .data$par == 0 ~ T, TRUE ~ F),
                   is_gross_bogey = dplyr::case_when(.data$gross - .data$par == 1 ~ T, TRUE ~ F),
                   is_gross_bogey_worse = dplyr::case_when(.data$gross - .data$par > 1 ~ T, TRUE ~ F))
   if (!missing(index)) {
     Scorecard <- Scorecard |> 
-      dplyr::mutate(is_net_birdie = dplyr::case_when(.data$net - .data$par == 1 ~ T, TRUE ~ F),
-                    is_net_eagle_better = dplyr::case_when(.data$net - .data$par < -2 ~ T, TRUE ~ F),
+      dplyr::mutate(is_net_birdie = dplyr::case_when(.data$net - .data$par == -1 ~ T, TRUE ~ F),
+                    is_net_eagle_better = dplyr::case_when(.data$net - .data$par < -1 ~ T, TRUE ~ F),
                     is_net_par = dplyr::case_when(.data$net - .data$par == 0 ~ T, TRUE ~ F),
                     is_net_bogey = dplyr::case_when(.data$net - .data$par == 1 ~ T, TRUE ~ F),
                     is_net_bogey_worse = dplyr::case_when(.data$net - .data$par > 1 ~ T, TRUE ~ F))

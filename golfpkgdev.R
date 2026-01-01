@@ -12,7 +12,7 @@ devtools::build(pkg = 'C:/Users/Erik/Desktop/Programming/R/Sports/golf', path = 
 devtools::check(pkg = 'C:/Users/Erik/Desktop/Programming/R/Sports/golf', document = T, vignettes = F, cran = T)
 devtools::load_all(export_all = T)
 
-# devtools::uninstall('C:/Users/Erik/Desktop/Programming/R/Sports/golf',)
+devtools::uninstall('C:/Users/Erik/Desktop/Programming/R/Sports/golf',unload = T, quiet = T)
 
 devtools::install('C:/Users/Erik/Desktop/Programming/R/Sports/golf', reload = T, build = T, dependencies = T)
 devtools::install('C:/Users/Erik/Desktop/Programming/R/Sports/golf', reload = T, build = F, dependencies = T)

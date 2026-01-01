@@ -5,3 +5,5 @@
 ^LICENSE\.md$
 ^PGA
 ^golfpkgdev
+^.+?.jpeg
+^.+?.tiff
