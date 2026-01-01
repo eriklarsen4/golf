@@ -7,3 +7,4 @@
 ^golfpkgdev
 ^.+?.jpeg
 ^.+?.tiff
+^data-raw$

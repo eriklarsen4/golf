@@ -1,0 +1,62 @@
+#' Scorecards
+#'
+#' golf scores and analysis dataframe of scores shot by me in 2025
+#'
+#' @docType data
+#' @format the only dataset for the package to test and execute package functions:
+#' \describe{
+#'    \item{index}{Handicap Index (float) on the day a given round was played}
+#'    \item{course}{Golf course nickname of a given round}
+#'    \item{date}{Date (YYYY-MM-DD) a given round was played}
+#'    \item{tees}{The tees from which a given round was played; non-traditional tee colors were converted to traditional 'blue/white/combo'}
+#'    \item{to_par}{The total par for the course and tees for a given round}
+#'    \item{slope}{The slope (difficulty) of the course and tees for a given round}
+#'    \item{course_rating}{The course's rating for the tees for a given round}
+#'    \item{hole}{...}
+#'    \item{yds}{...}
+#'    \item{hole_handicap}{The ranked difficulty of the hole for the course and tees for a given round}
+#'    \item{handicap_stroke}{How many strokes a player is given on a hole for the course and tees for a given round; dependent on index}
+#'    \item{gross}{The recorded strokes by a player for a given hole of a given round}
+#'    \item{net}{The recorded strokes by a player, adjusted by handicap index, for a given hole of a given round}
+#'    \item{OUT}{The recorded gross subtotal by a player for the front 9 holes of a given round}
+#'    \item{IN}{The recorded gross subtotal by a player for the back 9 holes of a given round}
+#'    \item{tot_FIR}{The total number of Fairways In Regulation (fairways hit off the tee) by a player for a given round}
+#'    \item{tot_GIR}{The total number of Greens In Regulation (greens hit on approach) by a player for a given round}
+#'    \item{tot_putts}{The total number of putts by a player for a given round}
+#'    \item{tot_chips}{The total number of chips by a player for a given round}
+#'    \item{tot_penalties}{The total number of penalties incurred by a player for a given round}
+#'    \item{tot_gross}{The total recorded strokes by a player for a given round}
+#'    \item{tot_net}{The total recorded strokes by a player, adjusted by handicap index, for a given round}
+#'    \item{is_gross_birdie}{Boolean indicating whether the result of a given hole was one stroke fewer than par}
+#'    \item{is_gross_eagle_better}{Boolean indicating whether the result of a given hole was two strokes or fewer than par}
+#'    \item{is_gross_par}{Boolean indicating whether the result of a given hole was equal to par}
+#'    \item{is_gross_bogey}{Boolean indicating whether the result of a given hole was one stroke more than par}
+#'    \item{is_gross_bogey_worse}{Boolean indicating whether the result of a given hole was two strokes or more than par}
+#'    \item{is_net_birdie}{Boolean indicating whether the result of a given hole was one stroke fewer than par, after adjusting for handicap index}
+#'    \item{is_net_eagle_better}{Boolean indicating whether the result of a given hole was two strokes or fewer than par, after adjusting for handicap index}
+#'    \item{is_net_par}{Boolean indicating whether the result of a given hole was equal to par, after adjusting for handicap index}
+#'    \item{is_net_bogey}{Boolean indicating whether the result of a given hole was one stroke more than par, after adjusting for handicap index}
+#'    \item{is_net_bogey_worse}{Boolean indicating whether the result of a given hole was two strokes or more than par, after adjusting for handicap index}
+#'    \item{FIR}{When recorded, integer representing whether a fairway was hit in regulation (FIR); 1 = FIR, 0 = no FIR, NA = not recorded}
+#'    \item{OUT_FIR}{When recorded, integer representing whether a fairway was hit in regulation (FIR) on the front 9; 1 = FIR, 0 = no FIR, NA = not recorded}
+#'    \item{IN_FIR}{When recorded, integer representing whether a fairway was hit in regulation (FIR) on the back 9; 1 = FIR, 0 = no FIR, NA = not recorded}
+#'    \item{OUT_GIR}{When recorded, integer representing whether a green was hit in regulation (GIR) on the front 9; 1 = GIR, 0 = no GIR, NA = not recorded}
+#'    \item{IN_GIR}{When recorded, integer representing whether a green was hit in regulation (GIR) on the back 9; 1 = GIR, 0 = no GIR, NA = not recorded}
+#'    \item{GIR}{When recorded, integer representing whether a green was hit in regulation (GIR); 1 = GIR, 0 = no GIR, NA = not recorded}
+#'    \item{putts}{Integer representing how many putts were made by a player on the green for a given hole}
+#'    \item{OUT_putts}{Integer representing how many putts were made by a player on the green on the front 9}
+#'    \item{IN_putts}{Integer representing how many putts were made by a player on the green on the back 9}
+#'    \item{chips}{Integer representing how many chips were made by a player on the green for a given hole}
+#'    \item{OUT_chips}{Integer representing how many chips were made by a player on the green on the front 9}
+#'    \item{IN_chips}{Integer representing how many chips were made by a player on the green on the back 9}
+#'    \item{penalties}{Integer representing how many penalties were incurred by a player on the green for a given hole}
+#'    \item{OUT_penalties}{Integer representing how many penalties were incurred by a player on the green on the front 9}
+#'    \item{IN_penalties}{Integer representing how many penalties were incurred by a player on the green on the back 9}
+#'    \item{tee_club}{The player's choice of club off the tee; 'D' = 'Driver', '3W' = '3-Wood', any integer = '(integer)-iron', 'PW' = 'Pitching Wedge', 'GW' = 'Gap Wedge'}
+#'    }
+#'
+#' @details
+#' This data was a blend of manual curation of scorecards with annotations, and curation from digital records without annotations.
+#' Please see data-raw/Cards.R for details:
+#'
+"Card"
