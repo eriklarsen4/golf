@@ -8,3 +8,6 @@
 ^.+?.jpeg
 ^.+?.tiff
 ^data-raw$
+^Card.csv
+^golf_data
+^scorecard_update
