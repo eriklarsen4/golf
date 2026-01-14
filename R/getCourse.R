@@ -136,10 +136,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 126,
                                  grepl(tees, pattern = 'white') ~ 120,
-                                 !grepl(tees, pattern = 'blue|white') ~ 123),
+                                 grepl(tees, pattern = 'combo|long') ~ 123),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.7,
                                          grepl(tees, pattern = 'white') ~ 69.8,
-                                         !grepl(tees, pattern = 'blue|white') ~ 70.4)
+                                         grepl(tees, pattern = 'combo|long') ~ 70.4)
       )
   } else if ( grepl(course, pattern = 'Dell|Dell Urich|Urich') |> any() ) {
     Scorecard <- data.frame(course = 'Dell Urich',
@@ -227,10 +227,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 124,
                                  grepl(tees, pattern = 'white') ~ 116,
-                                 !grepl(tees, pattern = 'blue|white') ~ 120),
+                                 grepl(tees, pattern = 'combo|long') ~ 120),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 70.3,
                                          grepl(tees, pattern = 'white') ~ 67.8,
-                                         !grepl(tees, pattern = 'blue|white') ~ 68.5)
+                                         grepl(tees, pattern = 'combo|long') ~ 68.5)
       )
   } else if ( grepl(course, pattern = 'Silverbell') |> any() ) {
     Scorecard <- data.frame(course = 'Silverbell',
@@ -318,10 +318,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 124,
                                  grepl(tees, pattern = 'white') ~ 121,
-                                 !grepl(tees, pattern = 'blue|white') ~ 120),
+                                 grepl(tees, pattern = 'combo|long') ~ 120),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.6,
                                          grepl(tees, pattern = 'white') ~ 68.9,
-                                         !grepl(tees, pattern = 'blue|white') ~ 70.3)
+                                         grepl(tees, pattern = 'combo|long') ~ 70.3)
       )
   } else if ( grepl(course, pattern = 'Fred|Enke|Fred Enke') |> any() ) {
     Scorecard <- data.frame(course = 'Fred Enke',
@@ -409,10 +409,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 130,
                                  grepl(tees, pattern = 'white') ~ 120,
-                                 !grepl(tees, pattern = 'long|combo|(long combo)') ~ 124),
+                                 grepl(tees, pattern = 'combo|long') ~ 124),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.4,
                                          grepl(tees, pattern = 'white') ~ 68.6,
-                                         !grepl(tees, pattern = 'blue|white') ~ 70.0)
+                                         grepl(tees, pattern = 'combo|long') ~ 70.0)
       )
   } else if ( grepl(course, pattern = 'El Rio') |> any() ) {
     Scorecard <- data.frame(course = 'El Rio',
@@ -500,10 +500,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 124,
                                  grepl(tees, pattern = 'white') ~ 119,
-                                 !grepl(tees, pattern = 'blue|white') ~ 121),
+                                 grepl(tees, pattern = 'combo|long') ~ 121),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 69.4,
                                          grepl(tees, pattern = 'white') ~ 67.4,
-                                         !grepl(tees, pattern = 'blue|white') ~ 68.2)
+                                         grepl(tees, pattern = 'combo|long') ~ 68.2)
       )
   } else if ( grepl(course, pattern = 'Sewailo') |> any() ) {
     Scorecard <- data.frame(course = 'Sewailo',
@@ -591,10 +591,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 132,
                                  grepl(tees, pattern = 'white') ~ 124,
-                                 !grepl(tees, pattern = 'blue|white') ~ 126),
+                                 grepl(tees, pattern = 'combo|long') ~ 126),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.0,
                                          grepl(tees, pattern = 'white') ~ 68.9,
-                                         !grepl(tees, pattern = 'blue|white') ~ 69.9)
+                                         grepl(tees, pattern = 'combo|long') ~ 69.9)
       )
   } else if ( grepl(course, pattern = 'AZN|Arizona National|National') |> any() ){
     Scorecard <- data.frame(course = 'Arizona National',
@@ -682,10 +682,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 132,
                                  grepl(tees, pattern = 'white') ~ 124,
-                                 !grepl(tees, pattern = 'blue|white') ~ 127),
+                                 grepl(tees, pattern = 'combo|long') ~ 127),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 68.9,
                                          grepl(tees, pattern = 'white') ~ 65.8,
-                                         !grepl(tees, pattern = 'blue|white') ~ 67.3)
+                                         grepl(tees, pattern = 'combo|long') ~ 67.3)
       )
   } else if ( grepl(course, pattern = 'Quarry|Quarry Pines|QP') |> any() ){
     Scorecard <- data.frame(course = 'Quarry Pines',
@@ -773,10 +773,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 135,
                                  grepl(tees, pattern = 'white') ~ 117,
-                                 !grepl(tees, pattern = 'blue|white') ~ 127),
+                                 grepl(tees, pattern = 'combo|long') ~ 127),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 71.1,
                                          grepl(tees, pattern = 'white') ~ 66.7,
-                                         !grepl(tees, pattern = 'blue|white') ~ 68.8)
+                                         grepl(tees, pattern = 'combo|long') ~ 68.8)
       )
   } else if ( grepl(course, pattern = 'Crooked')) {
     Scorecard <- data.frame(course = 'Crooked Tree',
@@ -864,10 +864,10 @@ getCourse <- function(course, date, tees){
         tees = tees,
         slope = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 133,
                                  grepl(tees, pattern = 'white') ~ 123,
-                                 !grepl(tees, pattern = 'blue|white') ~ 129),
+                                 grepl(tees, pattern = 'combo|long') ~ 129),
         course_rating = dplyr::case_when(grepl(tees, pattern = 'blue') ~ 72.5,
                                          grepl(tees, pattern = 'white') ~ 68.6,
-                                         !grepl(tees, pattern = 'blue|white') ~ 70.6)
+                                         grepl(tees, pattern = 'combo|long') ~ 70.6)
       )
   }
   Card <- Scorecard

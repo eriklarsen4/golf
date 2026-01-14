@@ -3,5 +3,5 @@
 .RData
 .Ruserdata
 PGA.R
-golfdev.R
+golfpkgdev.R
 Card.csv

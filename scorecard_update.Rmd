@@ -24,12 +24,14 @@ library(mgcv)
 library(brms)
 library(DBI)
 library(RSQLite)
+library(blastula)
 ```
 
 ## Connect to the db
 
 ```{r Connect to the db, include = T, message = F, warning = F, echo = T}
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+# DBI::dbDisconnect(conn = con)
 ```
 
 # Record New Scorecard {.tabset .tabset-pills .tabset-fade}
@@ -37,32 +39,30 @@ con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 ## Input the Data
 
 ```{r Input the Data, include = T, message = F, warning = F, echo = T}
-round_course <- 'Randolph North'
-round_date <- '2026-01-04'
+round_course <- 'Silverbell'
+round_date <- '2026-01-18'
 round_tees <- 'combo'
-hole_scores <- c(5, 4, 5, 5, 4, 4, 5, 3, 5, 5, 4, 6, 5, 4, 3, 5, 6, 4)
-FIRs <- c(0, 1, rep(0, 7),
-          rep(0, 3), 1, rep(0, 4), 1)
-GIRs <- c(0, 1, rep(0, 3), 1, rep(0, 3),
-          rep(0, 3), 1, 0, 1, 1, 0, 1)
-putts_rec <- c(2, 2, 1, 2, 1, 3, 1, 1, 1,
-               2, 1, 3, 3, 1, 2, 2, 1, 2)
-chips_rec <- c(0, 0, 1, 1, 1, 0, 2, 1, 2,
-               0, 2, 1, 0, 1, 0, 1, 2, 0)
-penalties_rec <- c(rep(0, 18))
-tee_clubs <- c('4', '4', 'D', 'D', 'D', '9', 'D', '7', 'D',
-               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', '4')
-index <- 10.4
+hole_scores <- c()
+FIRs <- c()
+GIRs <- c()
+putts_rec <- c()
+chips_rec <- c()
+penalties_rec <- c()
+tee_clubs <- c()
+index <- 10.2
 ```
 
 ## Get Metrics
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, echo = T}
-Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees)
+if ( length(hole_scores) > 0 ) {
+ Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees) 
+}
 ```
 
 ```{r Get Metrics, include = T, message = F, warning = F, echo = T}
-Card <- golf::logScore(Scorecard = Card,
+if ( length(hole_scores) > 0 ) {
+ Card <- golf::logScore(Scorecard = Card,
                        hole_by_hole = hole_scores,
                        GHIN = '10526424',
                        index = index,
@@ -71,7 +71,8 @@ Card <- golf::logScore(Scorecard = Card,
                        putts = putts_rec,
                        chips = chips_rec,
                        penalties = penalties_rec,
-                       tee_club = tee_clubs)
+                       tee_club = tee_clubs) 
+}
 ```
 
 # Update db {.tabset .tabset-pills .tabset-fade}
@@ -85,7 +86,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      dplyr::distinct(date) |> 
      unlist() %>% 
      lubridate::as_date(.) |> 
-     as.character() < round_date
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
      ) {
 
   DBI::dbAppendTable(conn = con,
@@ -106,7 +109,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      dplyr::distinct(date) |> 
      unlist() %>% 
      lubridate::as_date(.) |> 
-     as.character() < round_date 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
      ) {
   DBI::dbAppendTable(conn = con,
                    name = 'courses',
@@ -125,7 +130,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      dplyr::distinct(date) |> 
      unlist() %>% 
      lubridate::as_date(.) |> 
-     as.character() < round_date
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
      ) {
   DBI::dbAppendTable(conn = con,
                    name = 'rounds',
@@ -187,11 +194,11 @@ scores_sum <- scores |>
                 `chips+putts` = chips+putts,
                 FIR_opps = dplyr::case_when(par > 3 ~ 1, TRUE ~ NA),
                 `Iron FIRs` = dplyr::case_when(par > 3 &
-                                                 grepl(tee_club, pattern = '4|5') |> any() &
+                                                 grepl(tee_club, pattern = '4|5') &
                                                  FIR == 1 ~ 1,
                                                TRUE ~ 0),
                 `Iron FIR opps` = dplyr::case_when(par > 3 &
-                                                     grepl(tee_club, pattern = '4|5') |> any() ~ 1,
+                                                     grepl(tee_club, pattern = '4|5') ~ 1,
                                                    TRUE ~ 0),
                 `Driver FIRs` = dplyr::case_when(par > 3 &
                                                    tee_club == 'D' &
@@ -207,8 +214,8 @@ scores_sum <- scores |>
                 updown_conv = dplyr::case_when(GIR == 0 &
                                                  par == gross ~ 1,
                                                TRUE ~ 0),
-                updown_att = dplyr::case_when(GIR == 0 &
-                                                `chips+putts` >= (par - 2) ~ 1,
+                updown_opps = dplyr::case_when(GIR == 0 &
+                                                chips > 0 ~ 1,
                                               TRUE ~ 0)
                 ) |> 
   dplyr::rename(`Handicap Index` = handicap_index) |> 
@@ -227,7 +234,7 @@ scores_sum <- scores |>
                    `Avg GIR putts` = round(mean(greenie_putts, na.rm = T), 2),
                    chips = sum(chips, na.rm = F),
                    `chips+putts` = sum(`chips+putts`, na.rm = F),
-                   `UpDown%` = round(((sum(updown_conv, na.rm = T)/sum(updown_att, na.rm = T))*100), 1),
+                   `UpDown%` = round(((sum(updown_conv, na.rm = T)/sum(updown_opps, na.rm = T))*100), 1),
                    pars = sum(is_gross_par, na.rm = F),
                    birdies = sum(is_gross_birdie, na.rm = F),
                    bogies = sum(is_gross_bogey, na.rm = F),
@@ -238,7 +245,9 @@ scores_sum <- scores |>
   dplyr::mutate(dplyr::across(c(`Iron FIRs`, `Driver FIRs`, `Iron FIR%`, `Driver FIR%`, `FIR%`), ~dplyr::if_else(is.na(FIRs), NA, .)),
                 dplyr::across(c(`Par 3 GIRs`, `Avg GIR putts`, `UpDown%`, `GIR%`), ~dplyr::if_else(is.na(GIRs), NA, .)),
                 `chips+putts` = dplyr::case_when(is.na(chips) ~ NA_real_,
-                                                 TRUE ~ `chips+putts`))
+                                                 TRUE ~ `chips+putts`)) %>% 
+  dplyr::mutate(`UpDown%` = dplyr::case_when(grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
+                `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
 ```
 
 ```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, echo = T}
@@ -333,7 +342,7 @@ scoring_metrics |>
   ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                  axis.title = ggplot2::element_text(face = 'bold'),
                  axis.text.y = ggplot2::element_text(face = 'bold'),
-                 axis.text.x = ggplot2::element_text(face = 'bold', angle = 270, hjust = 0, vjust = 0),
+                 axis.text.x = ggplot2::element_text(face = 'bold', angle = 0, hjust = 0, vjust = 0),
                  title = ggplot2::element_text(face = 'bold')
                  ) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b')
@@ -449,7 +458,7 @@ ball_striking_metrics |>
                  strip.text.x.top = ggplot2::element_text(face = 'bold')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::facet_wrap(~factor(metric,levels = c('Driver FIRs', 'Iron FIRs', 'FIRs',
-                                                'FIR%', 'Driver FIR%', 'Iron FIR%',
+                                                'Driver FIR%', 'Iron FIR%', 'FIR%',
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
 ```
 
@@ -502,44 +511,75 @@ scores_sum |>
 
 ## Plot Models
 
-```{r Model predictions, include = T, message = F, warning = F, echo = T}
-lme4::glmer(data = scores_sum |> 
+Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
+predicted by `Handicap Index` and `course_rating`
+
++ The USGA calculates this index based on an individual's average of the 8 best `Gross Score`s over their 20 most recently-posted rounds
++ Every course has a rating; the `Handicap Index` calculation factors in these ratings
+
+```{r Fit the model, include = T, message = F, warning = F, echo = T}
+# Fit a model to the data
+
+gross_lmer <- lme4::lmer(data = scores_sum |> 
               dplyr::ungroup() |> 
               dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9,
                                                              TRUE ~ course_rating),
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = '')),
-            formula = `Gross Score` ~ `Handicap Index` + course + course_rating + (1|`doubles+`) + (1|bogies) + (1|birdies) + (1|pars) + (1|`GIR%`) + (1|`Par 3 GIRs`) + (1|`Iron FIR%`) + (1|`Driver FIR%`))
-
-
-# Predicting Gross Score
-lme4::lmer(data = scores_sum |> 
-              dplyr::ungroup() |> 
-              dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9,
-                                                             TRUE ~ course_rating),
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = '')),
-            formula = `Gross Score` ~ `Handicap Index` + course + course_rating + (1|`doubles+`) 
-           # + (1|bogies) + (1|birdies) + (1|pars) + (1|`GIR%`) 
-           + (1|`Par 3 GIRs`) 
-           # + (1|`Iron FIR%`) + (1|`Driver FIR%`)
+                            course_rating = mean(course_rating) - course_rating,
+                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''),
+                            `Handicap Index` = mean(`Handicap Index`),
+                            days = as.numeric(date - min(date), units = 'days')) |> 
+                dplyr::relocate(days, .after = date),
+            formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
            )
 
-# Predicting Index
-lme4::lmer(data = scores_sum |> 
-              dplyr::ungroup() |> 
-              dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9,
-                                                             TRUE ~ course_rating),
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = '')),
-           formula = `Handicap Index` ~ `Gross Score` 
-           + course*course_rating
-           + `doubles+`
-           + pars
-           + (1|`Par 3 GIRs`)
-           + (1|`GIR%`)
-           + (1|`Driver FIR%`)
-           + (1|chips)
-           + (1|putts)
-           + (1|birdies))
-DBI::dbDisconnect(conn = con)
+summary(gross_lmer)
+```
+Predict the next round's `Gross Score` according to the model
+
+```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = T}
+new_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
+                                                                    FROM courses
+                                                                    WHERE course_name
+                                                                    LIKE '%Silverbell%'
+                                                                    AND tees = 'combo';")) |> 
+  dplyr::as_data_frame() |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(`Handicap Index` = 10.2, # enter current index
+               course_rating_mean = scores_sum |> 
+                 dplyr::ungroup() |> 
+                 dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
+                               course_rating = mean(course_rating),
+                               course_name = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement =  '')) |> 
+                 dplyr::distinct(course_rating) |> 
+                 unlist() |> as.numeric(),
+               days = scores_sum |> ## extract the total days since the first score was posted
+                 dplyr::ungroup() |> 
+                 dplyr::add_row(date = lubridate::as_date('2026-01-18')) |> 
+                 dplyr::mutate(days = as.numeric(date - min(date), units = 'days')) |> 
+                 dplyr::slice_tail() |> 
+                 dplyr::select(days) |> unlist() |> as.numeric()) |> 
+  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating) |> 
+  dplyr::select(-course_rating_mean) |> 
+  dplyr::rename(course = course_name)
+
+## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
+predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
+  as.numeric() %>%
+  round(., 0)
 ```
 
 # Email Results
+
+```{r Email Results, include = T, message = F, warning = F, echo = T}
+email <- blastula::compose_email(body = md(
+  glue::glue(
+    "Hi {name}!\nPlease see the attached report that includes the round from {Sys.Date()}!"
+  )),
+  title = "Golf Performance Update"
+)
+
+blastula::add_attachment(email = email, file = 'scorecard_update.Rmd', filename = 'scorecard_update')
+
+blastula::creds(user = 'erik_larsen4@yahoo.com', provider = )
+```
+
