@@ -206,15 +206,24 @@ predicted by `Handicap Index` and `course_rating`
 # Fit a model to the data
 
 gross_lmer <- lme4::lmer(data = scores_sum |> 
-              dplyr::ungroup() |> 
-              dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9,
-                                                             TRUE ~ course_rating),
-                            course_rating = mean(course_rating) - course_rating,
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''),
-                            `Handicap Index` = mean(`Handicap Index`),
-                            days = as.numeric(date - min(date), units = 'days')) |> 
-                dplyr::relocate(days, .after = date),
-            formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
+                           dplyr::ungroup() |> 
+                           dplyr::mutate(course_rating = dplyr::case_when(
+                             
+                             grepl(date_course,
+                                   pattern = 'Sewailo') ~ 68.9,
+                             TRUE ~ course_rating), # include Sewailo's rating
+                             
+                            course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
+                            
+                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''), # extract the course names
+                            
+                            `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
+                            
+                            days = as.numeric(date - min(date) + 1, units = 'days')) |> # create a 'days' metric starting at the first day joining the club 
+                           
+                           dplyr::relocate(days, .after = date),
+                         
+                         formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
            )
 
 summary(gross_lmer)
@@ -229,8 +238,8 @@ summary(gross_lmer)
 ##     pattern = "Sewailo") ~ 68.9, TRUE ~ course_rating), course_rating = mean(course_rating) -  
 ##     course_rating, course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
 ##     replacement = ""), `Handicap Index` = mean(`Handicap Index`),  
-##     days = as.numeric(date - min(date), units = "days")), days,  
-##     .after = date)
+##     days = as.numeric(date - min(date) + 1, units = "days")),  
+##     days, .after = date)
 ## 
 ## REML criterion at convergence: 133.4
 ## 
@@ -252,14 +261,14 @@ summary(gross_lmer)
 ## 
 ## Fixed effects:
 ##               Estimate Std. Error t value
-## (Intercept)   88.17371    1.79241  49.193
+## (Intercept)   88.19796    1.80267  48.926
 ## course_rating  0.28373    0.84637   0.335
 ## days          -0.02425    0.01185  -2.047
 ## 
 ## Correlation of Fixed Effects:
 ##             (Intr) crs_rt
 ## course_rtng -0.127       
-## days        -0.865  0.147
+## days        -0.867  0.147
 ## fit warnings:
 ## fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 ## optimizer (nloptwrap) convergence code: 0 (OK)
@@ -284,7 +293,8 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 
 ![](predict_score_files/figure-html/Plot models-1.png)<!-- -->
 
+![](predict_score_files/figure-html/Plot Actual vs Predicted Gross-1.png)<!-- -->
 
-``` r
-DBI::dbDisconnect(conn = con)
-```
+![](predict_score_files/figure-html/Plot Actual Net vs Predicted Gross-1.png)<!-- -->
+
+

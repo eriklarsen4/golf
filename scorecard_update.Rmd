@@ -513,7 +513,7 @@ scores_sum |>
                       ncol = 4)
 ```
 
-## Plot Models
+## Fit Models
 
 Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
 predicted by `Handicap Index` and `course_rating`
@@ -538,114 +538,20 @@ gross_lmer <- lme4::lmer(data = scores_sum |>
 
 summary(gross_lmer)
 ```
-Predict the next round's `Gross Score` according to the model
 
-```{r Predict the next score using Updated Data, include = T, warning = F, message = F, eval = T}
-new_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
-                                                                    FROM courses
-                                                                    WHERE course_name
-                                                                    LIKE '%Silverbell%'
-                                                                    AND tees = 'white';")) |> 
-  dplyr::as_data_frame() |> 
-  dplyr::ungroup() |> 
-  dplyr::mutate(`Handicap Index` = 10.2, # enter current index
-               course_rating_mean = scores_sum |> 
-                 dplyr::ungroup() |> 
-                 dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
-                               course_rating = mean(course_rating),
-                               course_name = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement =  '')) |> 
-                 dplyr::distinct(course_rating) |> 
-                 unlist() |> as.numeric(),
-               days = scores_sum |> ## extract the total days since the first score was posted
-                 dplyr::ungroup() |> 
-                 dplyr::add_row(date = lubridate::as_date('2026-01-18')) |> 
-                 dplyr::mutate(days = as.numeric(date - min(date), units = 'days')) |> 
-                 dplyr::slice_tail() |> 
-                 dplyr::select(days) |> unlist() |> as.numeric()) |> 
-  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating) |> 
-  dplyr::select(-course_rating_mean) |> 
-  dplyr::rename(course = course_name)
+# Interpretation
 
-## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
-stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
-  as.numeric() %>%
-  round(., 0)
-```
++ The aggregate average `Gross Score` (intercept of `Fixed effects`) is **88.19796** (yikes, that's bad). 
 
-```{r Plot models, include = T, message = F, warning = F, eval = T}
-scores_sum |> 
-  dplyr::ungroup() |> 
-  dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sew') ~ 68.9,
-                                                 TRUE ~ course_rating), # include Sewailo's course_rating
-                course_name = gsub(date_course,
-                                   pattern = '[0-9]|\\-|\\\n|\\.',
-                                   replacement =  ''), # extract course name
-                days = as.numeric(date - min(date), units = 'days'), # include days
-                `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
-  dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
-  
-  dplyr::add_row(course_name = 'mean') |> # add all mean values
-  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
-                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
-                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
-                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
-                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
-  
-  dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
-  dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
-                                                                    FROM courses
-                                                                    WHERE course_name
-                                                                    LIKE '%Silverbell%'
-                                                                    AND tees = 'white';")) |> dplyr::select(course_rating) |> unlist() |> as.numeric(),
-                                                 TRUE ~ course_rating),
-                date = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ lubridate::as_date(round_date), TRUE ~ date),
-                days = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ as.numeric(date - min(date), units = 'days'), TRUE ~ days),
-                `Handicap Index` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ index, TRUE ~ `Handicap Index`),
-                `Predicted Gross` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ stats::predict(object = gross_lmer,
-                                                                                                           newdata = new_df,
-                                                                                                           allow.new.levels = T) |>
-                                                       as.numeric() %>%
-                                                       round(., 0), TRUE ~ `Predicted Gross`),
-                `Gross Score` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ `Predicted Gross`, TRUE ~ `Gross Score`)) |> 
-  
-  dplyr::group_by(course_name) |> 
-  ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
-  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 2, inherit.aes = F) +
-  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', size = 3, inherit.aes = F) +
-  ggplot2::geom_point(size = 5, inherit.aes = T) +
-  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
-  ggplot2::labs(title = paste0('Model-Predicted Gross Scores\noverlaid on to Actual Gross Scores\nas of ', Sys.Date()),
-                color = 'Course') +
-  ggplot2::theme_bw() +
-  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
-                 panel.grid.minor = ggplot2::element_blank(),
-                 legend.title = ggplot2::element_text(face = 'bold', size = 11),
-                 legend.text = ggplot2::element_text(face = 'bold', size = 9),
-                 legend.key.width = rel(0.4),
-                 legend.key.height = rel(0.4),
-                 legend.key.spacing.y = rel(0.4),
-                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
-                 axis.text.x = ggplot2::element_text(face = 'bold', size = 9, angle = 270, hjust = 0, vjust = 0.5),
-                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9)
-                 ) +
-  ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
-  ggplot2::guides(fill = 'none') +
-  ggplot2::geom_text(aes(x = lubridate::as_date(round_date),
-                         y = stats::predict(object = gross_lmer,
-                                                newdata = new_df,
-                                                allow.new.levels = T) |>
-                           as.numeric() %>%
-                           round(., 0),
-                         label = stats::predict(object = gross_lmer,
-                                                newdata = new_df,
-                                                allow.new.levels = T) |>
-                           as.numeric() %>%
-                           round(., 0)),
-                     inherit.aes = F, size = 3, color = 'black', hjust = -0.1)
-  
-```
++ For every **0.28373** standard deviations away from the average `course_rating` (how difficult the course is; usually **between 68-72 strokes**), the `Gross Score` **grows by 1 stroke**. 
 
+  + This makes sense. There's a lot of variation in performance (`Gross Score`) between and within courses, as shown by the `Random effects` `Variance` (`Intercept`s). Otherwise, we would expect `course_rating` to have a stronger relationship to `Gross Score`: the coefficient, representing the aggregate effect on `Gross Score`, i.e. independent of `course` and `Handicap Index`, would be larger. 
+  
+  + A small `t-value` of this `Fixed effect` suggests it is a relatively weak predictor of `Gross Score`. This makes sense when viewing the `Scores` plot and comparing the relatively flat line of `course_rating` with the downward trend of `Handicap Index` and `Gross Score`.
+
++ The **-0.02425** `Fixed effect estimate` of `days` on `Gross Score` means that as time advances, the `Gross Score` is getting smaller: over time, golf scores are getting smaller, meaning I am improving! 
+
+  + This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is simply getting smaller, overall and independent of course, over time (further along the x-axis).
 
 ```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F, eval = T}
 DBI::dbDisconnect(conn = con)
