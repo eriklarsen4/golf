@@ -1,0 +1,443 @@
+---
+title: "Model Predictions"
+author: "Erik Larsen"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    keep_md: true
+---
+# Environment {.tabset .tabset-fade .tabset-pills}
+
+## Attach Packages
+
+```{r Attach Packages, include = T, message = F, warning = F, echo = T}
+library(golf)
+library(tidyverse)
+library(lme4)
+library(mgcv)
+library(brms)
+library(DBI)
+library(RSQLite)
+library(emayili)
+```
+
+## Connect to the db
+
+```{r Connect to the db, include = T, message = F, warning = F, echo = T}
+con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+```
+
+# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+
+## Gather and Format
+
+Gather and format from the database
+
+```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
+scores <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT sub.* FROM
+  (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
+  LEFT JOIN courses c
+  ON c.tees = r.tees
+  AND c.course_name = r.course_name
+  AND c.hole = r.hole
+  AND c.hole_handicap = r.hole_handicap) AS sub
+  INNER JOIN players p
+  ON sub.GHIN = p.GHIN
+  AND sub.handicap_index = p.handicap_index
+  AND sub.date = p.date;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date),
+                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> 
+                  as.numeric()) |> 
+  dplyr::relocate(par, .after = hole) |> 
+  dplyr::relocate(course_rating, .after = tees) |>
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole) |> 
+  dplyr::ungroup()
+```
+
+## Compute Advanced Metrics
+
+Compute more nuanced metrics
+
+```{r Compute Advanced Metrics 1, include = T, warning = F, message = F, echo = F}
+scores_sum <- scores |>
+  dplyr::mutate(date_course = paste0(date,
+                                     '\n',
+                                     course_name, '\n',
+                                     handicap_index),
+                chips = dplyr::case_when(
+                  grepl(date, pattern = '07-13') ~ NA_real_, TRUE ~ chips),
+                `chips+putts` = chips+putts,
+                FIR_opps = dplyr::case_when(par > 3 ~ 1, TRUE ~ NA),
+                `Iron FIRs` = dplyr::case_when(par > 3 &
+                                                 grepl(tee_club, pattern = '4|5') &
+                                                 FIR == 1 ~ 1,
+                                               TRUE ~ 0),
+                `Iron FIR opps` = dplyr::case_when(par > 3 &
+                                                     grepl(tee_club, pattern = '4|5') ~ 1,
+                                                   TRUE ~ 0),
+                `Driver FIRs` = dplyr::case_when(par > 3 &
+                                                   tee_club == 'D' &
+                                                   FIR == 1 ~ 1,
+                                                 TRUE ~ 0),
+                `Driver FIR opps` = dplyr::case_when(par > 3 &
+                                                     tee_club == 'D' ~ 1,
+                                                   TRUE ~ 0),
+                `Par 3 GIRs` = dplyr::case_when(par == 3 & 
+                                                  GIR == 1 ~ 1,
+                                                TRUE ~ 0),
+                greenie_putts = dplyr::case_when(GIR == 1 ~ putts, TRUE ~ NA_real_),
+                updown_conv = dplyr::case_when(GIR == 0 &
+                                                 par == gross ~ 1,
+                                               TRUE ~ 0),
+                updown_opps = dplyr::case_when(GIR == 0 &
+                                                chips > 0 ~ 1,
+                                              TRUE ~ 0)
+                ) |> 
+  dplyr::rename(`Handicap Index` = handicap_index) |> 
+  dplyr::group_by(date, date_course, course_rating, `Handicap Index`) |> 
+  dplyr::summarize(
+                   FIRs = sum(FIR, na.rm = F),
+                   `Iron FIRs` = sum(`Iron FIRs`, na.rm = T),
+                   `Iron FIR%` = round(((sum(`Iron FIRs`, na.rm = T)/sum(`Iron FIR opps`, na.rm = T))*100), 1),
+                   `Driver FIRs` = sum(`Driver FIRs`, na.rm = T),
+                   `Driver FIR%` = round(((sum(`Driver FIRs`, na.rm = T)/sum(`Driver FIR opps`, na.rm = T))*100), 1),
+                   `FIR%` = round((sum(FIRs, na.rm = T)/sum(FIR_opps, na.rm = T))*100, 1),
+                   GIRs = sum(GIR, na.rm = F),
+                   `Par 3 GIRs` = sum(`Par 3 GIRs`, na.rm = T),
+                   `GIR%` = round((sum(GIRs, na.rm = T)/18)*100, 1),
+                   putts = sum(putts, na.rm = F),
+                   `Avg GIR putts` = round(mean(greenie_putts, na.rm = T), 2),
+                   chips = sum(chips, na.rm = F),
+                   `chips+putts` = sum(`chips+putts`, na.rm = F),
+                   `UpDown%` = round(((sum(updown_conv, na.rm = T)/sum(updown_opps, na.rm = T))*100), 1),
+                   pars = sum(is_gross_par, na.rm = F),
+                   birdies = sum(is_gross_birdie, na.rm = F),
+                   bogies = sum(is_gross_bogey, na.rm = F),
+                   `doubles+` = sum(is_gross_bogey_worse, na.rm = F),
+                   penalties = sum(penalties, na.rm = T),
+                   `Gross Score` = mean(tot_gross, na.rm = F),
+                   `Net Score` = mean(tot_net, na.rm = F)) %>%
+  dplyr::mutate(dplyr::across(c(`Iron FIRs`, `Driver FIRs`, `Iron FIR%`, `Driver FIR%`, `FIR%`), ~dplyr::if_else(is.na(FIRs), NA, .)),
+                dplyr::across(c(`Par 3 GIRs`, `Avg GIR putts`, `UpDown%`, `GIR%`), ~dplyr::if_else(is.na(GIRs), NA, .)),
+                `chips+putts` = dplyr::case_when(is.na(chips) ~ NA_real_,
+                                                 TRUE ~ `chips+putts`)) %>% 
+  dplyr::mutate(`UpDown%` = dplyr::case_when(grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
+                `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
+```
+
+```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, echo = T}
+head(scores_sum)
+```
+
+## Separate Metrics
+
+Separate the metrics:
+
++ `scoring` (round scores & index)
+
+```{r Separate By Type 1, include = T, warning = F, message = F, echo = T}
+scoring_metrics <- scores_sum |> 
+  dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
+head(scoring_metrics)
+```
+
++ `strokes` (above/below par)
+
+```{r Separate By Type 2, include = T, warning = F, message = F, echo = T}
+stroke_metrics <- scores_sum |> 
+  dplyr::select(`doubles+`, bogies, pars, birdies)
+head(stroke_metrics)
+```
+
++ `around the green` (chips, putts, etc.)
+
+```{r Separate By Type 3, include = T, warning = F, message = F, echo = T}
+atg_metrics <- scores_sum |> 
+  dplyr::select(chips, `chips+putts`, `UpDown%`, putts, `Avg GIR putts`)
+head(atg_metrics)
+```
+
++ `ball striking` (approach and tee accuracy)
+
+```{r Separate By Type 4, include = T, warning = F, message = F, echo = T}
+ball_striking_metrics <- scores_sum |> 
+  dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
+                FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
+                `Driver FIRs`, `Driver FIR%`)
+head(ball_striking_metrics)
+```
+
+# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+
+Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
+predicted by `Handicap Index` and `course_rating`
+
++ The USGA calculates this index based on an individual's average of the 8 best `Gross Score`s over their 20 most recently-posted rounds
++ Every course has a rating; the `Handicap Index` calculation factors in these ratings
+
+```{r Fit the model, include = T, message = F, warning = F, echo = T}
+# Fit a model to the data
+
+gross_lmer <- lme4::lmer(data = scores_sum |> 
+                           dplyr::ungroup() |> 
+                           dplyr::mutate(course_rating = dplyr::case_when(
+                             
+                             grepl(date_course,
+                                   pattern = 'Sewailo') ~ 68.9,
+                             TRUE ~ course_rating), # include Sewailo's rating
+                             
+                            course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
+                            
+                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''), # extract the course names
+                            
+                            `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
+                            
+                            days = as.numeric(date - min(date) + 1, units = 'days')) |> # create a 'days' metric starting at the first day joining the club 
+                           
+                           dplyr::relocate(days, .after = date),
+                         
+                         formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
+           )
+
+summary(gross_lmer)
+```
+
+Predict the next round's `Gross Score` according to the model
+
+```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
+round_date <- lubridate::as_date('2026-01-18')
+index <- 10.2
+course <- "Silverbell"
+tees <- 'white'
+
+new_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
+                                                                    FROM courses
+                                                                    WHERE course_name
+                                                                    LIKE '%", paste0(course), "%'
+                                                                    AND tees = '", paste0(tees), "';")) |> 
+  dplyr::as_data_frame() |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(`Handicap Index` = 10.2, # enter current index
+               course_rating_mean = scores_sum |> 
+                 dplyr::ungroup() |> 
+                 dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
+                               course_rating = mean(course_rating),
+                               course_name = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement =  '')) |> 
+                 dplyr::distinct(course_rating) |> 
+                 unlist() |> as.numeric(),
+               days = scores_sum |> ## extract the total days since the first score was posted
+                 dplyr::ungroup() |> 
+                 dplyr::add_row(date = lubridate::as_date('2026-01-18')) |> 
+                 dplyr::mutate(days = as.numeric(date - min(date) + 1, units = 'days')) |> 
+                 dplyr::slice_tail() |> 
+                 dplyr::select(days) |> unlist() |> as.numeric()) |> 
+  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating) |> 
+  dplyr::select(-course_rating_mean) |> 
+  dplyr::rename(course = course_name)
+```
+
+```{r Show predictions, include = T, warning = F, message = F, echo = T}
+## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
+stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
+  as.numeric() %>%
+  round(., 0)
+```
+
+```{r Plot models, include = T, message = F, warning = F, echo = F, render = T}
+scores_sum |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sew') ~ 68.9,
+                                                 TRUE ~ course_rating), # include Sewailo's course_rating
+                course_name = gsub(date_course,
+                                   pattern = '[0-9]|\\-|\\\n|\\.',
+                                   replacement =  ''), # extract course name
+                days = as.numeric(date - min(date), units = 'days') + 1, # include days
+                `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
+  dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
+  
+  dplyr::add_row(course_name = 'mean') |> # add all mean values
+  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
+                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
+                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
+                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
+                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
+                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
+  
+  dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
+  dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
+                                                                    FROM courses
+                                                                    WHERE course_name
+                                                                    LIKE '%", paste0(course), "%'
+                                                                    AND tees = '",paste0(tees),"';")) |> dplyr::select(course_rating) |> unlist() |> as.numeric(),
+                                                 TRUE ~ course_rating),
+                date = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ lubridate::as_date(round_date), TRUE ~ date),
+                days = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ as.numeric(date - min(date), units = 'days'), TRUE ~ days),
+                `Handicap Index` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ index, TRUE ~ `Handicap Index`),
+                `Predicted Gross` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ stats::predict(object = gross_lmer,
+                                                                                                           newdata = new_df,
+                                                                                                           allow.new.levels = T) |>
+                                                       as.numeric() %>%
+                                                       round(., 0), TRUE ~ `Predicted Gross`),
+                `Gross Score` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ `Predicted Gross`, TRUE ~ `Gross Score`)) |> 
+  
+  dplyr::group_by(course_name) |> 
+  ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
+  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 2, inherit.aes = F) +
+  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', size = 3, inherit.aes = F) +
+  ggplot2::geom_point(size = 5, inherit.aes = T) +
+  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
+  ggplot2::labs(title = paste0('Model-Predicted Gross Scores\noverlaid on to Actual Gross Scores\nas of ', Sys.Date()),
+                color = 'Course') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
+                 panel.grid.minor = ggplot2::element_blank(),
+                 legend.title = ggplot2::element_text(face = 'bold', size = 11),
+                 legend.text = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.key.width = rel(0.4),
+                 legend.key.height = rel(0.4),
+                 legend.key.spacing.y = rel(0.4),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 9, angle = 270, hjust = 0, vjust = 0.5),
+                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9)
+                 ) +
+  ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
+  ggplot2::guides(fill = 'none') +
+  ggplot2::geom_text(aes(x = lubridate::as_date(round_date),
+                         y = stats::predict(object = gross_lmer,
+                                                newdata = new_df,
+                                                allow.new.levels = T) |>
+                           as.numeric() %>%
+                           round(., 0),
+                         label = stats::predict(object = gross_lmer,
+                                                newdata = new_df,
+                                                allow.new.levels = T) |>
+                           as.numeric() %>%
+                           round(., 0)),
+                     inherit.aes = F, size = 3, color = 'black', hjust = -0.1)
+  
+```
+
+```{r Plot Actual vs Predicted Gross, include = T, message = F, warning = F, echo = F, render = T}
+scores_sum |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(course_rating = dplyr::case_when(
+    
+    grepl(date_course,
+          pattern = 'Sew') ~ 68.9,
+    TRUE ~ course_rating), # include Sewailo's course_rating
+    
+    course_name = gsub(date_course,
+                       pattern = '[0-9]|\\-|\\\n|\\.',
+                       replacement =  ''), # extract course name
+    
+    days = as.numeric(date - min(date),
+                      units = 'days') + 1, # include days
+    
+    `Predicted Gross` = stats::predict(
+      gross_lmer,
+      re.form = NULL)) |> # add the lmer's predicted Gross Scores
+  
+  dplyr::distinct(course_name, 
+                  course_rating, 
+                  date, days, 
+                  `Gross Score`, 
+                  `Handicap Index`,
+                  `Predicted Gross`,
+                  `Net Score`) |> 
+  
+  dplyr::mutate(residual = `Gross Score` - `Predicted Gross`) |> 
+  ggplot2::ggplot(aes(x = date,
+                      y = residual,
+                      group = course_name,
+                      color = course_name,
+                      fill = course_name)) +
+  ggplot2::geom_point(alpha = 0.5, size = 4) +
+  ggplot2::labs(title = 'Performance vs Prediction',
+                x = 'date',
+                y = 'Actual - Predicted\nGross Score',
+                color = 'Course') +
+  ggplot2::theme_bw()+
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.title = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.text = ggplot2::element_text(face = 'bold', size = 8),
+                 legend.key.height = rel(0.4),
+                 legend.key.width = rel(0.4),
+                 legend.key.spacing.y = rel(0.4)) +
+  ggplot2::guides(fill = 'none') +
+  ggplot2::geom_smooth(aes(x = date, y = residual), 
+                       method= 'lm', se = F, size = 2.5, alpha = 0.5)+
+  ggplot2::geom_smooth(aes(x = date, y = residual), 
+                       method = 'lm', se = F, inherit.aes = F, size = 2.5,
+                       alpha = 0.5) +
+  ggplot2::geom_text(aes(x = date, y = residual, label = `Handicap Index`),
+                     size = 3, color = 'black')
+```
+
+```{r Plot Actual Net vs Predicted Gross, include = T, message = F, warning = F, echo = F, render = T}
+scores_sum |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(course_rating = dplyr::case_when(
+    
+    grepl(date_course,
+          pattern = 'Sew') ~ 68.9,
+    TRUE ~ course_rating), # include Sewailo's course_rating
+    
+    course_name = gsub(date_course,
+                       pattern = '[0-9]|\\-|\\\n|\\.',
+                       replacement =  ''), # extract course name
+    
+    days = as.numeric(date - min(date),
+                      units = 'days') + 1, # include days
+    
+    `Predicted Gross` = stats::predict(
+      gross_lmer,
+      re.form = NULL)) |> # add the lmer's predicted Gross Scores
+  
+  dplyr::distinct(course_name, 
+                  course_rating, 
+                  date, days, 
+                  `Gross Score`, 
+                  `Handicap Index`,
+                  `Predicted Gross`,
+                  `Net Score`) |> 
+  
+  dplyr::mutate(residual = `Predicted Gross` - `Net Score`) |> 
+  ggplot2::ggplot(aes(x = date,
+                      y = residual,
+                      group = course_name,
+                      color = course_name,
+                      fill = course_name)) +
+  ggplot2::geom_point(alpha = 0.5, size = 4) +
+  ggplot2::labs(title = 'Performance vs Prediction',
+                x = 'date',
+                y = 'Predicted Gross Score - Net Score',
+                color = 'Course') +
+  ggplot2::theme_bw()+
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.title = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.text = ggplot2::element_text(face = 'bold', size = 8)) +
+  ggplot2::guides(fill = 'none') +
+  ggplot2::geom_smooth(aes(x = date, y = residual), 
+                       method= 'lm', se = F, size = 2.5, alpha = 0.5)+
+  ggplot2::geom_smooth(aes(x = date, y = residual), 
+                       method = 'lm', se = F, inherit.aes = F, size = 2.5,
+                       alpha = 0.5) +
+  ggplot2::geom_text(aes(x = date, y = residual, label = `Handicap Index`),
+                     size = 3, color = 'black')
+```
+
+```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F}
+DBI::dbDisconnect(conn = con)
+```

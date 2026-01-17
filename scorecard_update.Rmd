@@ -3,20 +3,21 @@ title: "Scorecard Update"
 author: "Erik Larsen"
 date: "`r Sys.Date()`"
 output: 
-  html_document: 
-      code_folding: hide
-      toc: true
-      toc_float:
-        collapsed: false
-        smooth_scroll: true
-      keep_md: true
+  html_document:
+    self-contained: no
+    toc: TRUE
+    fig_caption: TRUE
 ---
 
 # Environment {.tabset .tabset-fade .tabset-pills}
 
 ## Attach Packages
 
-```{r Attach Packages, include = T, message = F, warning = F, echo = T}
+```{r setup, include = F, message = F, warning = F, echo = F, eval = T}
+knitr::opts_chunk$set(echo = FALSE) 
+```
+
+```{r Attach Packages, include = T, message = F, warning = F, eval = T}
 library(golf)
 library(tidyverse)
 library(lme4)
@@ -24,12 +25,15 @@ library(mgcv)
 library(brms)
 library(DBI)
 library(RSQLite)
-library(blastula)
+# library(blastula)
+# library(keyring)
+# library(mailR)
+library(emayili)
 ```
 
 ## Connect to the db
 
-```{r Connect to the db, include = T, message = F, warning = F, echo = T}
+```{r Connect to the db, include = T, message = F, warning = F, eval = T}
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 # DBI::dbDisconnect(conn = con)
 ```
@@ -38,10 +42,10 @@ con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 
 ## Input the Data
 
-```{r Input the Data, include = T, message = F, warning = F, echo = T}
+```{r Annotate the new data, include = T, message = F, warning = F, eval = T}
 round_course <- 'Silverbell'
 round_date <- '2026-01-18'
-round_tees <- 'combo'
+round_tees <- 'white'
 hole_scores <- c()
 FIRs <- c()
 GIRs <- c()
@@ -54,13 +58,13 @@ index <- 10.2
 
 ## Get Metrics
 
-```{r Specify the Course and Tees, include = T, message = F, warning = F, echo = T}
+```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
  Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees) 
 }
 ```
 
-```{r Get Metrics, include = T, message = F, warning = F, echo = T}
+```{r Get Metrics, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
  Card <- golf::logScore(Scorecard = Card,
                        hole_by_hole = hole_scores,
@@ -81,7 +85,7 @@ Update the db if the new round hasn't been logged yet
 
 ## Players Table
 
-```{r Update the players table of the db, include = T, message = F, warning = F, echo = T}
+```{r Update the players table of the db, include = T, message = F, warning = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -104,7 +108,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 
 ## Courses Table
 
-```{r Update the courses table of the db, include = T, message = F, warning= F, echo = T}
+```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -125,7 +129,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 
 ## Rounds Table
 
-```{r Update the rounds table of the db, include= T, message = F, warning = F, echo = T}
+```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -145,8 +149,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ```
 
 
-```{r Clear Environment, include = T, message = F, warning = F, echo = F}
-rm(list = ls()[which(grepl(ls(), pattern= 'con')==F)])
+```{r Clear Environment, include = T, message = F, warning = F, eval = T}
+rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
 # Summarize Metrics {.tabset .tabset-pills .tabset-fade}
@@ -155,7 +159,7 @@ rm(list = ls()[which(grepl(ls(), pattern= 'con')==F)])
 
 Gather and format from the database
 
-```{r Summarize Metrics, include = T, message = F, warning = F, echo = T}
+```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -183,7 +187,7 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 
 Compute more nuanced metrics
 
-```{r Compute Advanced Metrics 1, include = T, warning = F, message = F, echo = F}
+```{r Compute Advanced Metrics 1, include = T, warning = F, message = F, eval = T}
 scores_sum <- scores |>
   dplyr::mutate(date_course = paste0(date,
                                      '\n',
@@ -250,7 +254,7 @@ scores_sum <- scores |>
                 `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
 ```
 
-```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, echo = T}
+```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, eval = T}
 head(scores_sum)
 ```
 
@@ -260,7 +264,7 @@ Separate the metrics:
 
 + `scoring` (round scores & index)
 
-```{r Separate By Type 1, include = T, warning = F, message = F, echo = T}
+```{r Separate By Type 1, include = T, warning = F, message = F, eval = T}
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
 head(scoring_metrics)
@@ -268,7 +272,7 @@ head(scoring_metrics)
 
 + `strokes` (above/below par)
 
-```{r Separate By Type 2, include = T, warning = F, message = F, echo = T}
+```{r Separate By Type 2, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
 head(stroke_metrics)
@@ -276,7 +280,7 @@ head(stroke_metrics)
 
 + `around the green` (chips, putts, etc.)
 
-```{r Separate By Type 3, include = T, warning = F, message = F, echo = T}
+```{r Separate By Type 3, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpDown%`, putts, `Avg GIR putts`)
 head(atg_metrics)
@@ -284,7 +288,7 @@ head(atg_metrics)
 
 + `ball striking` (approach and tee accuracy)
 
-```{r Separate By Type 4, include = T, warning = F, message = F, echo = T}
+```{r Separate By Type 4, include = T, warning = F, message = F, eval = T}
 ball_striking_metrics <- scores_sum |> 
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
@@ -296,7 +300,7 @@ head(ball_striking_metrics)
 
 ## Scoring
 
-```{r Plot Scoring Metrics, include = T, message = F, warning = F, echo = T}
+```{r Plot Scoring Metrics, include = T, message = F, warning = F, eval = T}
 scoring_metrics |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
                 `Handicap Index` = `Handicap Index`*4.5) |>
@@ -351,7 +355,7 @@ scoring_metrics |>
 
 ## Stroke Metrics
 
-```{r Plot Stroke Metrics, include = T, message = F, warning = F, echo = T}
+```{r Plot Stroke Metrics, include = T, message = F, warning = F, eval = T}
 stroke_metrics |> 
   tidyr::pivot_longer(cols = c(`doubles+`:birdies), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -388,7 +392,7 @@ stroke_metrics |>
 
 ## Around the Green Metrics
 
-```{r Plot Around the Green Metrics, include = T, message = F, warning = F, echo = T}
+```{r Plot Around the Green Metrics, include = T, message = F, warning = F, eval = T}
 atg_metrics |> 
   tidyr::pivot_longer(cols = c(chips:`Avg GIR putts`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -425,7 +429,7 @@ atg_metrics |>
 
 ## Ball Striking Metrics
 
-```{r Plot Ball Striking Metrics, include = T, message = F, warning = F, echo = T, fig.width=8, fig.height = 8}
+```{r Plot Ball Striking Metrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
 ball_striking_metrics |> 
   tidyr::pivot_longer(cols = c(GIRs:`Driver FIR%`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -464,7 +468,7 @@ ball_striking_metrics |>
 
 ## Main Metrics
 
-```{r Plot Main Metrics, include = T, message = F, warning = F, echo = T, fig.height=12, fig.width=10}
+```{r Plot Main Metrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
 scores_sum |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating)) |> 
   tidyr::pivot_longer(cols = c(`Handicap Index`, `Gross Score`, `Net Score`,
@@ -517,7 +521,7 @@ predicted by `Handicap Index` and `course_rating`
 + The USGA calculates this index based on an individual's average of the 8 best `Gross Score`s over their 20 most recently-posted rounds
 + Every course has a rating; the `Handicap Index` calculation factors in these ratings
 
-```{r Fit the model, include = T, message = F, warning = F, echo = T}
+```{r Fit the model, include = T, message = F, warning = F, eval = T}
 # Fit a model to the data
 
 gross_lmer <- lme4::lmer(data = scores_sum |> 
@@ -536,12 +540,12 @@ summary(gross_lmer)
 ```
 Predict the next round's `Gross Score` according to the model
 
-```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = T}
+```{r Predict the next score using Updated Data, include = T, warning = F, message = F, eval = T}
 new_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
                                                                     FROM courses
                                                                     WHERE course_name
                                                                     LIKE '%Silverbell%'
-                                                                    AND tees = 'combo';")) |> 
+                                                                    AND tees = 'white';")) |> 
   dplyr::as_data_frame() |> 
   dplyr::ungroup() |> 
   dplyr::mutate(`Handicap Index` = 10.2, # enter current index
@@ -563,23 +567,87 @@ new_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course
   dplyr::rename(course = course_name)
 
 ## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
-predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
+stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   as.numeric() %>%
   round(., 0)
 ```
 
-# Email Results
+```{r Plot models, include = T, message = F, warning = F, eval = T}
+scores_sum |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sew') ~ 68.9,
+                                                 TRUE ~ course_rating), # include Sewailo's course_rating
+                course_name = gsub(date_course,
+                                   pattern = '[0-9]|\\-|\\\n|\\.',
+                                   replacement =  ''), # extract course name
+                days = as.numeric(date - min(date), units = 'days'), # include days
+                `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
+  dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
+  
+  dplyr::add_row(course_name = 'mean') |> # add all mean values
+  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
+                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
+                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
+                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
+                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
+                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
+  
+  dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
+  dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
+                                                                    FROM courses
+                                                                    WHERE course_name
+                                                                    LIKE '%Silverbell%'
+                                                                    AND tees = 'white';")) |> dplyr::select(course_rating) |> unlist() |> as.numeric(),
+                                                 TRUE ~ course_rating),
+                date = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ lubridate::as_date(round_date), TRUE ~ date),
+                days = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ as.numeric(date - min(date), units = 'days'), TRUE ~ days),
+                `Handicap Index` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ index, TRUE ~ `Handicap Index`),
+                `Predicted Gross` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ stats::predict(object = gross_lmer,
+                                                                                                           newdata = new_df,
+                                                                                                           allow.new.levels = T) |>
+                                                       as.numeric() %>%
+                                                       round(., 0), TRUE ~ `Predicted Gross`),
+                `Gross Score` = dplyr::case_when(grepl(course_name, pattern = 'Next') ~ `Predicted Gross`, TRUE ~ `Gross Score`)) |> 
+  
+  dplyr::group_by(course_name) |> 
+  ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
+  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 2, inherit.aes = F) +
+  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', size = 3, inherit.aes = F) +
+  ggplot2::geom_point(size = 5, inherit.aes = T) +
+  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
+  ggplot2::labs(title = paste0('Model-Predicted Gross Scores\noverlaid on to Actual Gross Scores\nas of ', Sys.Date()),
+                color = 'Course') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
+                 panel.grid.minor = ggplot2::element_blank(),
+                 legend.title = ggplot2::element_text(face = 'bold', size = 11),
+                 legend.text = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.key.width = rel(0.4),
+                 legend.key.height = rel(0.4),
+                 legend.key.spacing.y = rel(0.4),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 9, angle = 270, hjust = 0, vjust = 0.5),
+                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9)
+                 ) +
+  ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
+  ggplot2::guides(fill = 'none') +
+  ggplot2::geom_text(aes(x = lubridate::as_date(round_date),
+                         y = stats::predict(object = gross_lmer,
+                                                newdata = new_df,
+                                                allow.new.levels = T) |>
+                           as.numeric() %>%
+                           round(., 0),
+                         label = stats::predict(object = gross_lmer,
+                                                newdata = new_df,
+                                                allow.new.levels = T) |>
+                           as.numeric() %>%
+                           round(., 0)),
+                     inherit.aes = F, size = 3, color = 'black', hjust = -0.1)
+  
+```
 
-```{r Email Results, include = T, message = F, warning = F, echo = T}
-email <- blastula::compose_email(body = md(
-  glue::glue(
-    "Hi {name}!\nPlease see the attached report that includes the round from {Sys.Date()}!"
-  )),
-  title = "Golf Performance Update"
-)
 
-blastula::add_attachment(email = email, file = 'scorecard_update.Rmd', filename = 'scorecard_update')
-
-blastula::creds(user = 'erik_larsen4@yahoo.com', provider = )
+```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F, eval = T}
+DBI::dbDisconnect(conn = con)
 ```
 

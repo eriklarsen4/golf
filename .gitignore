@@ -5,3 +5,5 @@
 PGA.R
 golfpkgdev.R
 Card.csv
+.Renviron
+compose_email
