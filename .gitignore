@@ -3,7 +3,8 @@
 .RData
 .Ruserdata
 PGA.R
-^golfpkgdev.R
+golfpkgdev.R
 Card.csv
 .Renviron
 compose_email
+email_template.Rmd
