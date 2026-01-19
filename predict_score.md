@@ -326,7 +326,7 @@ The **-0.02** `Fixed effect estimate` of `days` on `Gross Score` means that, for
 
 ## Model Predictions
 
-![](predict_score_files/figure-html/Plot models-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotModels-1.png)<!-- -->
 
 The model is a random intercept, random slope model.
 
@@ -340,7 +340,7 @@ In this case, that means `Gross Score` varies in its deviation from the overall 
 
 ## Actual Gross Score vs Predicted Gross Score
 
-![](predict_score_files/figure-html/Plot Actual vs Predicted Gross-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotActualVsPredictedGross-1.png)<!-- -->
 
 This plot of residuals reveals the actual `Gross Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
 
@@ -369,7 +369,7 @@ This plot of residuals reveals the actual `Gross Score` relative to the `Predict
 
 ## Actual Net Score vs Predicted Gross Score
 
-![](predict_score_files/figure-html/Plot Actual Net vs Predicted Gross-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotActualNetVsPredictedGross-1.png)<!-- -->
 
 This plot of residuals shifts the previous plot upward, inverts it about the x-axis, and rotates it slightly about the origin, revealing the actual `Net Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
 
@@ -402,7 +402,7 @@ This plot of residuals shifts the previous plot upward, inverts it about the x-a
 
 ## Actual Gross Score vs Course Rating
 
-![](predict_score_files/figure-html/Gross Score vs Course Rating-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotGrossScoreVsCourseRating-1.png)<!-- -->
 
 
 This definitely shows that I struggle at `Dell Urich`-- independent of time, my `Gross Score`s at `Dell Urich` are roughly similar to other courses despite its easier rating-- this would be even more evident without the substantial `Gross Score` **72** outlier.
@@ -413,7 +413,7 @@ This definitely shows that I struggle at `Dell Urich`-- independent of time, my 
 
 ## Actual Gross Score vs Handicap Index
 
-![](predict_score_files/figure-html/Gross Score vs Index-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotGrossScoreVsHandicapIndex-1.png)<!-- -->
 
 This also supports the ideas that, independent of time and `Handicap Index`, I struggle at `Dell Urich` because of the high `Gross Score`s at low `Handicap Index`:
 
@@ -421,16 +421,16 @@ This also supports the ideas that, independent of time and `Handicap Index`, I s
 
 ## Actual Gross Score vs Handicap Index, 72 removed
 
-![](predict_score_files/figure-html/Gross Score vs Index without 72-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotGrossScoreVsHandicapIndexWithout72-1.png)<!-- -->
 
 
 ## Actual Net Score vs Course Rating
 
-![](predict_score_files/figure-html/Net Score vs Course Difficulty-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotNetScoreVsCourseDifficulty-1.png)<!-- -->
 
 ## Actual Net Score vs Course Rating without 72 and Combo Tees
 
-![](predict_score_files/figure-html/Net Score vs Course Rating without 72 and combos-1.png)<!-- -->
+![](predict_score_files/figure-html/PlotNetScoreVsCourseRatingWithout72AndCombos-1.png)<!-- -->
 
 
 

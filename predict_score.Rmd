@@ -299,7 +299,7 @@ The **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** `F
 
 ## Model Predictions
 
-```{r Plot models, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotModels, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(course_name = gsub(date_course,
@@ -383,7 +383,7 @@ In this case, that means `Gross Score` varies in its deviation from the overall 
 
 ## Actual Gross Score vs Predicted Gross Score
 
-```{r Plot Actual vs Predicted Gross, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotActualVsPredictedGross, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -473,7 +473,7 @@ This plot of residuals reveals the actual `Gross Score` relative to the `Predict
 
 ## Actual Net Score vs Predicted Gross Score
 
-```{r Plot Actual Net vs Predicted Gross, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotActualNetVsPredictedGross, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -562,7 +562,7 @@ This plot of residuals shifts the previous plot upward, inverts it about the x-a
 
 ## Actual Gross Score vs Course Rating
 
-```{r Gross Score vs Course Rating, include = T, warning = F, message = F, echo = F, render = T}
+```{r PlotGrossScoreVsCourseRating, include = T, warning = F, message = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -623,7 +623,7 @@ This definitely shows that I struggle at `Dell Urich`-- independent of time, my 
 
 ## Actual Gross Score vs Handicap Index
 
-```{r Gross Score vs Index, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotGrossScoreVsHandicapIndex, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -679,7 +679,7 @@ This also supports the ideas that, independent of time and `Handicap Index`, I s
 
 ## Actual Gross Score vs Handicap Index, 72 removed
 
-```{r Gross Score vs Index without 72, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotGrossScoreVsHandicapIndexWithout72, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -733,7 +733,7 @@ scores_sum |>
 
 ## Actual Net Score vs Course Rating
 
-```{r Net Score vs Course Difficulty, include = T, warning = F, message=F, echo = F, render = T}
+```{r PlotNetScoreVsCourseDifficulty, include = T, warning = F, message=F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -787,7 +787,7 @@ scores_sum |>
 
 ## Actual Net Score vs Course Rating without 72 and Combo Tees
 
-```{r Net Score vs Course Rating without 72 and combos, include = T, message = F, warning= F, echo = F, render = T}
+```{r PlotNetScoreVsCourseRatingWithout72AndCombos, include = T, message = F, warning= F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
