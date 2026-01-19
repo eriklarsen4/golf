@@ -5,7 +5,11 @@ date: "`r Sys.Date()`"
 output: 
   html_document:
     self-contained: no
+    code_folding: hide
     toc: TRUE
+    toc_float:
+      collapsed: TRUE
+      smooth_scroll: TRUE
     fig_caption: TRUE
 ---
 
@@ -35,7 +39,6 @@ library(emayili)
 
 ```{r Connect to the db, include = T, message = F, warning = F, eval = T}
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
-# DBI::dbDisconnect(conn = con)
 ```
 
 # Record New Scorecard {.tabset .tabset-pills .tabset-fade}
@@ -46,13 +49,19 @@ con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 round_course <- 'Silverbell'
 round_date <- '2026-01-18'
 round_tees <- 'white'
-hole_scores <- c()
-FIRs <- c()
-GIRs <- c()
-putts_rec <- c()
-chips_rec <- c()
-penalties_rec <- c()
-tee_clubs <- c()
+hole_scores <- c(4, 6, 4, 4, 6, 4, 5, 6, 3,
+                 5, 6, 6, 5, 5, 4, 4, 5, 5)
+FIRs <- c(0, 0, 0, 1, 1, 0, 0, 0, 0,
+          1, 0, 0, 0, 1, 0, 0, 0, 1)
+GIRs <- c(0, 0, 0, 1, 0, 1, 1, 0, 1,
+          1, 0, 0, 0, 1, 0, 0, 0, 0)
+putts_rec <- c(1, 2, 1, 2, 2, 3, 2, 2, 2,
+               3, 2, 3, 2, 3, 1, 2, 1, 1)
+chips_rec <- c(1, 0, 1, 0, 2, 0, 0, 0, 0,
+               0, 2, 2, 1, 0, 1, 1, 0, 1)
+penalties_rec <- c(rep(0, 18))
+tee_clubs <- c('4', 'D', 'GW', 'D', 'D', '7', 'D', '4', '8',
+               'D', '4', '9', 'D', 'D', 'D', '5', '4', 'D')
 index <- 10.2
 ```
 
@@ -250,7 +259,7 @@ scores_sum <- scores |>
                 dplyr::across(c(`Par 3 GIRs`, `Avg GIR putts`, `UpDown%`, `GIR%`), ~dplyr::if_else(is.na(GIRs), NA, .)),
                 `chips+putts` = dplyr::case_when(is.na(chips) ~ NA_real_,
                                                  TRUE ~ `chips+putts`)) %>% 
-  dplyr::mutate(`UpDown%` = dplyr::case_when(grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
+  dplyr::mutate(`UpAndDown%` = dplyr::case_when(grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
                 `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
 ```
 
@@ -258,11 +267,13 @@ scores_sum <- scores |>
 head(scores_sum)
 ```
 
-## Separate Metrics
+## Separate Metrics {.tabset .tabset-pills .tabset-fade}
 
 Separate the metrics:
 
-+ `scoring` (round scores & index)
+### Scoring Metrics
+
+Scores and Handicap
 
 ```{r Separate By Type 1, include = T, warning = F, message = F, eval = T}
 scoring_metrics <- scores_sum |> 
@@ -270,7 +281,9 @@ scoring_metrics <- scores_sum |>
 head(scoring_metrics)
 ```
 
-+ `strokes` (above/below par)
+### Stroke Metrics
+
+Pars, birdies, bogies, etc.
 
 ```{r Separate By Type 2, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
@@ -278,15 +291,19 @@ stroke_metrics <- scores_sum |>
 head(stroke_metrics)
 ```
 
-+ `around the green` (chips, putts, etc.)
+### Around-the-Green Metrics
+
+Chips, putts, etc.
 
 ```{r Separate By Type 3, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
-  dplyr::select(chips, `chips+putts`, `UpDown%`, putts, `Avg GIR putts`)
+  dplyr::select(chips, `chips+putts`, `UpAndDown%`, putts, `Avg GIR putts`)
 head(atg_metrics)
 ```
 
-+ `ball striking` (approach and tee accuracy)
+### Ball Striking Metrics
+
+Approach and tee accuracy
 
 ```{r Separate By Type 4, include = T, warning = F, message = F, eval = T}
 ball_striking_metrics <- scores_sum |> 
@@ -298,7 +315,7 @@ head(ball_striking_metrics)
 
 # Plot Metrics {.tabset .tabset-pills .tabset-fade}
 
-## Scoring
+## Scoring Metrics
 
 ```{r Plot Scoring Metrics, include = T, message = F, warning = F, eval = T}
 scoring_metrics |> 
@@ -424,7 +441,7 @@ atg_metrics |>
                  title = ggplot2::element_text(face = 'bold'),
                  strip.text.x.top = ggplot2::element_text(face = 'bold')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
-  ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'chips+putts', 'UpDown%', 'putts', 'Avg GIR putts')), scales = 'free')
+  ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'chips+putts', 'UpAndDown%', 'putts', 'Avg GIR putts')), scales = 'free')
 ```
 
 ## Ball Striking Metrics
@@ -513,45 +530,6 @@ scores_sum |>
                       ncol = 4)
 ```
 
-## Fit Models
-
-Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
-predicted by `Handicap Index` and `course_rating`
-
-+ The USGA calculates this index based on an individual's average of the 8 best `Gross Score`s over their 20 most recently-posted rounds
-+ Every course has a rating; the `Handicap Index` calculation factors in these ratings
-
-```{r Fit the model, include = T, message = F, warning = F, eval = T}
-# Fit a model to the data
-
-gross_lmer <- lme4::lmer(data = scores_sum |> 
-              dplyr::ungroup() |> 
-              dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9,
-                                                             TRUE ~ course_rating),
-                            course_rating = mean(course_rating) - course_rating,
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''),
-                            `Handicap Index` = mean(`Handicap Index`),
-                            days = as.numeric(date - min(date), units = 'days')) |> 
-                dplyr::relocate(days, .after = date),
-            formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
-           )
-
-summary(gross_lmer)
-```
-
-# Interpretation
-
-+ The aggregate average `Gross Score` (intercept of `Fixed effects`) is **88.19796** (yikes, that's bad). 
-
-+ For every **0.28373** standard deviations away from the average `course_rating` (how difficult the course is; usually **between 68-72 strokes**), the `Gross Score` **grows by 1 stroke**. 
-
-  + This makes sense. There's a lot of variation in performance (`Gross Score`) between and within courses, as shown by the `Random effects` `Variance` (`Intercept`s). Otherwise, we would expect `course_rating` to have a stronger relationship to `Gross Score`: the coefficient, representing the aggregate effect on `Gross Score`, i.e. independent of `course` and `Handicap Index`, would be larger. 
-  
-  + A small `t-value` of this `Fixed effect` suggests it is a relatively weak predictor of `Gross Score`. This makes sense when viewing the `Scores` plot and comparing the relatively flat line of `course_rating` with the downward trend of `Handicap Index` and `Gross Score`.
-
-+ The **-0.02425** `Fixed effect estimate` of `days` on `Gross Score` means that as time advances, the `Gross Score` is getting smaller: over time, golf scores are getting smaller, meaning I am improving! 
-
-  + This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is simply getting smaller, overall and independent of course, over time (further along the x-axis).
 
 ```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F, eval = T}
 DBI::dbDisconnect(conn = con)

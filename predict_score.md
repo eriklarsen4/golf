@@ -1,7 +1,7 @@
 ---
 title: "Model Predictions"
 author: "Erik Larsen"
-date: "2026-01-17"
+date: "2026-01-19"
 output: 
   html_document:
     code_folding: hide
@@ -95,11 +95,13 @@ head(scores_sum)
 ## #   `Net Score` <dbl>
 ```
 
-## Separate Metrics
+## Separate Metrics {.tabset .tabset-pills .tabset-fade}
 
 Separate the metrics:
 
-+ `scoring` (round scores & index)
+### Scoring Metrics
+
+Round scores and `Handicap Index`
 
 
 ``` r
@@ -122,7 +124,9 @@ head(scoring_metrics)
 ## # ℹ 1 more variable: `Net Score` <dbl>
 ```
 
-+ `strokes` (above/below par)
+### Stroke Metrics
+
+Above/below par
 
 
 ``` r
@@ -144,7 +148,9 @@ head(stroke_metrics)
 ## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
 ```
 
-+ `around the green` (chips, putts, etc.)
+### Around-the-Green Metrics
+
+Chips, putts, etc.
 
 
 ``` r
@@ -167,7 +173,9 @@ head(atg_metrics)
 ## # ℹ 1 more variable: `Avg GIR putts` <dbl>
 ```
 
-+ `ball striking` (approach and tee accuracy)
+### Ball Striking
+
+Approach and tee accuracy
 
 
 ``` r
@@ -193,87 +201,96 @@ head(ball_striking_metrics)
 ## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
 ```
 
-# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+# LMER Model {.tabset .tabset-pills .tabset-fade}
+
+## Fit LMER
 
 Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
 predicted by `Handicap Index` and `course_rating`
 
-+ The USGA calculates this index based on an individual's average of the 8 best `Gross Score`s over their 20 most recently-posted rounds
++ The `USGA` calculates this index based on an individual's **average of the 8 best** `Gross Score`s over their **20 most recently-posted** rounds
 + Every course has a rating; the `Handicap Index` calculation factors in these ratings
 
 
 ``` r
 # Fit a model to the data
 
-gross_lmer <- lme4::lmer(data = scores_sum |> 
-                           dplyr::ungroup() |> 
-                           dplyr::mutate(course_rating = dplyr::case_when(
-                             
-                             grepl(date_course,
-                                   pattern = 'Sewailo') ~ 68.9,
-                             TRUE ~ course_rating), # include Sewailo's rating
-                             
-                            course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
-                            
-                            course = gsub(date_course, pattern = '[0-9]|\\-|\\\n|\\.', replacement = ''), # extract the course names
-                            
-                            `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
-                            
-                            days = as.numeric(date - min(date) + 1, units = 'days')) |> # create a 'days' metric starting at the first day joining the club 
-                           
-                           dplyr::relocate(days, .after = date),
-                         
-                         formula = `Gross Score` ~ `Handicap Index` + course_rating + days + (1 + `Handicap Index` | course*course_rating)
+gross_lmer <- lme4::lmer(
+  
+  data = scores_sum |> 
+    dplyr::ungroup() |> 
+    dplyr::mutate(
+      
+      course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
+      
+      course = gsub(date_course,
+                    pattern = '[0-9]|\\-|\\\n|\\.',
+                    replacement = ''), # extract the course names
+      
+      `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
+      
+      days = as.numeric(date - min(date) + 1,
+                        units = 'days')
+      ) |> # create a 'days' metric starting at the first day joining the club 
+    
+    dplyr::relocate(days, .after = date),
+  
+  formula = `Gross Score` ~ 
+    `Handicap Index` + 
+    course_rating +
+    days + (1 + `Handicap Index` | course*course_rating)
            )
-
-summary(gross_lmer)
 ```
+
+## LMER Model Summary
+
 
 ```
 ## Linear mixed model fit by REML ['lmerMod']
 ## Formula: `Gross Score` ~ `Handicap Index` + course_rating + days + (1 +  
 ##     `Handicap Index` | course * course_rating)
 ##    Data: 
-## dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = dplyr::case_when(grepl(date_course,  
-##     pattern = "Sewailo") ~ 68.9, TRUE ~ course_rating), course_rating = mean(course_rating) -  
+## dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = mean(course_rating) -  
 ##     course_rating, course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
 ##     replacement = ""), `Handicap Index` = mean(`Handicap Index`),  
 ##     days = as.numeric(date - min(date) + 1, units = "days")),  
 ##     days, .after = date)
 ## 
-## REML criterion at convergence: 133.4
+## REML criterion at convergence: 139.6
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -3.3081 -0.4831  0.0462  0.4322  1.6115 
+## -3.3074 -0.5051  0.0335  0.5069  1.4588 
 ## 
 ## Random effects:
 ##  Groups               Name             Variance Std.Dev. Corr 
-##  course:course_rating (Intercept)      70.86569 8.4182        
-##                       `Handicap Index`  0.50083 0.7077   -1.00
-##  course_rating        (Intercept)       3.46604 1.8617        
-##                       `Handicap Index`  0.02449 0.1565   -1.00
-##  course               (Intercept)       4.22346 2.0551        
-##                       `Handicap Index`  0.02985 0.1728   -1.00
-##  Residual                              18.61449 4.3145        
-## Number of obs: 23, groups:  
+##  course:course_rating (Intercept)      65.68068 8.1044        
+##                       `Handicap Index`  0.46968 0.6853   -1.00
+##  course_rating        (Intercept)       4.56229 2.1360        
+##                       `Handicap Index`  0.03263 0.1806   -1.00
+##  course               (Intercept)       7.47346 2.7338        
+##                       `Handicap Index`  0.05345 0.2312   -1.00
+##  Residual                              18.79518 4.3353        
+## Number of obs: 24, groups:  
 ## course:course_rating, 7; course_rating, 6; course, 5
 ## 
 ## Fixed effects:
 ##               Estimate Std. Error t value
-## (Intercept)   88.19796    1.80267  48.926
-## course_rating  0.28373    0.84637   0.335
-## days          -0.02425    0.01185  -2.047
+## (Intercept)   87.83097    1.78009  49.341
+## course_rating  0.32452    0.84965   0.382
+## days          -0.02003    0.01126  -1.779
 ## 
 ## Correlation of Fixed Effects:
 ##             (Intr) crs_rt
-## course_rtng -0.127       
-## days        -0.867  0.147
+## course_rtng -0.122       
+## days        -0.868  0.140
 ## fit warnings:
 ## fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
 ## optimizer (nloptwrap) convergence code: 0 (OK)
 ## boundary (singular) fit: see help('isSingular')
 ```
+
+## Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
 
@@ -291,10 +308,129 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 ## [1] 82
 ```
 
+## Model Interpretation
+
+The aggregate average `Gross Score` (intercept of `Fixed effects`) is **87.83** (yikes, that's bad). 
+
++ For every **0.32** additional strokes relative to the average `course_rating` (how difficult the course is), the `Gross Score` **increases by 1 stroke**.
+
+This makes sense. There's a lot of variation in `Gross Score` between and within courses, as shown by the `Random effects` `Variance` (`Intercept`s). Otherwise, we would expect `course_rating` to have a stronger relationship to `Gross Score`: the coefficient, representing the slope of the aggregate effect on `Gross Score`, i.e. independent of `course` and `Handicap Index`, would be larger.
+
++ A small `t-value` of this `Fixed effect` suggests it is a relatively weak predictor of `Gross Score`. This makes sense when viewing the `Scores` plot and comparing the relatively flat line of `course_rating` with the downward trend of `Handicap Index` and `Gross Score`.
+
+The **-0.02** `Fixed effect estimate` of `days` on `Gross Score` means that, for every additional day, `Gross Score` decreases by **0.02** strokes; the `Gross Score` is getting smaller over time.
+
++ This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
+
+# Plot Model {.tabset .tabset-pills .tabset-fade}
+
+## Model Predictions
+
 ![](predict_score_files/figure-html/Plot models-1.png)<!-- -->
+
+The model is a random intercept, random slope model.
+
+In this case, that means `Gross Score` varies in its deviation from the overall mean `Gross Score` over time: `Silverbell`, `Randolph North`, and `Dell Urich` have their own slopes at different intercepts/heights along the y-axis.
+
++ The `gray` line just connects each sequential round (`Gross Score`) over time
++ The `blue` line is the model's predictions of each `Gross Score`, accounting for `course`, `course_rating`, `Handicap Index`, and `days` (time)
++ `Silverbell`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Silverbell`
++ `Randolph`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Randolph North`
++ `Dell Urich`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Dell Urich`
+
+## Actual Gross Score vs Predicted Gross Score
 
 ![](predict_score_files/figure-html/Plot Actual vs Predicted Gross-1.png)<!-- -->
 
+This plot of residuals reveals the actual `Gross Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
+
++ the navy blue line represents the dividing line between over/under performing where:
+
+  + any scores below the line represent rounds where I performed better than the model's prediction
+  + any scores above the line represent rounds where I performed worse than the model's prediction
+  
++ `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Gross Score`s compared to predicted `Gross Score`s at each respective course.
+
+  + I more often score better/lower at `Randolph North` than the model predicts, though, on average, these are closest to the model's predictions.
+  
+    + This might reveal that these rounds are contributing more weight to the model if they are not simply more reflective of the overall trend.
+    
+    + This could also reveal that I score more consistently at this course than others.
+    
+    + This could also mean that, given the downward trend, the course is easier than ratings suggest.
+    
+  + At `Silverbell` and `Randolph North`, I have been outperforming the model and scoring better over time.
+    
+  + The variability at `Dell Urich` is substantial, with one large outlier overperformance (~ **-15**), and one moderate outlier underperformance (~ **+6**) re-shaping the slope in the opposite direction: I have been getting worse at `Dell Urich` over time.
+  
+    + Even with more subsequent sample, this could reveal that I struggle to shoot low `Gross Score`s at `Dell Urich`, despite its easier course rating, and any effect of time.
+    
+    + Other latent variables may contribute to this variability, such as course/weather/event conditions.
+
+## Actual Net Score vs Predicted Gross Score
+
 ![](predict_score_files/figure-html/Plot Actual Net vs Predicted Gross-1.png)<!-- -->
+
+This plot of residuals shifts the previous plot upward, inverts it about the x-axis, and rotates it slightly about the origin, revealing the actual `Net Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
+
+`Net Score` is roughly `Gross Score` - `Handicap Index`.
+
++ the navy blue line represents the dividing line between over/under performing where:
+
+  + any scores below the line represent rounds where I performed worse than the model's prediction
+  + any scores above the line represent rounds where I performed better than the model's prediction
+  
++ `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Net Score`s compared to `Predicted Gross Score`s at each respective course.
+
+  + I more often score better/lower at `Randolph North` than the model predicts, particularly over time, given my handicap; however, on average, these are closest to the model's predictions than other courses.
+  
+    + This reveals that these rounds could be giving more weight to the model.
+    
+    + This could also reveal that I more consistently, if slightly, outscore the model at this course, even given my `Handicap Index`.
+    
+    + This could also mean that the course is easier than ratings suggest.
+    
+    + My instinct is that my `Handicap Index` was overestimated early on in this time series; it was high, and I frequently played `Randolph North` around then, and shot lower scores, directing the trend downward.
+    
+  + The variability at `Dell Urich` is substantial, with one large outlier overperformance (~ **-15**), and one moderate outlier underperformance (~ **+6**) re-shaping the slope in the opposite direction (positive as opposed to a negative slope, like `Silverbell` and `Randolph North`).
+  
+    + Even with more subsequent sample, this could reveal that I struggle to shoot low `Gross Score`s at `Dell Urich`, despite its easier course rating.
+    
+      + See the plot below for more insight.
+    
+    + Other latent variables may contribute to this variability, such as course/weather/event conditions.
+
+## Actual Gross Score vs Course Rating
+
+![](predict_score_files/figure-html/Gross Score vs Course Rating-1.png)<!-- -->
+
+
+This definitely shows that I struggle at `Dell Urich`-- independent of time, my `Gross Score`s at `Dell Urich` are roughly similar to other courses despite its easier rating-- this would be even more evident without the substantial `Gross Score` **72** outlier.
+
++ Interestingly, I have scored better at longer/more difficult tees at multiple courses.
+
++ Removing the effect of time/improved skill, and the wildly underrated `Arizona National` rating, this would otherwise capture the general trend and logic that **higher `course ratings` correlate to higher `Gross Score`s**
+
+## Actual Gross Score vs Handicap Index
+
+![](predict_score_files/figure-html/Gross Score vs Index-1.png)<!-- -->
+
+This also supports the ideas that, independent of time and `Handicap Index`, I struggle at `Dell Urich` because of the high `Gross Score`s at low `Handicap Index`:
+
++ Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich` trend still doesn't reverse, though the overall trend does-- independent of time and one outlier/corrective round, I perform worse at a course with a lower `Handicap Index`
+
+## Actual Gross Score vs Handicap Index, 72 removed
+
+![](predict_score_files/figure-html/Gross Score vs Index without 72-1.png)<!-- -->
+
+
+## Actual Net Score vs Course Rating
+
+![](predict_score_files/figure-html/Net Score vs Course Difficulty-1.png)<!-- -->
+
+## Actual Net Score vs Course Rating without 72 and Combo Tees
+
+![](predict_score_files/figure-html/Net Score vs Course Rating without 72 and combos-1.png)<!-- -->
+
 
 
