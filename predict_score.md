@@ -1,11 +1,11 @@
----
-title: "Model Predictions"
-author: "Erik Larsen"
-date: "2026-01-19"
----
-# Environment
+# Model Predictions
 
-## Attach Packages
+## Erik Larsen
+## 2026-01-19
+
+### Environment
+
+#### Attach Packages
 
 
 ``` r
@@ -19,16 +19,16 @@ library(RSQLite)
 library(emayili)
 ```
 
-## Connect to the db
+#### Connect to the db
 
 
 ``` r
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 ```
 
-# Summarize Metrics
+### Summarize Metrics
 
-## Gather and Format
+#### Gather and Format
 
 Gather and format from the database
 
@@ -57,7 +57,7 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-## Compute Advanced Metrics
+#### Compute Advanced Metrics
 
 Compute more nuanced metrics
 
@@ -87,11 +87,11 @@ head(scores_sum)
 ## #   `Net Score` <dbl>
 ```
 
-## Separate Metrics
+#### Separate Metrics
 
 Separate the metrics:
 
-### Scoring Metrics
+##### Scoring Metrics
 
 Round scores and `Handicap Index`
 
@@ -116,7 +116,7 @@ head(scoring_metrics)
 ## # ℹ 1 more variable: `Net Score` <dbl>
 ```
 
-### Stroke Metrics
+##### Stroke Metrics
 
 Above/below par
 
@@ -140,7 +140,7 @@ head(stroke_metrics)
 ## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
 ```
 
-### Around-the-Green Metrics
+##### Around-the-Green Metrics
 
 Chips, putts, etc.
 
@@ -165,7 +165,7 @@ head(atg_metrics)
 ## # ℹ 1 more variable: `Avg GIR putts` <dbl>
 ```
 
-### Ball Striking
+##### Ball Striking
 
 Approach and tee accuracy
 
@@ -193,9 +193,9 @@ head(ball_striking_metrics)
 ## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
 ```
 
-# LMER Model
+### LMER Model
 
-## Fit LMER
+#### Fit LMER
 
 Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
 predicted by `Handicap Index` and `course_rating`
@@ -234,7 +234,7 @@ gross_lmer <- lme4::lmer(
            )
 ```
 
-## LMER Model Summary
+#### LMER Model Summary
 
 
 ```
@@ -282,7 +282,7 @@ gross_lmer <- lme4::lmer(
 ## boundary (singular) fit: see help('isSingular')
 ```
 
-## Predict Next Round
+#### Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
 
@@ -300,7 +300,7 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 ## [1] 82
 ```
 
-## Model Interpretation
+#### Model Interpretation
 
 The aggregate average `Gross Score` (intercept of `Fixed effects`) is **87.83** (yikes, that's bad). 
 
@@ -314,9 +314,9 @@ The **-0.02** `Fixed effect estimate` of `days` on `Gross Score` means that, for
 
 + This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
 
-# Plot Model
+### Plot Model
 
-## Model Predictions
+#### Model Predictions
 
 ![](predict_score_files/figure-html/PlotModels-1.png)<!-- -->
 
@@ -330,7 +330,7 @@ In this case, that means `Gross Score` varies in its deviation from the overall 
 + `Randolph`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Randolph North`
 + `Dell Urich`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Dell Urich`
 
-## Actual Gross Score vs Predicted Gross Score
+#### Actual Gross Score vs Predicted Gross Score
 
 ![](predict_score_files/figure-html/PlotActualVsPredictedGross-1.png)<!-- -->
 
@@ -359,7 +359,7 @@ This plot of residuals reveals the actual `Gross Score` relative to the `Predict
     
     + Other latent variables may contribute to this variability, such as course/weather/event conditions.
 
-## Actual Net Score vs Predicted Gross Score
+#### Actual Net Score vs Predicted Gross Score
 
 ![](predict_score_files/figure-html/PlotActualNetVsPredictedGross-1.png)<!-- -->
 
@@ -392,7 +392,7 @@ This plot of residuals shifts the previous plot upward, inverts it about the x-a
     
     + Other latent variables may contribute to this variability, such as course/weather/event conditions.
 
-## Actual Gross Score vs Course Rating
+#### Actual Gross Score vs Course Rating
 
 ![](predict_score_files/figure-html/PlotGrossScoreVsCourseRating-1.png)<!-- -->
 
@@ -403,7 +403,7 @@ This definitely shows that I struggle at `Dell Urich`-- independent of time, my 
 
 + Removing the effect of time/improved skill, and the wildly underrated `Arizona National` rating, this would otherwise capture the general trend and logic that **higher `course ratings` correlate to higher `Gross Score`s**
 
-## Actual Gross Score vs Handicap Index
+#### Actual Gross Score vs Handicap Index
 
 ![](predict_score_files/figure-html/PlotGrossScoreVsHandicapIndex-1.png)<!-- -->
 
@@ -411,16 +411,16 @@ This also supports the ideas that, independent of time and `Handicap Index`, I s
 
 + Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich` trend still doesn't reverse, though the overall trend does-- independent of time and one outlier/corrective round, I perform worse at a course with a lower `Handicap Index`
 
-## Actual Gross Score vs Handicap Index, 72 removed
+#### Actual Gross Score vs Handicap Index, 72 removed
 
 ![](predict_score_files/figure-html/PlotGrossScoreVsHandicapIndexWithout72-1.png)<!-- -->
 
 
-## Actual Net Score vs Course Rating
+#### Actual Net Score vs Course Rating
 
 ![](predict_score_files/figure-html/PlotNetScoreVsCourseDifficulty-1.png)<!-- -->
 
-## Actual Net Score vs Course Rating without 72 and Combo Tees
+#### Actual Net Score vs Course Rating without 72 and Combo Tees
 
 ![](predict_score_files/figure-html/PlotNetScoreVsCourseRatingWithout72AndCombos-1.png)<!-- -->
 
