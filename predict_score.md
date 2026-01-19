@@ -2,16 +2,8 @@
 title: "Model Predictions"
 author: "Erik Larsen"
 date: "2026-01-19"
-output: 
-  html_document:
-    code_folding: hide
-    toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
-    keep_md: true
 ---
-# Environment {.tabset .tabset-fade .tabset-pills}
+# Environment
 
 ## Attach Packages
 
@@ -34,7 +26,7 @@ library(emayili)
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
 ```
 
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+# Summarize Metrics
 
 ## Gather and Format
 
@@ -95,7 +87,7 @@ head(scores_sum)
 ## #   `Net Score` <dbl>
 ```
 
-## Separate Metrics {.tabset .tabset-pills .tabset-fade}
+## Separate Metrics
 
 Separate the metrics:
 
@@ -201,7 +193,7 @@ head(ball_striking_metrics)
 ## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
 ```
 
-# LMER Model {.tabset .tabset-pills .tabset-fade}
+# LMER Model
 
 ## Fit LMER
 
@@ -322,7 +314,7 @@ The **-0.02** `Fixed effect estimate` of `days` on `Gross Score` means that, for
 
 + This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
 
-# Plot Model {.tabset .tabset-pills .tabset-fade}
+# Plot Model
 
 ## Model Predictions
 
