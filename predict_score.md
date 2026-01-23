@@ -1,5 +1,5 @@
 ## Predicting Golf Gross Score with a LMER Model
-====
+
 Erik Larsen
 
 2026-01-22
