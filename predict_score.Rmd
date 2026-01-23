@@ -246,7 +246,7 @@ vc_df <- gross_lmer |>
 
 The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`** (yikes, that's bad). 
 
-For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by  **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> dplyr::select(dplyr::contains('Handicap')) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
+For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Hand')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
 
 + This makes sense: `Handicap Index` is used to compare players of various skill by how many strokes they average. 
 
@@ -256,7 +256,7 @@ For every additional `Handicap Index` point larger than the average `Handicap In
   
     + This effectively quantifies who performed better that day after correcting for skill level.
     
-+ While this makes sense, I wonder whether I should expect `Handicap Index` to have a larger `Fixed effect` `Estimate`. The effect is significant (**`t value` = ** **`r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Ha')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance = abs(**t value**) > 1). But `Handicap Index` is a metric directly derived from `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth. 1? More? Does it vary by skill? Is it uniform?
++ While this makes sense, I wonder whether I should expect `Handicap Index` to have a larger `Fixed effect` `Estimate`. The effect is significant (**`t value` = ** **`r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Ha')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1). But `Handicap Index` is a metric directly derived from `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth. 1? More? Does it vary by skill? Is it uniform?
 
 For every additional `course_rating` point (stroke) greater than the average `course_rating` (~69-70 strokes in this dataset), `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** strokes.
 
@@ -270,9 +270,9 @@ The `course` also has an effect on `Gross Score`, with a large variance of **`r 
 
 For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)`** strokes. This is seemingly tiny on a day-to-day basis, but extrapolating to months or weeks, this becomes very evident (**`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*30`** strokes per month; **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*365`** strokes per year).
 
-  + Obviously, linear extrapolation in this sense is fairly fallacious-- there will be variation and probably a limit to lowering `Gross Score`.
+  + Linear extrapolation in this sense is misleading-- there will be variation and probably a limit to lowering `Gross Score`.
 
-  + But this effect is strongly significant (**`t value` = ** **`r stats::coef(summary(gross_lmer))['days', 't value'] |> as.numeric() %>% round(., 2)`**) and appears to be the primary driver of the trend.
+  + But this effect is strongly significant (**t value = ** **`r stats::coef(summary(gross_lmer))['days', 't value'] |> as.numeric() %>% round(., 2)`**) and appears to be the primary driver of the trend.
 
 ## Predict Next Round
 
@@ -406,14 +406,6 @@ scores_sum |>
                 days = as.numeric(date - min(date), units = 'days') + 1, # include days
                 `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
   dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
-  
-  # dplyr::add_row(course_name = 'mean') |> # add all mean values
-  # dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
-  #               days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-  #               `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
-  #               date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
-  #               `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
-  #               `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
   
   dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
   dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating

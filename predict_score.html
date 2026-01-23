@@ -1836,7 +1836,7 @@ gross_lmer &lt;- lme4::lmer(
 that’s bad).</p>
 <p>For every additional <code>Handicap Index</code> point larger than
 the average <code>Handicap Index</code>, <code>Gross Score</code>
-increases by **** strokes.</p>
+increases by <strong>2.96</strong> strokes.</p>
 <ul>
 <li><p>This makes sense: <code>Handicap Index</code> is used to compare
 players of various skill by how many strokes they average.</p>
@@ -1856,7 +1856,7 @@ correcting for skill level.</li>
 <code>Handicap Index</code> to have a larger <code>Fixed effect</code>
 <code>Estimate</code>. The effect is significant
 (<strong><code>t value</code> = </strong> <strong>1.62</strong>;
-significance = abs(<strong>t value</strong>) &gt; 1). But
+significance : abs(<strong>t value</strong>) &gt; 1). But
 <code>Handicap Index</code> is a metric directly derived from
 <code>Gross Score</code>, thus, I’m unsure how many strokes
 (<code>Gross Score</code>) index points should be worth. 1? More? Does
@@ -1891,12 +1891,12 @@ is seemingly tiny on a day-to-day basis, but extrapolating to months or
 weeks, this becomes very evident (<strong>-1.2</strong> strokes per
 month; <strong>-14.6</strong> strokes per year).</p>
 <ul>
-<li><p>Obviously, linear extrapolation in this sense is fairly
-fallacious– there will be variation and probably a limit to lowering
+<li><p>Linear extrapolation in this sense is misleading– there will be
+variation and probably a limit to lowering
 <code>Gross Score</code>.</p></li>
-<li><p>But this effect is strongly significant
-(<strong><code>t value</code> = </strong> <strong>-4.08</strong>) and
-appears to be the primary driver of the trend.</p></li>
+<li><p>But this effect is strongly significant (<strong>t value =
+</strong> <strong>-4.08</strong>) and appears to be the primary driver
+of the trend.</p></li>
 </ul>
 </div>
 <div id="predict-next-round" class="section level2">
