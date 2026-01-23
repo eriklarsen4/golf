@@ -190,7 +190,7 @@ head(ball_striking_metrics)
 ### Fit LMER
 
 Fit a LMER (linear mixed-effects regression) model to the data to capture repeated measurements of `Gross Score` 
-predicted by `Handicap Index` and `course_rating`.
+predicted by `Handicap Index`, `course_rating`, and time (`days`).
 
 + The `USGA` calculates this index based on an individual's **average of the 8 best** `Gross Score`s over their **20 most recently-posted** rounds.
 + Every course has a rating; the `Handicap Index` calculation factors in these ratings.

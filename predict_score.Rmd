@@ -188,15 +188,15 @@ head(ball_striking_metrics)
 ## Fit LMER
 
 Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
-predicted by `Handicap Index` and `course_rating`
+predicted by `Handicap Index`, `course_rating`, and time (`days`).
 
-+ The `USGA` calculates this index based on an individual's **average of the 8 best** `Gross Score`s over their **20 most recently-posted** rounds
-+ Every course has a rating; the `Handicap Index` calculation factors in these ratings
++ The `USGA` calculates this index based on an individual's **average of the 8 best** `Gross Score`s over their **20 most recently-posted** rounds.
++ Every course has a rating; the `Handicap Index` calculation factors in these ratings.
 
-+ Center the `course_rating` and `Handicap Index` variables at their mean to make interpreting intercept and slope estimates more meaningful
++ Center the `course_rating` and `Handicap Index` variables at their mean to make interpreting intercept and slope estimates more meaningful.
 
 + Include random intercepts and random slopes of `course` and `course_rating`, given
-a `Handicap Index`
+a `Handicap Index`.
 
 ```{r Fit the model, include = T, message = F, warning = F, echo = T}
 # Fit a model to the data
@@ -531,8 +531,8 @@ This plot of residuals reveals the actual `Gross Score` relative to the `Predict
 
 + the navy blue line represents the dividing line between over/under performing where:
 
-  + any scores below the line represent rounds where I performed better than the model's prediction
-  + any scores above the line represent rounds where I performed worse than the model's prediction
+  + any scores below the line represent rounds where I performed better than the model's prediction.
+  + any scores above the line represent rounds where I performed worse than the model's prediction.
   
 + `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Gross Score`s compared to predicted `Gross Score`s at each respective course.
 
@@ -618,8 +618,8 @@ This plot of residuals shifts the previous plot upward, inverts it about the x-a
 
 + the navy blue line represents the dividing line between over/under performing where:
 
-  + any scores below the line represent rounds where I performed worse than the model's prediction
-  + any scores above the line represent rounds where I performed better than the model's prediction
+  + any scores below the line represent rounds where I performed worse than the model's prediction.
+  + any scores above the line represent rounds where I performed better than the model's prediction.
   
 + `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Net Score`s compared to `Predicted Gross Score`s at each respective course.
 
@@ -756,7 +756,7 @@ scores_sum |>
 
 This also supports the ideas that, independent of time and `Handicap Index`, I struggle at `Dell Urich` because of the high `Gross Score`s at low `Handicap Index`:
 
-+ Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich` trend still doesn't reverse, though the overall trend does-- independent of time and one outlier/corrective round, I perform worse at a course with a lower `Handicap Index`
++ Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich` trend still doesn't reverse, though the overall trend does-- independent of time and one outlier/corrective round, I perform worse at a course with a lower `Handicap Index`.
 
 ## Actual Gross Score vs Handicap Index, 72 removed
 
