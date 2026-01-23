@@ -193,6 +193,11 @@ predicted by `Handicap Index` and `course_rating`
 + The `USGA` calculates this index based on an individual's **average of the 8 best** `Gross Score`s over their **20 most recently-posted** rounds
 + Every course has a rating; the `Handicap Index` calculation factors in these ratings
 
++ Center the `course_rating` and `Handicap Index` variables at their mean to make interpreting intercept and slope estimates more meaningful
+
++ Include random intercepts and random slopes of `course` and `course_rating`, given
+a `Handicap Index`
+
 ```{r Fit the model, include = T, message = F, warning = F, echo = T}
 # Fit a model to the data
 
@@ -202,24 +207,27 @@ gross_lmer <- lme4::lmer(
     dplyr::ungroup() |> 
     dplyr::mutate(
       
-      course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
+      course_rating = mean(course_rating) - course_rating, 
       
       course = gsub(date_course,
                     pattern = '[0-9]|\\-|\\\n|\\.',
                     replacement = ''), # extract the course names
       
-      `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
-      
+      `Handicap Index` = mean(`Handicap Index`) - `Handicap Index`,
       days = as.numeric(date - min(date) + 1,
                         units = 'days')
       ) |> # create a 'days' metric starting at the first day joining the club 
     
     dplyr::relocate(days, .after = date),
   
-  formula = `Gross Score` ~ 
-    `Handicap Index` + 
+  formula = 
+    `Gross Score` ~
+    `Handicap Index` +
     course_rating +
-    days + (1 + `Handicap Index` | course*course_rating)
+    course + 
+    days +
+    (1 + `Handicap Index`|course) + # random intercepts and random slopes for Gross Score at a course given a Handicap Index
+    (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a course rating given a Handicap Index
            )
 ```
 
@@ -228,6 +236,43 @@ gross_lmer <- lme4::lmer(
 ```{r Show Model results, include = T, message = F, warning = F, eval = T, echo = F}
 summary(gross_lmer)
 ```
+```{r Extract RE, include = T, message = F, warning = F, eval = T, echo = F}
+vc_df <- gross_lmer |> 
+  brms::VarCorr() |> 
+  as.data.frame()
+```
+
+## Model Interpretation
+
+The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`** (yikes, that's bad). 
+
+For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by  **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> dplyr::select(dplyr::contains('Handicap')) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
+
++ This makes sense: `Handicap Index` is used to compare players of various skill by how many strokes they average. 
+
+  + In other words, a player with great skill will have a low `Handicap Index` (i.e. **0**), meaning they average par for an entire round.
+  
+  + A worse player will have a higher `Handicap Index`, and in competitions, roughly this amount is subtracted from their score. 
+  
+    + This effectively quantifies who performed better that day after correcting for skill level.
+    
++ While this makes sense, I wonder whether I should expect `Handicap Index` to have a larger `Fixed effect` `Estimate`. The effect is significant (**`t value` = ** **`r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Ha')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance = abs(**t value**) > 1). But `Handicap Index` is a metric directly derived from `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth. 1? More? Does it vary by skill? Is it uniform?
+
+For every additional `course_rating` point (stroke) greater than the average `course_rating` (~69-70 strokes in this dataset), `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** strokes.
+
+  + This also makes sense: harder courses yield higher `Gross Score`s.
+  
+    + These courses vary in their difficulty, independent of player skill (`Handicap Index`), by **`r vc_df |> dplyr::filter(grp == 'course_rating' & grepl(var1, pattern = 'Int') & is.na(var2)) |> dplyr::select(vcov) |>  as.numeric() %>% round(., 2)`** strokes on average, even though `course_rating` is supposed to account for course difficulty across all courses. This is the **`Random effects` `Variance` (`Intercept`)**.
+    
+    + When compared to the `Residual` `Variance`, **`r vc_df |> dplyr::filter(grp == 'Residual') |> dplyr::select(vcov) |> unlist() |> as.numeric() %>% round(., 2)`**, a `course_rating` variance of **`r vc_df |> dplyr::filter(grp == 'course_rating' & grepl(var1, pattern = 'Int') & is.na(var2)) |> dplyr::select(vcov) |>  as.numeric() %>% round(., 2)`** is very high-- I play differently according to `course_rating`.
+
+The `course` also has an effect on `Gross Score`, with a large variance of **`r vc_df |> dplyr::filter(grp == 'course' & var1 == '(Intercept)' & is.na(var2)) |> dplyr::select(vcov) |> unlist() |> as.numeric() %>% round(., 2)`**: I play more consistently at some courses than others.
+
+For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)`** strokes. This is seemingly tiny on a day-to-day basis, but extrapolating to months or weeks, this becomes very evident (**`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*30`** strokes per month; **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*365`** strokes per year).
+
+  + Obviously, linear extrapolation in this sense is fairly fallacious-- there will be variation and probably a limit to lowering `Gross Score`.
+
+  + But this effect is strongly significant (**`t value` = ** **`r stats::coef(summary(gross_lmer))['days', 't value'] |> as.numeric() %>% round(., 2)`**) and appears to be the primary driver of the trend.
 
 ## Predict Next Round
 
@@ -251,6 +296,16 @@ new_df <- DBI::dbGetQuery(
   dplyr::ungroup() |> 
   dplyr::mutate(
     
+    index_mean = scores_sum |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(
+        `Handicap Index` = mean(`Handicap Index`),
+        course_name = gsub(date_course,
+                           pattern = '[0-9]|\\-|\\\n|\\.',
+                           replacement =  '')) |> 
+      dplyr::distinct(`Handicap Index`) |> 
+      unlist() |> as.numeric(),
+    
     `Handicap Index` = index, # enter current index
     
     course_rating_mean = scores_sum |> 
@@ -269,8 +324,9 @@ new_df <- DBI::dbGetQuery(
       dplyr::mutate(days = as.numeric(date - min(date) + 1, units = 'days')) |> 
       dplyr::slice_tail() |> 
       dplyr::select(days) |> unlist() |> as.numeric()) |> 
-  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating) |> 
-  dplyr::select(-course_rating_mean) |> 
+  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating,
+                `Handicap Index` = ((`Handicap Index` + index_mean)/2) - `Handicap Index`) |> 
+  dplyr::select(-course_rating_mean, -index_mean) |> 
   dplyr::rename(course = course_name)
 ```
 
@@ -281,21 +337,63 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   round(., 0)
 ```
 
-## Model Interpretation
-
-The aggregate average `Gross Score` (intercept of `Fixed effects`) is **`r nlme::fixed.effects(gross_lmer)[1] |> as.numeric() %>% round(.,2)`** (yikes, that's bad). 
-
-+ For every **`r nlme::fixed.effects(gross_lmer)[2] |> as.numeric() %>% round(., 2)`** additional strokes relative to the average `course_rating` (how difficult the course is), the `Gross Score` **increases by 1 stroke**.
-
-This makes sense. There's a lot of variation in `Gross Score` between and within courses, as shown by the `Random effects` `Variance` (`Intercept`s). Otherwise, we would expect `course_rating` to have a stronger relationship to `Gross Score`: the coefficient, representing the slope of the aggregate effect on `Gross Score`, i.e. independent of `course` and `Handicap Index`, would be larger.
-
-+ A small `t-value` of this `Fixed effect` suggests it is a relatively weak predictor of `Gross Score`. This makes sense when viewing the `Scores` plot and comparing the relatively flat line of `course_rating` with the downward trend of `Handicap Index` and `Gross Score`.
-
-The **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** `Fixed effect estimate` of `days` on `Gross Score` means that, for every additional day, `Gross Score` decreases by **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2) |> abs()`** strokes; the `Gross Score` is getting smaller over time.
-
-+ This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
-
 # Plot Model {.tabset .tabset-pills .tabset-fade}
+
+## Model
+
+```{r PlotModelByCourse, include = T, message = F, warning = F, echo = F, render = T}
+scores_sum |> 
+  dplyr::ungroup() |> 
+  dplyr::mutate(course_name = gsub(date_course,
+                                   pattern = '[0-9]|\\-|\\\n|\\.',
+                                   replacement =  ''), # extract course name
+                days = as.numeric(date - min(date), units = 'days') + 1, # include days
+                `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
+  dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
+  
+  dplyr::add_row(course_name = 'mean') |> # add all mean values
+  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
+                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
+                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric() %>% round(., 2), TRUE ~ `Gross Score`),
+                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
+                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
+                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
+  
+  dplyr::group_by(course_name) |> 
+  ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
+  ggplot2::geom_point(aes(alpha = 0.1),size = 3, inherit.aes = T) +
+  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.3, size = 1.5, inherit.aes = F) +
+  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', alpha = 0.5, size = 3, inherit.aes = F) +
+  ggplot2::geom_text(aes(x = date, y = `Gross Score`, label = `Gross Score`, fontface = 'bold'), color = 'black', size = 4) +
+  
+  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
+  ggplot2::labs(title = paste0('Linear Mixed Effects Regression (LMER) Model\ntrained on Gross Scores\nas of ', Sys.Date()),
+                color = 'Course') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
+                 panel.grid.minor = ggplot2::element_blank(),
+                 legend.title = ggplot2::element_text(face = 'bold', size = 11),
+                 legend.text = ggplot2::element_text(face = 'bold', size = 9),
+                 legend.key.width = rel(0.4),
+                 legend.key.height = rel(0.4),
+                 legend.key.spacing.y = rel(0.4),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 9, angle = 270, hjust = 0, vjust = 0.5),
+                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9)
+                 ) +
+  ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
+  ggplot2::guides(fill = 'none', alpha = 'none') +
+  ggplot2::facet_wrap(~course_name)
+```
+
+The model is a random intercept, random slope linear mixed-effects regression (LMER) model.
+
+In this case, that means `Gross Score` varies for each course at a given `Handicap Index` in its deviation from the overall mean `Gross Score` (navy blue line) over time: `Silverbell`, `Randolph North`, and `Dell Urich` have their own average `Gross Scores` (intercepts) and slopes (change in `Gross Score` over time)-- notice how the line for each course has a different slope, starting at a different y-intercept
+
++ The `blue` line is the model's overall fit of the `Gross Score`, accounting for `course`, `course_rating`, `Handicap Index`, and `days` (time)
++ `Silverbell`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Silverbell`
++ `Randolph`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Randolph North`
++ `Dell Urich`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Dell Urich`
 
 ## Model Predictions
 
@@ -309,13 +407,13 @@ scores_sum |>
                 `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
   dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
   
-  dplyr::add_row(course_name = 'mean') |> # add all mean values
-  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
-                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
-                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
-                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
-                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
+  # dplyr::add_row(course_name = 'mean') |> # add all mean values
+  # dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
+  #               days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
+  #               `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
+  #               date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
+  #               `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
+  #               `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
   
   dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
   dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
@@ -336,11 +434,11 @@ scores_sum |>
   
   dplyr::group_by(course_name) |> 
   ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
-  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 2, inherit.aes = F) +
-  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', size = 3, inherit.aes = F) +
-  ggplot2::geom_point(size = 5, inherit.aes = T) +
-  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
-  ggplot2::labs(title = paste0('Model-Predicted Gross Scores\n(colored lines, point with text)\noverlaid on Actual Gross Scores\nas of ', Sys.Date()),
+  ggplot2::geom_point(size = 5, alpha = 0.7, inherit.aes = T) +
+  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 1.5, inherit.aes = F) +
+  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', alpha = 0.7, size = 3, inherit.aes = F) +
+  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), size = 2, method = 'lm', se = F) +
+  ggplot2::labs(title = paste0('LMER-Predicted Gross Scores\n(navy or with text)\nas of ', Sys.Date()),
                 color = 'Course') +
   ggplot2::theme_bw() +
   ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
@@ -368,18 +466,9 @@ scores_sum |>
                            as.numeric() %>%
                            round(., 0)),
                      inherit.aes = F, size = 3, color = 'black', hjust = -0.1)
-  
 ```
 
-The model is a random intercept, random slope model.
 
-In this case, that means `Gross Score` varies in its deviation from the overall mean `Gross Score` over time: `Silverbell`, `Randolph North`, and `Dell Urich` have their own slopes at different intercepts/heights along the y-axis.
-
-+ The `gray` line just connects each sequential round (`Gross Score`) over time
-+ The `blue` line is the model's predictions of each `Gross Score`, accounting for `course`, `course_rating`, `Handicap Index`, and `days` (time)
-+ `Silverbell`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Silverbell`
-+ `Randolph`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Randolph North`
-+ `Dell Urich`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Dell Urich`
 
 ## Actual Gross Score vs Predicted Gross Score
 
