@@ -8,3 +8,4 @@ Card.csv
 .Renviron
 compose_email
 email_template.Rmd
+inst/doc
