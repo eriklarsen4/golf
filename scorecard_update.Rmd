@@ -11,6 +11,7 @@ output:
       collapsed: TRUE
       smooth_scroll: TRUE
     fig_caption: TRUE
+    keep_md: TRUE
 ---
 
 ```{r setup, include = F, message = F, warning = F, echo = F, eval = T}
@@ -448,7 +449,7 @@ head(stroke_quality_avg)
 
 ## Scoring Metrics
 
-```{r Plot Scoring Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotScoringMetrics, include = T, message = F, warning = F, eval = T}
 scoring_metrics |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
                 `Handicap Index` = `Handicap Index`*4.5) |>
@@ -502,7 +503,7 @@ scoring_metrics |>
 
 ## Stroke Metrics
 
-```{r Plot Stroke Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotStrokeMetrics, include = T, message = F, warning = F, eval = T}
 stroke_metrics |> 
   tidyr::pivot_longer(cols = c(`doubles+`:birdies), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -539,7 +540,7 @@ stroke_metrics |>
 
 ## Around the Green Metrics
 
-```{r Plot Around the Green Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotAroundTheGreenMetrics, include = T, message = F, warning = F, eval = T}
 atg_metrics |> 
   tidyr::pivot_longer(cols = c(chips:`Avg GIR putts`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -576,7 +577,7 @@ atg_metrics |>
 
 ## Ball Striking Metrics
 
-```{r Plot Ball Striking Metrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
+```{r PlotBallStrikingMetrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
 ball_striking_metrics |> 
   tidyr::pivot_longer(cols = c(GIRs:`Driver FIR%`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -617,7 +618,7 @@ ball_striking_metrics |>
 
 ### Minima
 
-```{r Plot Stroke Quality Min Metrics, include = T, message = F, warning = F, eval = T, fig.width=9}
+```{r PlotStrokeQualityMinMetrics, include = T, message = F, warning = F, eval = T, fig.width=9}
 stroke_quality_min |> 
   dplyr::ungroup() %>%
   dplyr::mutate(dplyr::across(c(date:n), ~as.character(.x))) |> 
@@ -648,7 +649,7 @@ stroke_quality_min |>
 
 ### Maxima
 
-```{r Plot Stroke Quality Max Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotStrokeQualityMaxMetrics, include = T, message = F, warning = F, eval = T}
 stroke_quality_max |> 
   dplyr::ungroup() %>%
   dplyr::mutate(dplyr::across(c(date:n), ~as.character(.x))) |> 
@@ -716,7 +717,7 @@ stroke_quality_avg |>
 
 ## Main Metrics
 
-```{r Plot Main Metrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
+```{r PlotMainMetrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
 scores_sum |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating)) |> 
   tidyr::pivot_longer(cols = c(`Handicap Index`, `Gross Score`, `Net Score`,
