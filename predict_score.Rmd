@@ -29,7 +29,8 @@ library(emayili)
 ## Connect to the db
 
 ```{r Connect to the db, include = T, message = F, warning = F, echo = T}
-con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+db <- dir(getwd(), pattern = 'golf_data.db', full.names = T, recursive = T)
+con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
 ```
 
 # Summarize Metrics {.tabset .tabset-pills .tabset-fade}
@@ -183,6 +184,30 @@ ball_striking_metrics <- scores_sum |>
 head(ball_striking_metrics)
 ```
 
+### Shot Quality
+
+Yardage and accuracy on tracked shots
+
+```{r Stroke Quality, include = T, warning= F, message = F, echo = T}
+stroke_quality <- DBI::dbGetQuery(conn = con,
+                                  statement = paste0("SELECT DISTINCT * FROM club_metrics;")) |>
+  dplyr::mutate(date = lubridate::as_date(date),
+                hole = gsub(hole, pattern = 'hole_', replacement = ''),
+                hole = as.integer(hole)) |> 
+  dplyr::mutate(dplyr::across(dplyr::contains("yds"), ~as.integer(.x))) |> 
+  dplyr::rename(course = course_name) |> 
+  dplyr::group_by(date, hole, stroke) |> 
+  dplyr::arrange(date, hole, stroke)
+head(stroke_quality)
+```
+
+```{r Stroke Quality Metrics, include = F, warning = F, message = F, echo = F}
+stroke_quality_min <- stroke_quality |> 
+  dplyr::group_by(club) |> 
+  dplyr::summarize()
+```
+
+
 # LMER Model {.tabset .tabset-pills .tabset-fade}
 
 ## Fit LMER
@@ -279,9 +304,9 @@ For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effe
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-round_date <- lubridate::as_date('2026-01-25')
+round_date <- lubridate::as_date('2026-02-22')
 index <- 10.2
-course <- "Randolph"
+course <- "Dell"
 tees <- 'combo'
 
 new_df <- DBI::dbGetQuery(
