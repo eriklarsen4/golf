@@ -273,7 +273,7 @@ Yardage and accuracy for each club
 
 ![](scorecard_update_files/figure-html/PlotBallStrikingMetrics-1.png)<!-- -->
 
-#### Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
+#### Stroke Quality Metrics
 
 ##### Minima
 
