@@ -13,10 +13,6 @@ output:
     fig_caption: TRUE
 ---
 
-# Environment {.tabset .tabset-fade .tabset-pills}
-
-## Attach Packages
-
 ```{r setup, include = F, message = F, warning = F, echo = F, eval = T}
 knitr::opts_chunk$set(echo = FALSE) 
 ```
@@ -35,31 +31,36 @@ library(RSQLite)
 library(emayili)
 ```
 
-## Connect to the db
-
 ```{r Connect to the db, include = T, message = F, warning = F, eval = T}
-con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+db <- dir(path = getwd(), pattern = 'golf_data.db', full.names = T, recursive = T)
+con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
 ```
 
 # Record New Scorecard {.tabset .tabset-pills .tabset-fade}
 
-## Input the Data
+## Input the Scores Data
 
-```{r Annotate the new data, include = T, message = F, warning = F, eval = T}
-round_course <- 'Randolph'
-round_date <- '2026-01-25'
+```{r Annotate the new data, include = T, message = F, warning = F, echo = T, eval = T}
+round_course <- ''
+round_date <- ''
 round_tees <- 'combo'
+
 hole_scores <- c()
+
 FIRs <- c()
+
 GIRs <- c()
+
 putts_rec <- c()
+
 chips_rec <- c()
+
 penalties_rec <- c()
+
 tee_clubs <- c()
+
 index <- 10.2
 ```
-
-## Get Metrics
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
@@ -67,7 +68,7 @@ if ( length(hole_scores) > 0 ) {
 }
 ```
 
-```{r Get Metrics, include = T, message = F, warning = F, eval = T}
+```{r Get Scoring Metrics, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
  Card <- golf::logScore(Scorecard = Card,
                        hole_by_hole = hole_scores,
@@ -82,13 +83,7 @@ if ( length(hole_scores) > 0 ) {
 }
 ```
 
-# Update db {.tabset .tabset-pills .tabset-fade}
-
-Update the db if the new round hasn't been logged yet
-
-## Players Table
-
-```{r Update the players table of the db, include = T, message = F, warning = F, eval = T}
+```{r Update the players table of the db, include = T, message = F, warning = F, echo = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -109,8 +104,6 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-## Courses Table
-
 ```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -130,8 +123,6 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-## Rounds Table
-
 ```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -143,10 +134,84 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      ) {
   DBI::dbAppendTable(conn = con,
                    name = 'rounds',
-                   value = round <- Card |> 
-                     dplyr::select(c(GHIN:tees),c(hole,hole_handicap:tee_club)) |> 
-                     dplyr::distinct() |> 
-                     dplyr::rename(handicap_index = index, course_name = course)
+                   value = Card |> 
+                     dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
+                     dplyr::distinct() |>
+                     dplyr::rename(handicap_index = index) |> 
+                     dplyr::rename(course_name = course)
+                   )
+}
+```
+
+## Input Club Metrics
+
+```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+club_choice <- c(
+  
+)
+
+dist_to_target <- c(
+  
+)
+
+yds <- c(
+  
+)
+
+lie_type <- c(
+  
+)
+
+target_status <- c(
+  
+)
+
+location <- c(
+  
+)
+
+type_of_shot <- c(
+  
+)
+```
+
+```{r Gather shot metrics data, include = T, message = F, warning = F, echo = F, eval = T}
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+) {
+
+  club_metrics <- golf::getClubMetrics(course = round_course,
+                                       round_date = round_date,
+                                       club_choice = club_choice,
+                                       distance_to_target = dist_to_target,
+                                       distance_traveled = yds,
+                                       lie_type = lie_type,
+                                       target_status = target_status,
+                                       location = location,
+                                       type_of_shot = type_of_shot
+                                       )
+  
+  head(club_metrics)
+}
+```
+
+```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+     ) {
+  DBI::dbAppendTable(conn = con,
+                   name = 'club_metrics',
+                   value = club_metrics
                    )
 }
 ```
@@ -162,7 +227,7 @@ rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==
 
 Gather and format from the database
 
-```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+```{r Summarize Stroke Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -185,6 +250,19 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole) |> 
   dplyr::ungroup()
 ```
+
+```{r Summarize Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT * FROM club_metrics;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date),
+                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> 
+                  as.numeric()) |> 
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole, stroke) |> 
+  dplyr::ungroup()
+```
+
 
 ## Compute Advanced Metrics
 
@@ -261,15 +339,15 @@ scores_sum <- scores |>
 head(scores_sum)
 ```
 
-## Separate Metrics {.tabset .tabset-pills .tabset-fade}
+## View Metrics {.tabset .tabset-pills .tabset-fade}
 
-Separate the metrics:
+Separate and view the metrics:
 
 ### Scoring Metrics
 
 Scores and Handicap
 
-```{r Separate By Type 1, include = T, warning = F, message = F, eval = T}
+```{r Separate Scoring Metrics, include = T, warning = F, message = F, eval = T}
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
 head(scoring_metrics)
@@ -279,7 +357,7 @@ head(scoring_metrics)
 
 Pars, birdies, bogies, etc.
 
-```{r Separate By Type 2, include = T, warning = F, message = F, eval = T}
+```{r Separate Stroke Metrics, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
 head(stroke_metrics)
@@ -289,7 +367,7 @@ head(stroke_metrics)
 
 Chips, putts, etc.
 
-```{r Separate By Type 3, include = T, warning = F, message = F, eval = T}
+```{r Separate Around the Green Metrics, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpAndDown%`, putts, `Avg GIR putts`)
 head(atg_metrics)
@@ -299,13 +377,72 @@ head(atg_metrics)
 
 Approach and tee accuracy
 
-```{r Separate By Type 4, include = T, warning = F, message = F, eval = T}
+```{r Separate Ball Striking Metrics, include = T, warning = F, message = F, eval = T}
 ball_striking_metrics <- scores_sum |> 
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
 head(ball_striking_metrics)
 ```
+
+
+### Club Metrics
+
+Yardage and accuracy for each club
+
+```{r Separate Stroke Quality Metrics, include = T, warning = F, message = F, echo = F, eval = T}
+stroke_quality <- stroke_quality |> 
+  # dplyr::filter(grepl(shot_type, pattern = 'full')) |> 
+  dplyr::mutate(dplyr::across(dplyr::contains("yds"), ~as.numeric(.x))) |> 
+  dplyr::mutate(yd_diff = yds_to_target - yds_traveled,
+                on_target = dplyr::case_when(on_target == 'yes' ~ 1, TRUE ~ 0))
+```
+
+```{r Separate Stroke Quality Metrics Minimum, include = T, warning = F, message = F, echo = F, eval = T}
+stroke_quality_min <- stroke_quality |> 
+  dplyr::group_by(date, club) |> 
+  dplyr::summarize(rd_min_yds_to_target = round(min(yds_to_target), 1),
+                   rd_min_yds_traveled = round(min(yds_traveled), 1),
+                   rd_min_yd_diff = round(min(yd_diff), 1),
+                   n = dplyr::n()) |> 
+  dplyr::relocate(n, .after = club)
+head(stroke_quality_min)
+```
+
+```{r Separate Stroke Quality Metrics Maximum, include = T, warning = F, message = F, echo = F, eval = T}
+stroke_quality_max <- stroke_quality |> 
+  dplyr::group_by(date, club) |> 
+  dplyr::summarize(rd_max_yds_to_target = round(max(yds_to_target), 1),
+                   rd_max_yds_traveled = round(max(yds_traveled), 1),
+                   rd_max_yd_diff = round(max(yd_diff), 1),
+                   n = dplyr::n()) |> 
+  dplyr::relocate(n, .after = club)
+head(stroke_quality_max)
+```
+
+```{r Separate Stroke Quality Metrics Avg, include = T, warning = F, message = F, echo = F, eval = T}
+stroke_quality_avg <- stroke_quality |> 
+  dplyr::group_by(date, club) |> 
+  dplyr::summarize(rd_avg_yds_to_target = round(mean(yds_to_target), 1),
+                   rd_avg_yds_traveled = round(mean(yds_traveled),1),
+                   rd_avg_yd_diff = round(mean(yd_diff),1),
+                   rd_avg_accuracy = round((sum(on_target)/dplyr::n())*100, 2),
+                   n = dplyr::n()) |> 
+  dplyr::full_join(
+    stroke_quality |> 
+      dplyr::group_by(date, club, miss_direction) |> 
+      dplyr::summarize(rd_club_miss_direction_n = dplyr::n()) |> 
+      dplyr::group_by(date, club) |>
+      dplyr::mutate(`rd club % miss direction` = round((rd_club_miss_direction_n/sum(rd_club_miss_direction_n))*100, 1))
+  ) |> 
+  dplyr::relocate(n, .after = club) |> 
+  dplyr::relocate(miss_direction, .after = n) |> 
+  dplyr::relocate(rd_club_miss_direction_n, .after = miss_direction) |> 
+  dplyr::rename(`rd club strokes` = n) |> 
+  dplyr::rename(`rd club miss dir` = rd_club_miss_direction_n)
+head(stroke_quality_avg)
+```
+
 
 # Plot Metrics {.tabset .tabset-pills .tabset-fade}
 
@@ -362,7 +499,6 @@ scoring_metrics |>
                  ) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b')
 ```
-
 
 ## Stroke Metrics
 
@@ -435,7 +571,7 @@ atg_metrics |>
                  title = ggplot2::element_text(face = 'bold'),
                  strip.text.x.top = ggplot2::element_text(face = 'bold')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
-  ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'chips+putts', 'UpAndDown%', 'putts', 'Avg GIR putts')), scales = 'free')
+  ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'putts', 'chips+putts', 'UpAndDown%', 'Avg GIR putts')), scales = 'free')
 ```
 
 ## Ball Striking Metrics
@@ -475,6 +611,107 @@ ball_striking_metrics |>
   ggplot2::facet_wrap(~factor(metric,levels = c('Driver FIRs', 'Iron FIRs', 'FIRs',
                                                 'Driver FIR%', 'Iron FIR%', 'FIR%',
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
+```
+
+## Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
+
+### Minima
+
+```{r Plot Stroke Quality Min Metrics, include = T, message = F, warning = F, eval = T, fig.width=9}
+stroke_quality_min |> 
+  dplyr::ungroup() %>%
+  dplyr::mutate(dplyr::across(c(date:n), ~as.character(.x))) |> 
+  tidyr::pivot_longer(cols = c(dplyr::contains('yd')), names_to = 'metric', values_to = 'vals') |> 
+  dplyr::mutate(metric = dplyr::case_when(grepl(metric, pattern = 'target') ~ 'min(target distance)',
+                                          grepl(metric, pattern = 'traveled') ~ 'min(shot distance)',
+                                          grepl(metric, pattern = 'diff') ~ 'min(target distance -\nshot distance)')) |> 
+  dplyr::mutate(date = lubridate::as_date(date),
+                club = as.character(club),
+                n = as.integer(n)) |> 
+  ggplot2::ggplot(aes(x = date, y = vals, group = metric, color = club, fill = club)) +
+  ggplot2::geom_point(alpha = 0.4, size = 3) +
+  ggplot2::geom_line(alpha = 0.4, size = 2) +
+  ggplot2::geom_smooth(method = 'lm', se = F) +
+  ggplot2::labs(title = 'Stroke Yardage Minima by Club', x = 'date', y = 'value (yards)', fill = 'club') +
+  ggplot2::guides(alpha = 'none', size = 'none') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 10, angle = 270, hjust = 0, vjust = 0.5),
+                 legend.position = 'none',
+                 strip.background = ggplot2::element_rect(fill = 'white'),
+                 strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
+  ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
+  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
+```
+
+### Maxima
+
+```{r Plot Stroke Quality Max Metrics, include = T, message = F, warning = F, eval = T}
+stroke_quality_max |> 
+  dplyr::ungroup() %>%
+  dplyr::mutate(dplyr::across(c(date:n), ~as.character(.x))) |> 
+  tidyr::pivot_longer(cols = c(dplyr::contains('yd')), names_to = 'metric', values_to = 'vals') |> 
+  dplyr::mutate(metric = dplyr::case_when(grepl(metric, pattern = 'target') ~ 'target distance\nmax',
+                                          grepl(metric, pattern = 'traveled') ~ 'shot distance\nmax',
+                                          grepl(metric, pattern = 'diff') ~ 'target distance -\nshot distance\nmax')) |> 
+  dplyr::mutate(date = lubridate::as_date(date),
+                club = as.character(club),
+                n = as.integer(n)) |> 
+  ggplot2::ggplot(aes(x = date, y = vals, group = metric, color = club, fill = club)) +
+  ggplot2::geom_point(alpha = 0.4, size = 3) +
+  ggplot2::geom_line(alpha = 0.4, size = 2) +
+  ggplot2::geom_smooth(method = 'lm', se = F) +
+  ggplot2::labs(title = 'Stroke Yardage Maxima by Club', x = 'date', y = 'value (yards)', fill = 'club') +
+  ggplot2::guides(alpha = 'none', size = 'none') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 10, angle = 270, hjust = 0, vjust = 0.5),
+                 legend.position = 'none',
+                 strip.background = ggplot2::element_rect(fill = 'white'),
+                 strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
+  ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
+  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
+```
+
+### Average
+
+```{r PlotStrokeQualityMetricAverages, include = T, message = F, warning = F, eval = T}
+stroke_quality_avg |> 
+  dplyr::ungroup() %>%
+  dplyr::mutate(dplyr::across(dplyr::everything(), ~as.character(.x))) |> 
+  tidyr::pivot_longer(cols = c(dplyr::contains("rd")), names_to = 'metric', values_to = 'vals') |> 
+  dplyr::mutate(metric = dplyr::case_when(grepl(metric, pattern = 'target') ~ 'target\ndistance\navg',
+                                          grepl(metric, pattern = 'traveled') ~ 'shot\ndistance\navg',
+                                          grepl(metric, pattern = 'diff') ~ 'target distance-\nshot distance\navg',
+                                          # grepl(metric, pattern = 'accuracy') ~ 'avg\naccuracy',
+                                          grepl(metric, pattern = 'strokes') ~ 'n strokes',
+                                          grepl(metric, pattern = 'dir') ~ 'strokes w/club\nin round\nby direction',
+                                          grepl(metric, pattern = 'acc') ~ '% accuracy')) |> 
+  dplyr::filter(!grepl(metric, pattern = 'strokes')) |>
+  dplyr::mutate(date = lubridate::as_date(date),
+                club = as.character(club),
+                vals = as.numeric(vals)
+                ) |> 
+  ggplot2::ggplot(aes(x = date, y = vals, group = metric, color = club, fill = club)) +
+  ggplot2::geom_point(alpha = 0.4, size = 3) +
+  ggplot2::geom_line(alpha = 0.4, size = 2) +
+  ggplot2::geom_smooth(method = 'lm', se = F) +
+  ggplot2::labs(title = 'Stroke Averages by Club', x = 'date', y = 'value (yards or units)', fill = 'club') +
+  ggplot2::guides(alpha = 'none', size = 'none') +
+  ggplot2::theme_bw() +
+  ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
+                 axis.title = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text = ggplot2::element_text(face = 'bold', size = 10),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 10, angle = 270, hjust = 0, vjust = 0.5),
+                 legend.position = 'none',
+                 strip.background = ggplot2::element_rect(fill = 'white'),
+                 strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
+  ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
+  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
 ```
 
 ## Main Metrics
