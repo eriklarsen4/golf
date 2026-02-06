@@ -304,9 +304,9 @@ For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effe
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-round_date <- lubridate::as_date('2026-02-22')
+round_date <- lubridate::as_date('2026-02-08')
 index <- 10.2
-course <- "Dell"
+course <- "Randolph North"
 tees <- 'combo'
 
 new_df <- DBI::dbGetQuery(

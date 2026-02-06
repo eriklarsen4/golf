@@ -1,13 +1,12 @@
-# Model Predictions
+## Model Predictions
 
 Erik Larsen
 
-2026-01-30
+2026-02-05
 
 ### Environment
 
 #### Attach Packages
-
 
 ``` r
 library(golf)
@@ -22,7 +21,6 @@ library(emayili)
 
 #### Connect to the db
 
-
 ``` r
 db <- dir(getwd(), pattern = 'golf_data.db', full.names = T, recursive = T)
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
@@ -30,7 +28,7 @@ con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
 
 ### Summarize Metrics
 
-#### Gather and Format
+#### Gather and Format Data From the db
 
 Gather and format from the database
 
@@ -63,9 +61,6 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 
 Compute more nuanced metrics
 
-
-
-
 ``` r
 head(scores_sum)
 ```
@@ -89,14 +84,13 @@ head(scores_sum)
 ## #   `Net Score` <dbl>
 ```
 
-#### Separate Metrics
+#### Organize Metrics
 
 Separate the metrics:
 
 ##### Scoring Metrics
 
 Round scores and `Handicap Index`
-
 
 ``` r
 scoring_metrics <- scores_sum |> 
@@ -122,7 +116,6 @@ head(scoring_metrics)
 
 Above/below par
 
-
 ``` r
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
@@ -145,7 +138,6 @@ head(stroke_metrics)
 ##### Around-the-Green Metrics
 
 Chips, putts, etc.
-
 
 ``` r
 atg_metrics <- scores_sum |> 
@@ -170,7 +162,6 @@ head(atg_metrics)
 ##### Ball Striking
 
 Approach and tee accuracy
-
 
 ``` r
 ball_striking_metrics <- scores_sum |> 
@@ -198,7 +189,6 @@ head(ball_striking_metrics)
 ##### Shot Quality
 
 Yardage and accuracy on tracked shots
-
 
 ``` r
 stroke_quality <- DBI::dbGetQuery(conn = con,
@@ -229,11 +219,7 @@ head(stroke_quality)
 ```
 
 
-
-
 ### LMER Model
-
-#### Fit LMER
 
 Fit a lmer model to the data to capture repeated measurements of `Gross Score` 
 predicted by `Handicap Index`, `course_rating`, and time (`days`).
@@ -245,7 +231,6 @@ predicted by `Handicap Index`, `course_rating`, and time (`days`).
 
 + Include random intercepts and random slopes of `course` and `course_rating`, given
 a `Handicap Index`.
-
 
 ``` r
 # Fit a model to the data
@@ -341,15 +326,15 @@ The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effect
 
 For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by **2.95** strokes.
 
-+ This makes sense: `Handicap Index` is used to compare players of various skill by how many strokes they average. 
++ This makes sense: for the unfamiliar, `Handicap Index` is used to compare players of various skill by how many strokes they average. 
 
-  + In other words, a player with great skill will have a low `Handicap Index` (i.e. **0**), meaning they average par for an entire round.
+  + In other words, a player with great skill will have a low `Handicap Index` (i.e. **0**), meaning they average the average number of strokes per hole (par) for an entire round.
   
-  + A worse player will have a higher `Handicap Index`, and in competitions, roughly this amount is subtracted from their score. 
+  + A worse player will have a higher `Handicap Index`, and in competitions, roughly this amount is subtracted from their total (gross) score. 
   
     + This effectively quantifies who performed better that day after correcting for skill level.
     
-+ While this makes sense, I wonder whether I should expect `Handicap Index` to have a larger `Fixed effect` `Estimate`. The effect is significant (**t value = 1.66**; significance : abs(**t value**) > 1). But `Handicap Index` is a metric directly derived from `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth. 1? More? Does it vary by skill? Is it uniform?
++ While this makes sense, I wonder whether I should expect `Handicap Index` to have a larger `Fixed effect` `Estimate`. The effect is significant (**`t value` = ** **1.66**; significance : abs(**t value**) > 1). But `Handicap Index` is a metric directly derived from `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth. 1? More? Does it vary by skill? Is it uniform?
 
 For every additional `course_rating` point (stroke) greater than the average `course_rating` (~69-70 strokes in this dataset), `Gross Score` increases by **0.8** strokes.
 
@@ -365,14 +350,11 @@ For every additional `day` in time, `Gross Score` drops by **-0.04** strokes. Th
 
   + Linear extrapolation in this sense is misleading-- there will be variation and probably a limit to lowering `Gross Score`.
 
-  + But this effect is strongly significant (**t value = -4**) and appears to be the primary driver of the trend.
+  + But this effect is strongly significant (**t value = ** **-4**) and appears to be the primary driver of the trend.
 
 #### Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
-
-
-
 
 ``` r
 ## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
@@ -382,7 +364,7 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 ```
 
 ```
-## [1] 81
+## [1] 80
 ```
 
 ### Plot Model
@@ -395,7 +377,7 @@ The model is a random intercept, random slope linear mixed-effects regression (L
 
 In this case, that means `Gross Score` varies for each course at a given `Handicap Index` in its deviation from the overall mean `Gross Score` (navy blue line) over time: `Silverbell`, `Randolph North`, and `Dell Urich` have their own average `Gross Scores` (intercepts) and slopes (change in `Gross Score` over time)-- notice how the line for each course has a different slope, starting at a different y-intercept
 
-+ The `blue` line is the model's overall fit of the `Gross Score`, accounting for `course`, `course_rating`, `Handicap Index`, and `days` (time)
++ The blue line is the model's overall fit of the `Gross Score`, accounting for `course`, `course_rating`, `Handicap Index`, and `days` (time)
 + `Silverbell`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Silverbell`
 + `Randolph`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Randolph North`
 + `Dell Urich`'s line represents the relationship between `Gross Score`, `course_rating`, `Handicap Index`, and `days` (date/time) at `Dell Urich`
@@ -403,8 +385,6 @@ In this case, that means `Gross Score` varies for each course at a given `Handic
 #### Model Predictions
 
 ![](predict_score_files/figure-html/PlotModels-1.png)<!-- -->
-
-
 
 #### Actual Gross Score vs Predicted Gross Score
 
