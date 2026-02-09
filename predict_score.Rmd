@@ -269,7 +269,7 @@ vc_df <- gross_lmer |>
 
 ## Model Interpretation
 
-The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`** (yikes, that's bad). 
+The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`**. The average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dplyr::rename(Gross_Score = 24) |> dplyr::summarize(avg_gross = mean(Gross_Score)) |> unlist() |> as.numeric()`**. 
 
 For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Hand')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
 
@@ -304,9 +304,9 @@ For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effe
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-round_date <- lubridate::as_date('2026-02-08')
-index <- 10.2
-course <- "Randolph North"
+round_date <- lubridate::as_date('2026-02-22')
+index <- 10.1
+course <- "Dell Urich"
 tees <- 'combo'
 
 new_df <- DBI::dbGetQuery(
@@ -379,7 +379,7 @@ scores_sum |>
   dplyr::add_row(course_name = 'mean') |> # add all mean values
   dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
                 days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric() %>% round(., 2), TRUE ~ `Gross Score`),
+                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ scores_sum |> dplyr::ungroup() |> dplyr::summarize(avg = mean(`Gross Score`)) |> unlist() |> as.numeric(), TRUE ~ `Gross Score`),
                 date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
                 `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
                 `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>

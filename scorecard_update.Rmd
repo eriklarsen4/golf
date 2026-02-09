@@ -42,23 +42,26 @@ con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
 ## Input the Scores Data
 
 ```{r Annotate the new data, include = T, message = F, warning = F, echo = T, eval = T}
-round_course <- ''
-round_date <- ''
+round_course <- 'Randolph North'
+round_date <- '2026-02-08'
 round_tees <- 'combo'
 
-hole_scores <- c()
+hole_scores <- c(5, 5, 5, 5, 4, 4, 5, 4, 5,
+                 4, 3, 6, 6, 5, 3, 4, 6, 4)
 
-FIRs <- c()
+FIRs <- c(rep(0, 13), 1, 0, 1, 0, 0)
 
-GIRs <- c()
+GIRs <- c(rep(0, 4), 1, 1, 0, 0, 1,
+          0, 1, rep(0, 3), 1, 1, 0, 1) 
 
-putts_rec <- c()
+putts_rec <- c(2, 2, 1, 2, 2, 3, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2)
 
-chips_rec <- c()
+chips_rec <- c(1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 2, 0)
 
-penalties_rec <- c()
+penalties_rec <- c(rep(0, 18))
 
-tee_clubs <- c()
+tee_clubs <- c('4', 'D', 'D', 'D', 'D', 'PW', '3W', '7', 'D',
+               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
 
 index <- 10.2
 ```
@@ -147,32 +150,161 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ## Input Club Metrics
 
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+club_metrics_df <- tryCatch({golf::getTrackedShotsDataShape(round_date = round_date)}, error = function(e){e$message})
+
 club_choice <- c(
+  '4', '4', 'PW',
+  'D', 'SW', 'LW',
+  'D', '3W', 'GW', 'P',
+  'D', '9', 'PW',
+  'D', 'PW',
+  'PW',
+  '3W', '5', 'LW',
+  '7', 'PW',
+  'D', '5', 'PW',
   
+  'D', '6', 'SW',
+  '7',
+  'D', 'GW', 'GW', 'SW',
+  'D', '4', 'PW', 'SW',
+  'D', 'PW', 'SW',
+  '7',
+  'D', '6',
+  'D', '8', 'SW', 'PW',
+  'D', 'GW'
 )
 
 dist_to_target <- c(
+  220, 160, 15,
+  270, 50, 10,
+  270, 250, 60, 5,
+  270, 150, 15, 
+  270, 140,
+  140,
+  250, 135, 15,
+  185, 10,
+  270, 200, 20,
   
+  270, 190, 60,
+  180,
+  270, 120, 100, 50,
+  270, 230, 130, 20,
+  270, 145, 30,
+  175,
+  270, 180,
+  270, 165, 40, 20,
+  270, 130
 )
 
 yds <- c(
+  210, 173, 13,
+  302, 37, 17,
+  243, 224, 75, 5,
+  261, 149, 15,
+  302, 129,
+  140,
+  250, 129, 15,
+  179, 20,
+  263, 214, 10,
+  
+  247, 132, 58,
+  185,
+  273, 36, 87, 43,
+  261, 100, 150, 20,
+  273, 120, 26,
+  173,
+  304, 170,
+  251, 210, 23, 21,
+  304, 130
   
 )
 
 lie_type <- c(
+  'tee', 'rough', 'fairway',
+  'tee', 'rough', 'sand',
+  'tee', 'rough', 'rough', 'fairway',
+  'tee', 'rough', 'fairway',
+  'tee', 'rough',
+  'tee', 
+  'tee', 'rough', 'sand',
+  'tee', 'rough',
+  'tee', 'rough', 'rough',
   
+  'tee', 'rough', 'fairway',
+  'tee',
+  'tee', 'rough', 'fairway', 'rough',
+  'tee', 'rough', 'fairway', 'rough',
+  'tee', 'fairway', 'fairway',
+  'tee',
+  'tee', 'rough',
+  'tee', 'rough', 'rough', 'fairway',
+  'tee', 'rough'
 )
 
 target_status <- c(
+  'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'no', 'yes', 'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'no', 'no', 'yes',
   
+  'no', 'no', 'yes',
+  'yes',
+  'no', 'no', 'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'yes', 'no', 'yes',
+  'yes',
+  'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'no', 'yes'
 )
 
 location <- c(
+  'right', 'long', 'on_target',
+  'right', 'short', 'on_target',
+  'right', 'right', 'on_target', 'on_target',
+  'right', 'right', 'on_target',
+  'left', 'on_target',
+  'on_target',
+  'right', 'short', 'on_target',
+  'right', 'on_target',
+  'right', 'long', 'on_target',
   
+  'right', 'short', 'on_target',
+  'on_target',
+  'right', 'short', 'right', 'on_target',
+  'right', 'short', 'long', 'on_target',
+  'on_target', 'short', 'on_target',
+  'on_target',
+  'left', 'on_target',
+  'left', 'long', 'short', 'on_target',
+  'right', 'on_target'
 )
 
 type_of_shot <- c(
+  'full', 'punch', 'chip',
+  'full', 'chip', 'gsbunker',
+  'full', 'full', 'chip', 'putt',
+  'full', 'full', 'chip',
+  'full', 'full',
+  'full',
+  'full', 'rough', 'gsbunker',
+  'full', 'chip',
+  'full', 'full', 'chip',
   
+  'full', 'punch', 'chip',
+  'full',
+  'full', 'full', 'choked', 'chip',
+  'full', 'full', 'full', 'chip',
+  'full', 'full', 'chip',
+  'full',
+  'full', 'full',
+  'full', 'full', 'chip', 'chip',
+  'full', 'full'
 )
 ```
 
@@ -186,16 +318,15 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      length(hole_scores) > 0
 ) {
 
-  club_metrics <- golf::getClubMetrics(course = round_course,
-                                       round_date = round_date,
-                                       club_choice = club_choice,
-                                       distance_to_target = dist_to_target,
-                                       distance_traveled = yds,
-                                       lie_type = lie_type,
-                                       target_status = target_status,
-                                       location = location,
-                                       type_of_shot = type_of_shot
-                                       )
+  club_metrics <- golf::uploadClubMetrics(club_metrics = club_metrics_df,
+                                          club_choice = club_choice,
+                                          distance_to_target = dist_to_target,
+                                          distance_traveled = yds,
+                                          lie_type = lie_type,
+                                          target_status = target_status,
+                                          location = location,
+                                          type_of_shot = type_of_shot
+                                          )
   
   head(club_metrics)
 }
@@ -533,7 +664,9 @@ stroke_metrics |>
                  axis.text.y = ggplot2::element_text(face = 'bold'),
                  axis.text.x = ggplot2::element_text(face = 'bold', angle = 270, hjust = 0, vjust = 0.5),
                  title = ggplot2::element_text(face = 'bold'),
-                 strip.text.x.top = ggplot2::element_text(face = 'bold')) +
+                 strip.text.x.top = ggplot2::element_text(face = 'bold'),
+                 strip.background = ggplot2::element_rect(color = 'black', 
+                                                          fill = 'white')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::facet_wrap(~factor(metric, levels = c('doubles+', 'bogies', 'pars', 'birdies')), nrow = 1)
 ```
@@ -570,7 +703,9 @@ atg_metrics |>
                  axis.text.y = ggplot2::element_text(face = 'bold'),
                  axis.text.x = ggplot2::element_text(face = 'bold', angle = 270, hjust = 0, vjust = 0.5),
                  title = ggplot2::element_text(face = 'bold'),
-                 strip.text.x.top = ggplot2::element_text(face = 'bold')) +
+                 strip.text.x.top = ggplot2::element_text(face = 'bold'),
+                 strip.background = ggplot2::element_rect(color = 'black', 
+                                                          fill = 'white')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'putts', 'chips+putts', 'UpAndDown%', 'Avg GIR putts')), scales = 'free')
 ```
@@ -607,7 +742,9 @@ ball_striking_metrics |>
                  axis.text.y = ggplot2::element_text(face = 'bold'),
                  axis.text.x = ggplot2::element_text(face = 'bold', angle = 270, hjust = 0, vjust = 0.5),
                  title = ggplot2::element_text(face = 'bold'),
-                 strip.text.x.top = ggplot2::element_text(face = 'bold')) +
+                 strip.text.x.top = ggplot2::element_text(face = 'bold'),
+                 strip.background = ggplot2::element_rect(color = 'black', 
+                                                          fill = 'white')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::facet_wrap(~factor(metric,levels = c('Driver FIRs', 'Iron FIRs', 'FIRs',
                                                 'Driver FIR%', 'Iron FIR%', 'FIR%',
@@ -644,7 +781,13 @@ stroke_quality_min |>
                  strip.background = ggplot2::element_rect(fill = 'white'),
                  strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
+  ggplot2::facet_grid(rows = vars(metric), cols = vars(factor(club,
+                                                              levels = 
+                                                                c('D', '3W', '4',
+                                                               '5', '6', '7',
+                                                               '8', '9', 'PW',
+                                                               'GW', 'SW', 'LW',
+                                                               'P'))))
 ```
 
 ### Maxima
@@ -675,7 +818,13 @@ stroke_quality_max |>
                  strip.background = ggplot2::element_rect(fill = 'white'),
                  strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
+  ggplot2::facet_grid(rows = vars(metric), cols = vars(factor(club,
+                                                              levels = 
+                                                                c('D', '3W', '4',
+                                                               '5', '6', '7',
+                                                               '8', '9', 'PW',
+                                                               'GW', 'SW', 'LW',
+                                                               'P'))))
 ```
 
 ### Average
@@ -707,12 +856,17 @@ stroke_quality_avg |>
   ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
                  axis.title = ggplot2::element_text(face = 'bold', size = 10),
                  axis.text = ggplot2::element_text(face = 'bold', size = 10),
-                 axis.text.x = ggplot2::element_text(face = 'bold', size = 10, angle = 270, hjust = 0, vjust = 0.5),
+                 axis.text.x = ggplot2::element_text(face = 'bold', size = 8, angle = 270, hjust = 0, vjust = 0.5),
                  legend.position = 'none',
                  strip.background = ggplot2::element_rect(fill = 'white'),
-                 strip.text = ggplot2::element_text(face = 'bold', size = 8)) + 
+                 strip.text = ggplot2::element_text(face = 'bold', size = 7)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric), cols = vars(club))
+  ggplot2::facet_grid(rows = vars(metric),
+                      cols = vars(factor(club,
+                                         levels = c('D', '3W', '4', '5', '6',
+                                                    '7', '8', '9', 'PW', 'GW',
+                                                    'SW', 'LW', 'P'))),
+                      scales = 'free_y')
 ```
 
 ## Main Metrics
@@ -751,7 +905,9 @@ scores_sum |>
                  axis.text.y = ggplot2::element_text(face = 'bold'),
                  axis.text.x = ggplot2::element_text(face = 'bold', angle = 270, hjust = 0, vjust = 0.5),
                  title = ggplot2::element_text(face = 'bold'),
-                 strip.text.x.top = ggplot2::element_text(face = 'bold')) +
+                 strip.text.x.top = ggplot2::element_text(face = 'bold'),
+                 strip.background = ggplot2::element_rect(color = 'black',
+                                                          fill = 'white')) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::facet_wrap(~factor(metric,
                       levels = c('Handicap Index', 'Gross Score', 'Net Score',

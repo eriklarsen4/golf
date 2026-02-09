@@ -1,23 +1,9 @@
-#' @title getClubMetrics
+#' @title uploadClubMetrics
 #' @description
-#' \strong{getClubMetrics} is a function gathers club data and harmonizes it with scores and course data
+#' \strong{uploadClubMetrics} is a function that harmonizes the Garmin shot tracking data
+#' with round scores data
 #'
-#' @param course a string containing the name of the course played
-#' \describe{can be one of: 
-#' \itemize{
-#' \item{\strong{Randolph North}}
-#' \item{\strong{Dell Urich}}
-#' \item{\strong{Silverbell}}
-#' \item{\strong{Fred Enke}}
-#' \item{\strong{Sewailo}}
-#' \item{\strong{Arizona National}}
-#' \item{\strong{Quarry Pines}}
-#' \item{\strong{El Rio}}
-#' \item{\strong{Crooked Tree}}
-#' }
-#' }
-#'
-#' @param round_date a string in YYYY-MM-DD format, specifying the date played
+#' @param club_metrics a data frame object containing the results returned from \link[golf]{getTrackedShotsDataShape}
 #' 
 #' @param club_choice a character vector specifying the club selection for a tracked stroke
 #' \describe{can be any one of: 
@@ -76,6 +62,7 @@
 #' \item{\strong{fwbunker}}
 #' \item{\strong{gsbunker}}
 #' \item{\strong{chip}}
+#' \item{\strong{putt}}
 #' }} 
 #'
 #' @returns
@@ -85,7 +72,9 @@
 #' Prepares the data of tracked shots for data entry.
 #'
 #' @examples
-#' df <- golf::Card |> dplyr::filter(course == 'Randolph North' & date == '2026-01-04')
+#' # first, get the correct tracked shots for a given round
+#' club_metrics_df <- getTrackedShotsDataShape(round_date = '2026-02-08')
+#' df <- golf::Card |> dplyr::filter(course == 'Randolph North' & date == '2026-02-08')
 #' choices_of_club <- df |> dplyr::select(club) |> unlist() |> as.character()
 #' target_dist <- df |> dplyr::select(yds_to_target) |> unlist() |> as.numeric()
 #' act_dist <- df |> dplyr::select(yds_traveled) |> unlist() |> as.numeric()
@@ -94,9 +83,8 @@
 #' locations <- df |> dplyr::select(miss_direction) |> unlist() |> as.character()
 #' shot_types <- df|> dplyr::select(shot_type) |> unlist() |> as.character()
 #'  
-#' getClubMetrics(
-#' course = 'Randolph North',
-#' round_date = '2026-01-04',
+#' uploadClubMetrics(
+#' club_metrics = club_metrics_df,
 #' club_choice = choices_of_club,
 #' distance_to_target = target_dist,
 #' distance_traveled = act_dist,
@@ -114,13 +102,9 @@
 #'
 #' @export
 # ----
-getClubMetrics <- function(course, round_date, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
-  assertthat::assert_that(!missing(course), msg = "'course' is a required parameter! Please see help file for valid strings.")
-  assertthat::assert_that(grepl(course,
-                                pattern = '(Randolph|North|Randolph North)|(Dell|Urich|Dell Urich)|Silverbell|(Fred|Enke|Fred Enke)|Sewailo|(AZN|Arizona National|National)|(Quarry|Quarry Pines|QP)|El Rio|(Crooked|Crooked Tree)') |> any(),
-                          msg = "Invalid 'course'! Please see help docs for proper input options.")
-  assertthat::assert_that(!missing(round_date), msg = "'round_date' is a required parameter! Please see help file for valid strings.")
-  assertthat::assert_that(grepl(round_date, pattern = '[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}'), msg = "'round_date' requires strings in YYYY-MM-DD format!")
+uploadClubMetrics <- function(club_metrics, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
+  assertthat::assert_that(!missing(club_metrics), msg = "'club_metrics', is a required parameter! Please use 'club_metrics_df' as required input!")
+  assertthat::assert_that(is.data.frame(club_metrics), msg = "'club_metrics', is a required parameter! Please make sure the passed object is a data frame!")
   assertthat::assert_that(!missing(club_choice), msg = "'club_choice' is a required parameter! Please see help file for valid strings.")
   assertthat::assert_that(is.character(club_choice), msg = "'club_choice' must be a character vector! Please see help file for valid strings.")
   assertthat::assert_that(!missing(distance_to_target), msg = "'distance_to_target' is a required parameter!")
@@ -138,50 +122,13 @@ getClubMetrics <- function(course, round_date, club_choice, distance_to_target, 
   
   con <- golf::get_db_connection(db_path = NULL)
   
-  club_metrics <- data.frame('course_name' = c(rep(NA, 18)),
-                             'date' = c(rep(NA, 18)),
-                             'hole' = c(paste0('hole_', seq(18))),
-                             'stroke_n' = c(rep(NA, 18))
-                             )
-  
   club_metrics1 <- club_metrics |> 
-    dplyr::mutate(course_name = course, date = lubridate::as_date(date)) |> 
-    dplyr::full_join(
-      DBI::dbGetQuery(conn = con,
-                      statement = paste0("SELECT DISTINCT r.*, c.par
-                                   FROM rounds r
-                                   INNER JOIN courses c
-                                   ON r.course_name = c.course_name
-                                   AND r.tees = c.tees
-                                   AND r.hole = c.hole;")) |>
-        dplyr::mutate(date = lubridate::as_date(.data$date)) |>
-        dplyr::filter(grepl(date, pattern = round_date)) |> 
-        dplyr::select(.data$course_name, .data$date, .data$tees, .data$hole, .data$par, .data$gross)
-    ) |> 
-    # add stroke records to gather how many strokes to track
-    dplyr::full_join(
-      DBI::dbGetQuery(conn = con,
-                      statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
-        dplyr::mutate(date = lubridate::as_date(.data$date)) |>
-        dplyr::filter(grepl(date, pattern = round_date)) |> 
-        dplyr::mutate(stroke_n = DBI::dbGetQuery(conn = con,
-                                                 statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
-                        dplyr::mutate(date = lubridate::as_date(.data$date)) |>
-                        dplyr::filter(grepl(date, pattern = round_date)) |> 
-                        dplyr::select(.data$gross, .data$putts, .data$chips) |> 
-                        dplyr::mutate(gross = .data$gross - (.data$putts + .data$chips)) |> 
-                        dplyr::select(.data$gross) |> unlist() |> as.numeric()) |> 
-        dplyr::select(.data$course_name, .data$date, .data$hole, .data$stroke_n)
-    ) |> 
     # re-arrange the data to allow more easy data upload (vector of manually curated variables)
     dplyr::group_by(.data$course_name, .data$date, .data$hole) |> 
     tidyr::fill(.data$tees:.data$gross, .direction = 'down') |> 
     dplyr::ungroup() |> 
-    dplyr::filter(!is.na(.data$stroke_n)) |>
-    dplyr::mutate(stroke = .data$stroke_n) |> 
-    tidyr::uncount(.data$stroke_n, .id = '.data$stroke') |> 
-    dplyr::relocate(.data$par, .after = .data$hole) |> 
-    dplyr::relocate(.data$stroke, .after = .data$hole) |> 
+    dplyr::filter(!is.na(.data$tracked_shots)) |>
+    tidyr::uncount(.data$tracked_shots, .id = 'stroke') |> 
     dplyr::mutate(gross = as.character(.data$gross), par = as.character(.data$par)) |> 
     dplyr::mutate(lie = '',
                   club = '',
@@ -191,26 +138,8 @@ getClubMetrics <- function(course, round_date, club_choice, distance_to_target, 
                   on_target = '',
                   miss_direction = '')
   
-  club_metrics1 <<- club_metrics1
-  
-  assertthat::assert_that(length(club_choice) == nrow(club_metrics1),
-                          msg = "'club_choice' must have the same number of clubs as the number of tracked shots!")
-  assertthat::assert_that(length(distance_to_target) == nrow(club_metrics1),
-                          msg = "'distance_to_target' must have the same number of distances as the number of tracked shots!")
-  assertthat::assert_that(length(distance_traveled) == nrow(club_metrics1),
-                          msg = "'distance_traveled' must have the same number of distances as the number of tracked shots!")
-  assertthat::assert_that(length(lie_type) == nrow(club_metrics1),
-                          msg = "'lie_type' must have the same number of types of lie as the number of tracked shots!")
-  assertthat::assert_that(length(target_status) == nrow(club_metrics1),
-                          msg = "'target_status' must have the same number of target results as the number of tracked shots!")
-  assertthat::assert_that(length(location) == nrow(club_metrics1),
-                          msg = "'location' must have the same number of target locations as the number of tracked shots!")
-  assertthat::assert_that(length(type_of_shot) == nrow(club_metrics1),
-                          msg = "'type_of_shot' must have the same number of shot types as the number of tracked shots!")
-  
-  
   # upload the manually curated data from Garmin Golf
-  club_metrics2 <- club_metrics1 %>%
+  club_metrics2 <- club_metrics1 |>
     dplyr::mutate(dplyr::across(c(.data$par, dplyr::contains('yds'), .data$gross), ~as.numeric(.x))) |> 
     dplyr::mutate(club = club_choice,
                   lie = lie_type,
@@ -221,8 +150,8 @@ getClubMetrics <- function(course, round_date, club_choice, distance_to_target, 
                   miss_direction = location) |> 
     dplyr::mutate(par = as.integer(.data$par), gross = as.integer(.data$gross)) |> 
     dplyr::filter(!is.na(.data$club)) |> 
-    dplyr::relocate(.data$tees, .after = .data$date) |> 
-    dplyr::relocate(.data$gross, .after = .data$par)
+    dplyr::select(-c(dplyr::contains("tracked"))) |> 
+    dplyr::distinct()
   
   return(club_metrics2)
 }

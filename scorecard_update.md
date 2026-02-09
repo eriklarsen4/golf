@@ -1,74 +1,240 @@
-## Scorecard Update
+---
+title: "Scorecard Update"
+author: "Erik Larsen"
+date: "2026-02-09"
+output: 
+  html_document:
+    self-contained: no
+    code_folding: hide
+    toc: TRUE
+    toc_float:
+      collapsed: TRUE
+      smooth_scroll: TRUE
+    fig_caption: TRUE
+    keep_md: TRUE
+---
 
-Erik Larsen
 
-2026-01-30
 
-### Record New Scorecard
 
-#### Input the Scores Data
+
+
+
+# Record New Scorecard {.tabset .tabset-pills .tabset-fade}
+
+## Input the Scores Data
 
 
 ``` r
-round_course <- ''
-round_date <- ''
+round_course <- 'Randolph North'
+round_date <- '2026-02-08'
 round_tees <- 'combo'
 
-hole_scores <- c()
+hole_scores <- c(5, 5, 5, 5, 4, 4, 5, 4, 5,
+                 4, 3, 6, 6, 5, 3, 4, 6, 4)
 
-FIRs <- c()
+FIRs <- c(rep(0, 13), 1, 0, 1, 0, 0)
 
-GIRs <- c()
+GIRs <- c(rep(0, 4), 1, 1, 0, 0, 1,
+          0, 1, rep(0, 3), 1, 1, 0, 1) 
 
-putts_rec <- c()
+putts_rec <- c(2, 2, 1, 2, 2, 3, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2)
 
-chips_rec <- c()
+chips_rec <- c(1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 2, 0)
 
-penalties_rec <- c()
+penalties_rec <- c(rep(0, 18))
 
-tee_clubs <- c()
+tee_clubs <- c('4', 'D', 'D', 'D', 'D', 'PW', '3W', '7', 'D',
+               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
 
 index <- 10.2
 ```
 
-#### Input Club Metrics
+
+
+
+
+
+
+
+
+
+
+## Input Club Metrics
 
 
 ``` r
+club_metrics_df <- tryCatch({golf::getTrackedShotsDataShape(round_date = round_date)}, error = function(e){e$message})
+
 club_choice <- c(
+  '4', '4', 'PW',
+  'D', 'SW', 'LW',
+  'D', '3W', 'GW', 'P',
+  'D', '9', 'PW',
+  'D', 'PW',
+  'PW',
+  '3W', '5', 'LW',
+  '7', 'PW',
+  'D', '5', 'PW',
   
+  'D', '6', 'SW',
+  '7',
+  'D', 'GW', 'GW', 'SW',
+  'D', '4', 'PW', 'SW',
+  'D', 'PW', 'SW',
+  '7',
+  'D', '6',
+  'D', '8', 'SW', 'PW',
+  'D', 'GW'
 )
 
 dist_to_target <- c(
+  220, 160, 15,
+  270, 50, 10,
+  270, 250, 60, 5,
+  270, 150, 15, 
+  270, 140,
+  140,
+  250, 135, 15,
+  185, 10,
+  270, 200, 20,
   
+  270, 190, 60,
+  180,
+  270, 120, 100, 50,
+  270, 230, 130, 20,
+  270, 145, 30,
+  175,
+  270, 180,
+  270, 165, 40, 20,
+  270, 130
 )
 
 yds <- c(
+  210, 173, 13,
+  302, 37, 17,
+  243, 224, 75, 5,
+  261, 149, 15,
+  302, 129,
+  140,
+  250, 129, 15,
+  179, 20,
+  263, 214, 10,
+  
+  247, 132, 58,
+  185,
+  273, 36, 87, 43,
+  261, 100, 150, 20,
+  273, 120, 26,
+  173,
+  304, 170,
+  251, 210, 23, 21,
+  304, 130
   
 )
 
 lie_type <- c(
+  'tee', 'rough', 'fairway',
+  'tee', 'rough', 'sand',
+  'tee', 'rough', 'rough', 'fairway',
+  'tee', 'rough', 'fairway',
+  'tee', 'rough',
+  'tee', 
+  'tee', 'rough', 'sand',
+  'tee', 'rough',
+  'tee', 'rough', 'rough',
   
+  'tee', 'rough', 'fairway',
+  'tee',
+  'tee', 'rough', 'fairway', 'rough',
+  'tee', 'rough', 'fairway', 'rough',
+  'tee', 'fairway', 'fairway',
+  'tee',
+  'tee', 'rough',
+  'tee', 'rough', 'rough', 'fairway',
+  'tee', 'rough'
 )
 
 target_status <- c(
+  'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'no', 'yes', 'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'no', 'no', 'yes',
   
+  'no', 'no', 'yes',
+  'yes',
+  'no', 'no', 'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'yes', 'no', 'yes',
+  'yes',
+  'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'no', 'yes'
 )
 
 location <- c(
+  'right', 'long', 'on_target',
+  'right', 'short', 'on_target',
+  'right', 'right', 'on_target', 'on_target',
+  'right', 'right', 'on_target',
+  'left', 'on_target',
+  'on_target',
+  'right', 'short', 'on_target',
+  'right', 'on_target',
+  'right', 'long', 'on_target',
   
+  'right', 'short', 'on_target',
+  'on_target',
+  'right', 'short', 'right', 'on_target',
+  'right', 'short', 'long', 'on_target',
+  'on_target', 'short', 'on_target',
+  'on_target',
+  'left', 'on_target',
+  'left', 'long', 'short', 'on_target',
+  'right', 'on_target'
 )
 
 type_of_shot <- c(
+  'full', 'punch', 'chip',
+  'full', 'chip', 'gsbunker',
+  'full', 'full', 'chip', 'putt',
+  'full', 'full', 'chip',
+  'full', 'full',
+  'full',
+  'full', 'rough', 'gsbunker',
+  'full', 'chip',
+  'full', 'full', 'chip',
   
+  'full', 'punch', 'chip',
+  'full',
+  'full', 'full', 'choked', 'chip',
+  'full', 'full', 'full', 'chip',
+  'full', 'full', 'chip',
+  'full',
+  'full', 'full',
+  'full', 'full', 'chip', 'chip',
+  'full', 'full'
 )
 ```
 
-### Summarize Metrics
 
-#### Gather and Format
+
+
+
+
+
+
+# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+
+## Gather and Format
 
 Gather and format from the database
+
 
 ``` r
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
@@ -107,9 +273,13 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-#### Compute Advanced Metrics
+
+## Compute Advanced Metrics
 
 Compute more nuanced metrics
+
+
+
 
 ```
 ## # A tibble: 6 × 26
@@ -130,13 +300,14 @@ Compute more nuanced metrics
 ## #   `Net Score` <dbl>, `UpAndDown%` <dbl>
 ```
 
-#### View Metrics
+## View Metrics {.tabset .tabset-pills .tabset-fade}
 
 Separate and view the metrics:
 
-##### Scoring Metrics
+### Scoring Metrics
 
 Scores and Handicap
+
 
 ```
 ## # A tibble: 6 × 6
@@ -152,9 +323,10 @@ Scores and Handicap
 ## # ℹ 1 more variable: `Net Score` <dbl>
 ```
 
-##### Stroke Metrics
+### Stroke Metrics
 
 Pars, birdies, bogies, etc.
+
 
 ```
 ## # A tibble: 6 × 7
@@ -169,9 +341,10 @@ Pars, birdies, bogies, etc.
 ## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
 ```
 
-##### Around-the-Green Metrics
+### Around-the-Green Metrics
 
 Chips, putts, etc.
+
 
 ```
 ## # A tibble: 6 × 8
@@ -187,9 +360,10 @@ Chips, putts, etc.
 ## # ℹ 1 more variable: `Avg GIR putts` <dbl>
 ```
 
-##### Ball Striking Metrics
+### Ball Striking Metrics
 
 Approach and tee accuracy
+
 
 ```
 ## # A tibble: 6 × 12
@@ -206,9 +380,13 @@ Approach and tee accuracy
 ## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
 ```
 
-##### Club Metrics
+
+### Club Metrics
 
 Yardage and accuracy for each club
+
+
+
 
 ```
 ## # A tibble: 6 × 6
@@ -255,38 +433,42 @@ Yardage and accuracy for each club
 ```
 
 
-### Plot Metrics
+# Plot Metrics {.tabset .tabset-pills .tabset-fade}
 
-#### Scoring Metrics
+## Scoring Metrics
 
 ![](scorecard_update_files/figure-html/PlotScoringMetrics-1.png)<!-- -->
 
-#### Stroke Metrics
+## Stroke Metrics
 
 ![](scorecard_update_files/figure-html/PlotStrokeMetrics-1.png)<!-- -->
 
-#### Around the Green Metrics
+## Around the Green Metrics
 
 ![](scorecard_update_files/figure-html/PlotAroundTheGreenMetrics-1.png)<!-- -->
 
-#### Ball Striking Metrics
+## Ball Striking Metrics
 
 ![](scorecard_update_files/figure-html/PlotBallStrikingMetrics-1.png)<!-- -->
 
-#### Stroke Quality Metrics
+## Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
 
-##### Minima
+### Minima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMinMetrics-1.png)<!-- -->
 
-##### Maxima
+### Maxima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMaxMetrics-1.png)<!-- -->
 
-##### Average
+### Average
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMetricAverages-1.png)<!-- -->
 
-#### Main Metrics
+## Main Metrics
 
 ![](scorecard_update_files/figure-html/PlotMainMetrics-1.png)<!-- -->
+
+
+
+
