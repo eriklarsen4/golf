@@ -1,28 +1,14 @@
----
-title: "Scorecard Update"
-author: "Erik Larsen"
-date: "2026-02-09"
-output: 
-  html_document:
-    self-contained: no
-    code_folding: hide
-    toc: TRUE
-    toc_float:
-      collapsed: TRUE
-      smooth_scroll: TRUE
-    fig_caption: TRUE
-    keep_md: TRUE
----
+Scorecard Update
+
+Erik Larsen
+
+2026-02-09
 
 
 
+## Record New Scorecard
 
-
-
-
-# Record New Scorecard {.tabset .tabset-pills .tabset-fade}
-
-## Input the Scores Data
+### Input the Scores Data
 
 
 ``` r
@@ -60,7 +46,7 @@ index <- 10.2
 
 
 
-## Input Club Metrics
+### Input Club Metrics
 
 
 ``` r
@@ -229,9 +215,9 @@ type_of_shot <- c(
 
 
 
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+## Summarize Metrics
 
-## Gather and Format
+### Gather and Format
 
 Gather and format from the database
 
@@ -300,11 +286,11 @@ Compute more nuanced metrics
 ## #   `Net Score` <dbl>, `UpAndDown%` <dbl>
 ```
 
-## View Metrics {.tabset .tabset-pills .tabset-fade}
+### View Metrics
 
 Separate and view the metrics:
 
-### Scoring Metrics
+#### Scoring Metrics
 
 Scores and Handicap
 
@@ -323,7 +309,7 @@ Scores and Handicap
 ## # ℹ 1 more variable: `Net Score` <dbl>
 ```
 
-### Stroke Metrics
+#### Stroke Metrics
 
 Pars, birdies, bogies, etc.
 
@@ -341,7 +327,7 @@ Pars, birdies, bogies, etc.
 ## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
 ```
 
-### Around-the-Green Metrics
+#### Around-the-Green Metrics
 
 Chips, putts, etc.
 
@@ -360,7 +346,7 @@ Chips, putts, etc.
 ## # ℹ 1 more variable: `Avg GIR putts` <dbl>
 ```
 
-### Ball Striking Metrics
+#### Ball Striking Metrics
 
 Approach and tee accuracy
 
@@ -381,7 +367,7 @@ Approach and tee accuracy
 ```
 
 
-### Club Metrics
+#### Club Metrics
 
 Yardage and accuracy for each club
 
@@ -433,39 +419,39 @@ Yardage and accuracy for each club
 ```
 
 
-# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+## Plot Metrics
 
-## Scoring Metrics
+### Scoring Metrics
 
 ![](scorecard_update_files/figure-html/PlotScoringMetrics-1.png)<!-- -->
 
-## Stroke Metrics
+### Stroke Metrics
 
 ![](scorecard_update_files/figure-html/PlotStrokeMetrics-1.png)<!-- -->
 
-## Around the Green Metrics
+### Around the Green Metrics
 
 ![](scorecard_update_files/figure-html/PlotAroundTheGreenMetrics-1.png)<!-- -->
 
-## Ball Striking Metrics
+### Ball Striking Metrics
 
 ![](scorecard_update_files/figure-html/PlotBallStrikingMetrics-1.png)<!-- -->
 
-## Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
+### Stroke Quality Metrics
 
-### Minima
+#### Minima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMinMetrics-1.png)<!-- -->
 
-### Maxima
+#### Maxima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMaxMetrics-1.png)<!-- -->
 
-### Average
+#### Average
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMetricAverages-1.png)<!-- -->
 
-## Main Metrics
+### Main Metrics
 
 ![](scorecard_update_files/figure-html/PlotMainMetrics-1.png)<!-- -->
 
