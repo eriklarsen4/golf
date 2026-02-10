@@ -3,8 +3,6 @@
 Erik Larsen
 2026-02-09
 
-### Environment
-
 #### Attach Packages
 
 
@@ -62,36 +60,6 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 
 Compute more nuanced metrics
 
-
-
-
-``` r
-head(scores_sum)
-```
-
-```
-## # A tibble: 6 × 25
-## # Groups:   date, date_course, course_rating [6]
-##   date       date_course        course_rating `Handicap Index`  FIRs `Iron FIRs`
-##   <date>     <chr>                      <dbl>            <dbl> <dbl>       <dbl>
-## 1 2025-05-04 "2025-05-04\nRand…          69.8             11.3    NA          NA
-## 2 2025-05-18 "2025-05-18\nDell…          67.8             11.3    NA          NA
-## 3 2025-06-01 "2025-06-01\nSilv…          68.9             11.8    NA          NA
-## 4 2025-06-08 "2025-06-08\nDell…          67.8             12.1    NA          NA
-## 5 2025-06-22 "2025-06-22\nRand…          69.8             12.9    NA          NA
-## 6 2025-07-13 "2025-07-13\nRand…          69.8             13.3    10           2
-## # ℹ 19 more variables: `Iron FIR%` <dbl>, `Driver FIRs` <dbl>,
-## #   `Driver FIR%` <dbl>, `FIR%` <dbl>, GIRs <dbl>, `Par 3 GIRs` <dbl>,
-## #   `GIR%` <dbl>, putts <dbl>, `Avg GIR putts` <dbl>, chips <dbl>,
-## #   `chips+putts` <dbl>, `UpDown%` <dbl>, pars <int>, birdies <int>,
-## #   bogies <int>, `doubles+` <int>, penalties <dbl>, `Gross Score` <dbl>,
-## #   `Net Score` <dbl>
-```
-
-#### Separate Metrics
-
-Separate the metrics:
-
 ##### Scoring Metrics
 
 Round scores and `Handicap Index`
@@ -100,21 +68,6 @@ Round scores and `Handicap Index`
 ``` r
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
-head(scoring_metrics)
-```
-
-```
-## # A tibble: 6 × 6
-## # Groups:   date, date_course, course_rating [6]
-##   date       date_course            course_rating `Handicap Index` `Gross Score`
-##   <date>     <chr>                          <dbl>            <dbl>         <dbl>
-## 1 2025-05-04 "2025-05-04\nRandolph…          69.8             11.3            88
-## 2 2025-05-18 "2025-05-18\nDell Uri…          67.8             11.3            90
-## 3 2025-06-01 "2025-06-01\nSilverbe…          68.9             11.8            93
-## 4 2025-06-08 "2025-06-08\nDell Uri…          67.8             12.1            88
-## 5 2025-06-22 "2025-06-22\nRandolph…          69.8             12.9            87
-## 6 2025-07-13 "2025-07-13\nRandolph…          69.8             13.3            84
-## # ℹ 1 more variable: `Net Score` <dbl>
 ```
 
 ##### Stroke Metrics
@@ -125,20 +78,6 @@ Above/below par
 ``` r
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
-head(stroke_metrics)
-```
-
-```
-## # A tibble: 6 × 7
-## # Groups:   date, date_course, course_rating [6]
-##   date       date_course           course_rating `doubles+` bogies  pars birdies
-##   <date>     <chr>                         <dbl>      <int>  <int> <int>   <int>
-## 1 2025-05-04 "2025-05-04\nRandolp…          69.8          3      9     6       0
-## 2 2025-05-18 "2025-05-18\nDell Ur…          67.8          7      6     5       0
-## 3 2025-06-01 "2025-06-01\nSilverb…          68.9          7      8     3       0
-## 4 2025-06-08 "2025-06-08\nDell Ur…          67.8          5      7     5       1
-## 5 2025-06-22 "2025-06-22\nRandolp…          69.8          3      9     6       0
-## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
 ```
 
 ##### Around-the-Green Metrics
@@ -149,21 +88,6 @@ Chips, putts, etc.
 ``` r
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpDown%`, putts, `Avg GIR putts`)
-head(atg_metrics)
-```
-
-```
-## # A tibble: 6 × 8
-## # Groups:   date, date_course, course_rating [6]
-##   date       date_course       course_rating chips `chips+putts` `UpDown%` putts
-##   <date>     <chr>                     <dbl> <dbl>         <dbl>     <dbl> <dbl>
-## 1 2025-05-04 "2025-05-04\nRan…          69.8    NA            NA        NA    NA
-## 2 2025-05-18 "2025-05-18\nDel…          67.8    NA            NA        NA    NA
-## 3 2025-06-01 "2025-06-01\nSil…          68.9    NA            NA        NA    NA
-## 4 2025-06-08 "2025-06-08\nDel…          67.8    NA            NA        NA    NA
-## 5 2025-06-22 "2025-06-22\nRan…          69.8    NA            NA        NA    NA
-## 6 2025-07-13 "2025-07-13\nRan…          69.8    NA            NA        NA    28
-## # ℹ 1 more variable: `Avg GIR putts` <dbl>
 ```
 
 ##### Ball Striking
@@ -176,22 +100,6 @@ ball_striking_metrics <- scores_sum |>
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
-head(ball_striking_metrics)
-```
-
-```
-## # A tibble: 6 × 12
-## # Groups:   date, date_course, course_rating [6]
-##   date       date_course    course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%`
-##   <date>     <chr>                  <dbl> <dbl>  <dbl>        <dbl> <dbl>  <dbl>
-## 1 2025-05-04 "2025-05-04\n…          69.8    NA   NA             NA    NA   NA  
-## 2 2025-05-18 "2025-05-18\n…          67.8    NA   NA             NA    NA   NA  
-## 3 2025-06-01 "2025-06-01\n…          68.9    NA   NA             NA    NA   NA  
-## 4 2025-06-08 "2025-06-08\n…          67.8    NA   NA             NA    NA   NA  
-## 5 2025-06-22 "2025-06-22\n…          69.8    NA   NA             NA    NA   NA  
-## 6 2025-07-13 "2025-07-13\n…          69.8     3   16.7            0    10   71.4
-## # ℹ 4 more variables: `Iron FIRs` <dbl>, `Iron FIR%` <dbl>,
-## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
 ```
 
 ##### Shot Quality
@@ -209,26 +117,7 @@ stroke_quality <- DBI::dbGetQuery(conn = con,
   dplyr::rename(course = course_name) |> 
   dplyr::group_by(date, hole, stroke) |> 
   dplyr::arrange(date, hole, stroke)
-head(stroke_quality)
 ```
-
-```
-## # A tibble: 6 × 14
-## # Groups:   date, hole, stroke [6]
-##   course     date       tees   hole   par gross stroke lie   club  yds_to_target
-##   <chr>      <date>     <chr> <int> <int> <int>  <int> <chr> <chr>         <int>
-## 1 Randolph … 2026-01-04 combo     1     4     5      1 tee   4               220
-## 2 Randolph … 2026-01-04 combo     1     4     5      2 fair… PW              138
-## 3 Randolph … 2026-01-04 combo     1     4     5      3 fair… 7                10
-## 4 Randolph … 2026-01-04 combo     2     4     4      1 tee   4               220
-## 5 Randolph … 2026-01-04 combo     2     4     4      2 fair… GW              110
-## 6 Randolph … 2026-01-04 combo     3     5     5      1 tee   D               270
-## # ℹ 4 more variables: yds_traveled <int>, on_target <chr>,
-## #   miss_direction <chr>, shot_type <chr>
-```
-
-
-
 
 ### LMER Model
 
@@ -369,9 +258,6 @@ For every additional `day` in time, `Gross Score` drops by **-0.04** strokes. Th
 #### Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
-
-
-
 
 ``` r
 ## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
