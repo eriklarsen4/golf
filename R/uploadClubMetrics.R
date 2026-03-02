@@ -120,7 +120,7 @@ uploadClubMetrics <- function(club_metrics, club_choice, distance_to_target, dis
   assertthat::assert_that(!missing(type_of_shot), msg = "'type_of_shot' is a required parameter! Please see help file for valid strings.")
   assertthat::assert_that(is.character(type_of_shot), msg = "'type_of_shot' must be a character vector! Please see help file for valid strings.")
   
-  con <- golf::get_db_connection(db_path = NULL)
+  # con <- golf::get_db_connection(db_path = NULL)
   
   club_metrics1 <- club_metrics |> 
     # re-arrange the data to allow more easy data upload (vector of manually curated variables)

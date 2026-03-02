@@ -52,7 +52,7 @@ getCourse <- function(course, date, tees){
                           msg = "Invalid 'tees'! Please see help docs for proper input options.")
   if (grepl(course, pattern = 'Randolph|North|Randolph North') |> any() ) {
     Scorecard <- data.frame(course = 'Randolph North',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -143,7 +143,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Dell|Dell Urich|Urich') |> any() ) {
     Scorecard <- data.frame(course = 'Dell Urich',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 70,
                             slope = NA,
@@ -234,7 +234,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Silverbell') |> any() ) {
     Scorecard <- data.frame(course = 'Silverbell',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -325,7 +325,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Fred|Enke|Fred Enke') |> any() ) {
     Scorecard <- data.frame(course = 'Fred Enke',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -416,7 +416,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'El Rio') |> any() ) {
     Scorecard <- data.frame(course = 'El Rio',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 70,
                             slope = NA,
@@ -507,7 +507,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Sewailo') |> any() ) {
     Scorecard <- data.frame(course = 'Sewailo',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,
@@ -598,7 +598,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'AZN|Arizona National|National') |> any() ){
     Scorecard <- data.frame(course = 'Arizona National',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 71,
                             slope = NA,
@@ -689,7 +689,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Quarry|Quarry Pines|QP') |> any() ){
     Scorecard <- data.frame(course = 'Quarry Pines',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 71,
                             slope = NA,
@@ -780,7 +780,7 @@ getCourse <- function(course, date, tees){
       )
   } else if ( grepl(course, pattern = 'Crooked')) {
     Scorecard <- data.frame(course = 'Crooked Tree',
-                            date = lubridate::as_date(date),
+                            date = as.character(date),
                             tees = tees,
                             to_par = 72,
                             slope = NA,

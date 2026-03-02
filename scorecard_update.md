@@ -1,48 +1,253 @@
-Scorecard Update
+---
+title: "Scorecard Update"
+author: "Erik Larsen"
+date: "2026-03-01"
+output: 
+  html_document:
+    self-contained: no
+    code_folding: hide
+    toc: TRUE
+    toc_float:
+      collapsed: TRUE
+      smooth_scroll: TRUE
+    fig_caption: TRUE
+    keep_md: TRUE
+---
 
-Erik Larsen
-
-2026-02-09
 
 
 
-## Record New Scorecard
 
-### Input the Scores Data
+
+
+# Record New Scorecard {.tabset .tabset-pills .tabset-fade}
+
+## Input the Scores Data
 
 
 ``` r
-round_course <- 'Randolph North'
-round_date <- '2026-02-08'
+round_course <- 'Dell Urich'
+round_date <- '2026-02-22'
 round_tees <- 'combo'
 
-hole_scores <- c(5, 5, 5, 5, 4, 4, 5, 4, 5,
-                 4, 3, 6, 6, 5, 3, 4, 6, 4)
+hole_scores <- c(6, 3, 5, 5, 4, 5, 7, 5, 5,
+                 5, 4, 4, 8, 7, 5, 4, 4, 6)
 
-FIRs <- c(rep(0, 13), 1, 0, 1, 0, 0)
+FIRs <- c(1, rep(0, 4), 1, 0, 1, 0,
+          0, 0, rep(1, 4), 0, 0, 0)
 
-GIRs <- c(rep(0, 4), 1, 1, 0, 0, 1,
-          0, 1, rep(0, 3), 1, 1, 0, 1) 
+GIRs <- c(0, 1, rep(0, 7),
+          0, 0, 1, 0, 0, 0, 1, 0, 0) 
 
-putts_rec <- c(2, 2, 1, 2, 2, 3, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2)
+putts_rec <- c(1, 2, 1, 2, 2, 1, 2, 2, 3,
+               2, 2, 2, 2, 2, 2, 2, 2, 2)
 
-chips_rec <- c(1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 2, 0)
+chips_rec <- c(3, 0, 1, 0, 1, 2, 2, 1, 1,
+               1, 1, 0, 0, 3, 1, 0, 0, 1)
 
 penalties_rec <- c(rep(0, 18))
 
-tee_clubs <- c('4', 'D', 'D', 'D', 'D', 'PW', '3W', '7', 'D',
-               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
+tee_clubs <- c('4', '9', 'D', '4', '9', 'D', 'D', 'D', '8',
+               'D', '8', 'D', 'D', 'D', 'D', '4', '9', 'D')
 
-index <- 10.2
+index <- 10.1
 ```
 
-### Input Club Metrics
 
-(not shown for brevity)
 
-## Summarize Metrics
 
-### Gather and Format
+
+
+
+
+
+
+
+## Input Club Metrics
+
+
+``` r
+club_metrics_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
+    dplyr::mutate(date = lubridate::as_date(date)) |>
+    dplyr::filter(grepl(date, pattern = round_date)) |> 
+    dplyr::mutate(tracked_shots = gross - putts) |> 
+    dplyr::full_join(
+      DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT r.*, c.par FROM rounds r
+                                                   INNER JOIN courses c
+                                                   ON r.course_name = c.course_name
+                                                   AND r.tees = c.tees
+                                                   AND r.hole = c.hole;")) |> 
+        dplyr::mutate(date = lubridate::as_date(date)) |> 
+        dplyr::filter(grepl(date, pattern = round_date))
+    ) |> 
+    dplyr::select(course_name, date, tees, hole, par, gross, tracked_shots)
+club_metrics_df <- tryCatch({golf::getTrackedShotsDataShape(round_date = round_date)}, error = function(e){e$message})
+
+club_choice <- c(
+  '4', '9', 'SW', 'SW', 'P',
+  '9',
+  'D', '4', '5', 'PW',
+  '4', 'SW', 'LW',
+  '9', 'P',
+  'D', '3W', 'GW', 'SW',
+  'D', '5', 'GW', 'SW', 'GW',
+  'D', '9', 'GW',
+  '8', 'LW',
+  
+  'D', 'GW', 'PW',
+  '8', 'PW',
+  'D', 'GW',
+  'D', '5', 'SW', 'LW', 'LW', 'LW',
+  'D', '5', 'GW', 'SW', 'PW',
+  'D', '5', 'SW',
+  '4', '8',
+  '9', 'GW',
+  'D', '5', 'GW', 'LW'
+)
+
+dist_to_target <- c(
+  220, 150, 14, 10, 8,
+  161,
+  270, 100, 230, 20,
+  220, 85, 15,
+  155, 11,
+  270, 250, 65, 15,
+  270, 200, 70, 20, 20,
+  270, 155, 25,
+  174, 20,
+  
+  270, 100, 18,
+  165, 10,
+  270, 108,
+  270, 200, 55, 15, 15, 15,
+  270, 155, 45, 15, 10,
+  270, 185, 26,
+  220, 165,
+  135, 85,
+  270, 200, 100, 20
+)
+
+yds <- c(
+  236, 151, 4, 2, 4,
+  155, 6,
+  281, 108,
+  218, 110, 216, 14,
+  163, 21,
+  260, 237, 84, 15,
+  200, 142, 55, 49, 28,
+  274, 170, 34,
+  154, 30,
+  
+  289, 87, 13,
+  155, 7,
+  281, 108,
+  276, 145, 42, 8, 4, 13,
+  256, 153, 21, 26, 10,
+  153, 175, 24,
+  205, 164,
+  50, 100,
+  243, 113, 94, 20
+)
+
+lie_type <- c(
+  'tee', 'fairway', 'rough', 'rough', 'fairway',
+  'tee',
+  'tee', 'rough', 'fairway', 'fairway',
+  'tee', 'sand', 'sand',
+  'tee', 'fairway',
+  'tee', 'fairway', 'rough', 'rough',
+  'tee', 'rough', 'rough', 'rough', 'rough',
+  'tee', 'fairway', 'rough',
+  'tee', 'rough',
+  
+  'tee', 'rough', 'fairway',
+  'tee', 'fairway',
+  'tee', 'fairway',
+  'tee', 'fairway', 'sand', 'sand', 'sand', 'sand',
+  'tee', 'fairway', 'rough', 'rough', 'fairway',
+  'tee', 'fairway', 'rough',
+  'tee', 'rough',
+  'tee', 'rough',
+  'tee', 'fwbunker', 'rough', 'fairway'
+)
+
+target_status <- c(
+  'yes', 'no', 'no', 'no', 'yes',
+  'yes',
+  'no', 'yes', 'yes', 'yes',
+  'no', 'no', 'no',
+  'no', 'yes',
+  'yes', 'no', 'no', 'yes',
+  'no', 'no', 'no', 'no', 'yes',
+  'yes', 'no', 'yes',
+  'no', 'yes',
+  
+  'no', 'yes', 'yes',
+  'no', 'yes',
+  'yes', 'yes',
+  'yes', 'no', 'no', 'no', 'no', 'no',
+  'yes', 'no', 'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'no', 'yes',
+  'no', 'no', 'no', 'yes'
+)
+
+location <- c(
+  'on_target', 'right', 'short', 'short', 'on_target',
+  'on_target',
+  'left', 'on_target', 'on_target', 'on_target',
+  'right', 'short', 'long',
+  'long', 'long',
+  'on_target', 'right', 'long', 'on_target',
+  'left', 'left', 'short', 'long', 'on_target',
+  'on_target', 'long', 'long',
+  'short', 'long',
+  
+  'right', 'on_target', 'short',
+  'short', 'on_target',
+  'on_target', 'on_target',
+  'on_target', 'right', 'short', 'short', 'short', 'on_target',
+  'short', 'right', 'short', 'long', 'on_target',
+  'left', 'left', 'on_target',
+  'right', 'on_target',
+  'short', 'on_target',
+  'right', 'short', 'right', 'on_target'
+)
+
+type_of_shot <- c(
+  'full', 'full', 'chip', 'chip', 'putt',
+  'full',
+  'full', 'punch', 'full', 'chip',
+  'full', 'fwbunker', 'gsbunker',
+  'full', 'chip',
+  'full', 'full', 'punch', 'chip',
+  'full', 'full', 'punch', 'chip', 'chip',
+  'full', 'full', 'chip',
+  'full', 'chip',
+  
+  'full', 'choked', 'chip',
+  'full', 'chip',
+  'full', 'choked',
+  'full', 'full', 'fwbunker', 'gsbunker', 'gsbunker', 'gsbunker',
+  'full', 'full', 'chip', 'chip', 'chip',
+  'full', 'full', 'chip',
+  'full', 'full',
+  'full', 'choked',
+  'full', 'full', 'choked', 'chip'
+)
+```
+
+
+
+
+
+
+
+
+# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+
+## Gather and Format
 
 Gather and format from the database
 
@@ -84,39 +289,199 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-## Plot Metrics
+
+## Compute Advanced Metrics
+
+Compute more nuanced metrics
+
+
+
+
+```
+## # A tibble: 6 × 26
+## # Groups:   date, date_course, course_rating [6]
+##   date       date_course        course_rating `Handicap Index`  FIRs `Iron FIRs`
+##   <date>     <chr>                      <dbl>            <dbl> <dbl>       <dbl>
+## 1 2025-05-04 "2025-05-04\nRand…          69.8             11.3    NA          NA
+## 2 2025-05-18 "2025-05-18\nDell…          67.8             11.3    NA          NA
+## 3 2025-06-01 "2025-06-01\nSilv…          68.9             11.8    NA          NA
+## 4 2025-06-08 "2025-06-08\nDell…          67.8             12.1    NA          NA
+## 5 2025-06-22 "2025-06-22\nRand…          69.8             12.9    NA          NA
+## 6 2025-07-13 "2025-07-13\nRand…          69.8             13.3    10           2
+## # ℹ 20 more variables: `Iron FIR%` <dbl>, `Driver FIRs` <dbl>,
+## #   `Driver FIR%` <dbl>, `FIR%` <dbl>, GIRs <dbl>, `Par 3 GIRs` <dbl>,
+## #   `GIR%` <dbl>, putts <dbl>, `Avg GIR putts` <dbl>, chips <dbl>,
+## #   `chips+putts` <dbl>, `UpDown%` <dbl>, pars <int>, birdies <int>,
+## #   bogies <int>, `doubles+` <int>, penalties <dbl>, `Gross Score` <dbl>,
+## #   `Net Score` <dbl>, `UpAndDown%` <dbl>
+```
+
+## View Metrics {.tabset .tabset-pills .tabset-fade}
+
+Separate and view the metrics:
 
 ### Scoring Metrics
 
-![](scorecard_update_files/figure-html/PlotScoringMetrics-1.png)<!-- -->
+Scores and Handicap
+
+
+```
+## # A tibble: 6 × 6
+## # Groups:   date, date_course, course_rating [6]
+##   date       date_course            course_rating `Handicap Index` `Gross Score`
+##   <date>     <chr>                          <dbl>            <dbl>         <dbl>
+## 1 2025-05-04 "2025-05-04\nRandolph…          69.8             11.3            88
+## 2 2025-05-18 "2025-05-18\nDell Uri…          67.8             11.3            90
+## 3 2025-06-01 "2025-06-01\nSilverbe…          68.9             11.8            93
+## 4 2025-06-08 "2025-06-08\nDell Uri…          67.8             12.1            88
+## 5 2025-06-22 "2025-06-22\nRandolph…          69.8             12.9            87
+## 6 2025-07-13 "2025-07-13\nRandolph…          69.8             13.3            84
+## # ℹ 1 more variable: `Net Score` <dbl>
+```
 
 ### Stroke Metrics
 
-![](scorecard_update_files/figure-html/PlotStrokeMetrics-1.png)<!-- -->
+Pars, birdies, bogies, etc.
 
-### Around the Green Metrics
 
-![](scorecard_update_files/figure-html/PlotAroundTheGreenMetrics-1.png)<!-- -->
+```
+## # A tibble: 6 × 7
+## # Groups:   date, date_course, course_rating [6]
+##   date       date_course           course_rating `doubles+` bogies  pars birdies
+##   <date>     <chr>                         <dbl>      <int>  <int> <int>   <int>
+## 1 2025-05-04 "2025-05-04\nRandolp…          69.8          3      9     6       0
+## 2 2025-05-18 "2025-05-18\nDell Ur…          67.8          7      6     5       0
+## 3 2025-06-01 "2025-06-01\nSilverb…          68.9          7      8     3       0
+## 4 2025-06-08 "2025-06-08\nDell Ur…          67.8          5      7     5       1
+## 5 2025-06-22 "2025-06-22\nRandolp…          69.8          3      9     6       0
+## 6 2025-07-13 "2025-07-13\nRandolp…          69.8          1     12     3       2
+```
+
+### Around-the-Green Metrics
+
+Chips, putts, etc.
+
+
+```
+## # A tibble: 6 × 8
+## # Groups:   date, date_course, course_rating [6]
+##   date       date_course    course_rating chips `chips+putts` `UpAndDown%` putts
+##   <date>     <chr>                  <dbl> <dbl>         <dbl>        <dbl> <dbl>
+## 1 2025-05-04 "2025-05-04\n…          69.8    NA            NA           NA    NA
+## 2 2025-05-18 "2025-05-18\n…          67.8    NA            NA           NA    NA
+## 3 2025-06-01 "2025-06-01\n…          68.9    NA            NA           NA    NA
+## 4 2025-06-08 "2025-06-08\n…          67.8    NA            NA           NA    NA
+## 5 2025-06-22 "2025-06-22\n…          69.8    NA            NA           NA    NA
+## 6 2025-07-13 "2025-07-13\n…          69.8    NA            NA           NA    28
+## # ℹ 1 more variable: `Avg GIR putts` <dbl>
+```
 
 ### Ball Striking Metrics
 
+Approach and tee accuracy
+
+
+```
+## # A tibble: 6 × 12
+## # Groups:   date, date_course, course_rating [6]
+##   date       date_course    course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%`
+##   <date>     <chr>                  <dbl> <dbl>  <dbl>        <dbl> <dbl>  <dbl>
+## 1 2025-05-04 "2025-05-04\n…          69.8    NA   NA             NA    NA   NA  
+## 2 2025-05-18 "2025-05-18\n…          67.8    NA   NA             NA    NA   NA  
+## 3 2025-06-01 "2025-06-01\n…          68.9    NA   NA             NA    NA   NA  
+## 4 2025-06-08 "2025-06-08\n…          67.8    NA   NA             NA    NA   NA  
+## 5 2025-06-22 "2025-06-22\n…          69.8    NA   NA             NA    NA   NA  
+## 6 2025-07-13 "2025-07-13\n…          69.8     3   16.7            0    10   71.4
+## # ℹ 4 more variables: `Iron FIRs` <dbl>, `Iron FIR%` <dbl>,
+## #   `Driver FIRs` <dbl>, `Driver FIR%` <dbl>
+```
+
+
+### Club Metrics
+
+Yardage and accuracy for each club
+
+
+
+
+```
+## # A tibble: 6 × 6
+## # Groups:   date [1]
+##   date       club      n rd_min_yds_to_target rd_min_yds_traveled rd_min_yd_diff
+##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
+## 1 2026-01-04 3W        1                  250                 250              0
+## 2 2026-01-04 4         7                  180                 180              0
+## 3 2026-01-04 5         2                  130                 130              0
+## 4 2026-01-04 6         1                  200                 200              0
+## 5 2026-01-04 7         5                   10                  15             -5
+## 6 2026-01-04 8         1                  150                 150              0
+```
+
+
+```
+## # A tibble: 6 × 6
+## # Groups:   date [1]
+##   date       club      n rd_max_yds_to_target rd_max_yds_traveled rd_max_yd_diff
+##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
+## 1 2026-01-04 3W        1                  250                 250              0
+## 2 2026-01-04 4         7                  264                 264              0
+## 3 2026-01-04 5         2                  190                 190              0
+## 4 2026-01-04 6         1                  200                 200              0
+## 5 2026-01-04 7         5                  180                 180              0
+## 6 2026-01-04 8         1                  150                 150              0
+```
+
+
+```
+## # A tibble: 6 × 10
+## # Groups:   date [1]
+##   date       club  `rd club strokes` miss_direction `rd club miss dir`
+##   <date>     <chr>             <int> <chr>                       <int>
+## 1 2026-01-04 3W                    1 right                           1
+## 2 2026-01-04 4                     7 left                            1
+## 3 2026-01-04 4                     7 on_target                       4
+## 4 2026-01-04 4                     7 right                           1
+## 5 2026-01-04 4                     7 short                           1
+## 6 2026-01-04 5                     2 short                           2
+## # ℹ 5 more variables: rd_avg_yds_to_target <dbl>, rd_avg_yds_traveled <dbl>,
+## #   rd_avg_yd_diff <dbl>, rd_avg_accuracy <dbl>,
+## #   `rd club % miss direction` <dbl>
+```
+
+
+# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+
+## Scoring Metrics
+
+![](scorecard_update_files/figure-html/PlotScoringMetrics-1.png)<!-- -->
+
+## Stroke Metrics
+
+![](scorecard_update_files/figure-html/PlotStrokeMetrics-1.png)<!-- -->
+
+## Around the Green Metrics
+
+![](scorecard_update_files/figure-html/PlotAroundTheGreenMetrics-1.png)<!-- -->
+
+## Ball Striking Metrics
+
 ![](scorecard_update_files/figure-html/PlotBallStrikingMetrics-1.png)<!-- -->
 
-### Stroke Quality Metrics
+## Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
 
-#### Minima
+### Minima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMinMetrics-1.png)<!-- -->
 
-#### Maxima
+### Maxima
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMaxMetrics-1.png)<!-- -->
 
-#### Average
+### Average
 
 ![](scorecard_update_files/figure-html/PlotStrokeQualityMetricAverages-1.png)<!-- -->
 
-### Main Metrics
+## Main Metrics
 
 ![](scorecard_update_files/figure-html/PlotMainMetrics-1.png)<!-- -->
 

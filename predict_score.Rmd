@@ -304,9 +304,9 @@ For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effe
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-round_date <- lubridate::as_date('2026-02-22')
+round_date <- lubridate::as_date('2026-03-08')
 index <- 10.1
-course <- "Dell Urich"
+course <- "Randolph North"
 tees <- 'combo'
 
 new_df <- DBI::dbGetQuery(
@@ -379,7 +379,9 @@ scores_sum |>
   dplyr::add_row(course_name = 'mean') |> # add all mean values
   dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
                 days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ scores_sum |> dplyr::ungroup() |> dplyr::summarize(avg = mean(`Gross Score`)) |> unlist() |> as.numeric(), TRUE ~ `Gross Score`),
+                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ scores_sum |> 
+                                                   dplyr::ungroup() |> dplyr::summarize(avg = round(mean(`Gross Score`), 0)) |> unlist() |> as.numeric(), 
+                                                 TRUE ~ `Gross Score`),
                 date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
                 `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
                 `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
@@ -404,7 +406,9 @@ scores_sum |>
                  legend.key.spacing.y = rel(0.4),
                  axis.title = ggplot2::element_text(face = 'bold', size = 10),
                  axis.text.x = ggplot2::element_text(face = 'bold', size = 9, angle = 270, hjust = 0, vjust = 0.5),
-                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9)
+                 axis.text.y = ggplot2::element_text(face = 'bold', size = 9),
+                 strip.background = ggplot2::element_rect(fill = 'white', color = 'black'),
+                 strip.text = ggplot2::element_text(face = 'bold', size = 10)
                  ) +
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b') +
   ggplot2::guides(fill = 'none', alpha = 'none') +

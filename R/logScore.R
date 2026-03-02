@@ -33,7 +33,7 @@
 #' Card <- getCourse(course = 'North', date = '2025-12-01', tees = 'combo')
 #' logScore(Scorecard = Card,
 #'           hole_by_hole = c(5, 6, 3, 5, 5, 3, 6, 5, 3, 5, 6, 2, 5, 6, 3, 4, 4, 7),
-#'           GHIN = '10526424',
+#'           GHIN = 10526424,
 #'           index = 10.4,
 #'           FIR = c(1, 1, 0, 1, 1, 0, 0, 1, 0,
 #'                   0, 1, 0, 1, 0, 1, 0, 0, 0),
@@ -59,7 +59,7 @@ logScore <- function(Scorecard, hole_by_hole, GHIN = NULL, index = NULL, FIR = N
   assertthat::assert_that(!missing(hole_by_hole), msg = "'hole_by_hole' is a required parameter!")
   assertthat::assert_that(is.numeric(hole_by_hole), msg = "'hole_by_hole' must be 18 integers!")
   assertthat::assert_that(length(hole_by_hole)==18, msg = "'hole_by_hole' must be 18 integers!")
-  assertthat::assert_that(is.character(GHIN), msg = "'GHIN' must be a character!")
+  assertthat::assert_that(is.integer(GHIN), msg = "'GHIN' must be an integer!")
   assertthat::assert_that(is.numeric(index), msg = "'index' must be numeric!")
   assertthat::assert_that(is.numeric(FIR), msg = "'FIR' must be 18 integers!")
   assertthat::assert_that(length(FIR)==18, msg = "'FIR' must be 18 integers!")
