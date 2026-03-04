@@ -1,17 +1,8 @@
----
-title: "Model Predictions"
-author: "Erik Larsen"
-date: "2026-03-01"
-output: 
-  html_document:
-    code_folding: hide
-    toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
-    keep_md: true
----
-# Environment {.tabset .tabset-fade .tabset-pills}
+Golf Performance Model Predictions
+Erik Larsen
+2026-03-01
+
+# Environment
 
 ## Attach Packages
 
@@ -29,13 +20,12 @@ library(emayili)
 
 ## Connect to the db
 
-
 ``` r
 db <- dir(getwd(), pattern = 'golf_data.db', full.names = T, recursive = T)
 con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db)
 ```
 
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+# Summarize Metrics
 
 ## Gather and Format
 
@@ -71,8 +61,6 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 Compute more nuanced metrics
 
 
-
-
 ``` r
 head(scores_sum)
 ```
@@ -96,7 +84,7 @@ head(scores_sum)
 ## #   `Net Score` <dbl>
 ```
 
-## Separate Metrics {.tabset .tabset-pills .tabset-fade}
+## Separate Metrics
 
 Separate the metrics:
 
@@ -238,7 +226,7 @@ head(stroke_quality)
 
 
 
-# LMER Model {.tabset .tabset-pills .tabset-fade}
+# LMER Model
 
 ## Fit LMER
 
@@ -344,7 +332,7 @@ gross_lmer <- lme4::lmer(
 
 ## Model Interpretation
 
-The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **99.23**. The average `Gross Score`, however, is **85.2592593**. 
+The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **99.23**. The average `Gross Score`, however, is **85.25**. 
 
 For every additional `Handicap Index` point larger than the average `Handicap Index`, `Gross Score` increases by **2.91** strokes.
 
@@ -392,7 +380,7 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 ## [1] 78
 ```
 
-# Plot Model {.tabset .tabset-pills .tabset-fade}
+# Plot Model
 
 ## Model
 
