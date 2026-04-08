@@ -7,7 +7,7 @@
 #' 
 #' @param hole_by_hole a concatenated vector of integers comprising a player's score for each hole
 #' 
-#' @param GHIN (optional) a string value of integers representing a GHIN
+#' @param GHIN (optional) a numeric (integer) representing a GHIN
 #' 
 #' @param index (optional) a float representing a player's handicap index
 #' 
@@ -59,7 +59,7 @@ logScore <- function(Scorecard, hole_by_hole, GHIN = NULL, index = NULL, FIR = N
   assertthat::assert_that(!missing(hole_by_hole), msg = "'hole_by_hole' is a required parameter!")
   assertthat::assert_that(is.numeric(hole_by_hole), msg = "'hole_by_hole' must be 18 integers!")
   assertthat::assert_that(length(hole_by_hole)==18, msg = "'hole_by_hole' must be 18 integers!")
-  assertthat::assert_that(is.integer(GHIN), msg = "'GHIN' must be an integer!")
+  assertthat::assert_that(is.numeric(GHIN), msg = "'GHIN' must be an numeric!")
   assertthat::assert_that(is.numeric(index), msg = "'index' must be numeric!")
   assertthat::assert_that(is.numeric(FIR), msg = "'FIR' must be 18 integers!")
   assertthat::assert_that(length(FIR)==18, msg = "'FIR' must be 18 integers!")

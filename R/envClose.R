@@ -1,29 +1,20 @@
-#' @title env close
-#' @description
-#' closing database connections after detaching the package
+#' Close the package-managed database connection
+#' 
+#' Safely disconnects the SQLite connection stored in pkg_env
 #'
+#' @param e Environment containing the connection (default: pkg_env)
+#' @param conn_name Name of the connection object inside the environment
+#' @importFrom DBI dbIsValid dbDisconnect
 #' @import DBI
 #'
 #' @export
-close_connection <- function(e, conn_name = "con") {
-  # Want to be as defensive as possible, so if there is no connection, we don't want to test it
+close_connection <- function(e = pkg_env, conn_name = "con") {
+  
   if (conn_name %in% ls(e)) {
-    con <- get(conn_name, envir = e)
-    # If connection has closed for any other reason, we don't want the function to error
-    if (DBI::dbIsValid(con)) {
+    con <- e[[conn_name]]
+    
+    if (!is.null(con) && DBI::dbIsValid(con)) {
       DBI::dbDisconnect(con)
     }
   }
-}
-
-.onLoad <- function(libname, pkgname) {
-  reg.finalizer(
-    e = .pkg,
-    f = close_connection,
-    onexit = TRUE
-  )
-}
-
-.onUnload <- function(libpath) {
-  close_connection(.pkg)
 }

@@ -23,7 +23,7 @@ logScore(
 
 \item{hole_by_hole}{a concatenated vector of integers comprising a player's score for each hole}
 
-\item{GHIN}{(optional) a string value of integers representing a GHIN}
+\item{GHIN}{(optional) a numeric (integer) representing a GHIN}
 
 \item{index}{(optional) a float representing a player's handicap index}
 
@@ -52,7 +52,7 @@ Completes and (pending input) analyzes the scorecard of the specific course and 
 Card <- getCourse(course = 'North', date = '2025-12-01', tees = 'combo')
 logScore(Scorecard = Card,
           hole_by_hole = c(5, 6, 3, 5, 5, 3, 6, 5, 3, 5, 6, 2, 5, 6, 3, 4, 4, 7),
-          GHIN = '10526424',
+          GHIN = 10526424,
           index = 10.4,
           FIR = c(1, 1, 0, 1, 1, 0, 0, 1, 0,
                   0, 1, 0, 1, 0, 1, 0, 0, 0),

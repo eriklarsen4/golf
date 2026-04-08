@@ -7,8 +7,11 @@
 get_db_connection(db_path = NULL)
 }
 \arguments{
-\item{db_path}{the path to the db}
+\item{db_path}{the path to the SQLite db. If NULL, uses the package's extdata/golf_data.db file}
+}
+\value{
+a DBIConnection object
 }
 \description{
-Create a db connection
+Lazily opens a SQLite connection and reuses it for the session
 }

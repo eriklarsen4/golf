@@ -2,20 +2,41 @@
 title: "Scorecard Update"
 author: "Erik Larsen"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
-    self-contained: no
-    code_folding: hide
-    toc: TRUE
-    toc_float:
-      collapsed: TRUE
-      smooth_scroll: TRUE
-    fig_caption: TRUE
-    keep_md: TRUE
+    toc: true
+    fig_width: 10
+    fig_height: 10
+  pdf_document:
+    fig_width: 10
+    fig_height: 10
+    latex_engine: xelatex
+  md_document:
+    variant: gfm
+vignette: >
+  %\VignetteIndexEntry{Scorecard Update vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = F, message = F, warning = F, echo = F, eval = T}
-knitr::opts_chunk$set(echo = FALSE) 
+```{r setup, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 10,
+  dev = c("png", "pdf"),
+  fig.path = "figures/"
+)
+```
+
+## Set up Environment
+
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('## Set up Environment {.tabset .tabset-pills .tabset-fade}\n')
+}
 ```
 
 ```{r Attach Packages, include = T, message = F, warning = F, eval = T}
@@ -33,40 +54,45 @@ library(emayili)
 ```
 
 ```{r Connect to the db, include = T, message = F, warning = F, eval = T}
-db <- dir(path = getwd(), pattern = 'golf_data.db', full.names = T, recursive = T)
-con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = db, extended_types= TRUE)
+con <- golf::get_db_connection()
 ```
 
-# Record New Scorecard {.tabset .tabset-pills .tabset-fade}
+## Record New Scorecard
 
-## Input the Scores Data
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('## Record New Scorecard {.tabset .tabset-pills .tabset-fade}\n')
+}
+```
+
+### Input the Scores Data
 
 ```{r Annotate the new data, include = T, message = F, warning = F, echo = T, eval = T}
-round_course <- 'Dell Urich'
-round_date <- '2026-02-22'
-round_tees <- 'combo'
+round_course <- 'Randolph North'
+round_date <- '2026-04-05'
+round_tees <- 'blue'
 
-hole_scores <- c(6, 3, 5, 5, 4, 5, 7, 5, 5,
-                 5, 4, 4, 8, 7, 5, 4, 4, 6)
+hole_scores <- c(4, 6, 5, 5, 5, 4, 6, 4, 6,
+                 5, 3, 5, 5, 4, 6, 6, 4, 5)
 
-FIRs <- c(1, rep(0, 4), 1, 0, 1, 0,
-          0, 0, rep(1, 4), 0, 0, 0)
+FIRs <- c(0, 0, 1, 1, 0, 0, 1, 0, 0,
+          1, 0, 1, 0, 1, 0, 0, 0, 0)
 
-GIRs <- c(0, 1, rep(0, 7),
-          0, 0, 1, 0, 0, 0, 1, 0, 0) 
+GIRs <- c(0, 0, 1, rep(0, 6),
+          0, 1, 0, 0, 1, rep(0, 4)) 
 
-putts_rec <- c(1, 2, 1, 2, 2, 1, 2, 2, 3,
-               2, 2, 2, 2, 2, 2, 2, 2, 2)
+putts_rec <- c(1, 2, 2, 1, 2, 2, 2, 2, 1,
+               2, 2, 2, 2, 2, 1, 2, 1, 2)
 
-chips_rec <- c(3, 0, 1, 0, 1, 2, 2, 1, 1,
-               1, 1, 0, 0, 3, 1, 0, 0, 1)
+chips_rec <- c(1, 2, 1, 2, 1, 1, 2, 1, 3,
+               1, 0, 1, 1, 0, 1, 1, 1, 1)
 
-penalties_rec <- c(rep(0, 18))
+penalties_rec <- c(rep(0, 14), 2, 0, 0, 0)
 
-tee_clubs <- c('4', '9', 'D', '4', '9', 'D', 'D', 'D', '8',
-               'D', '8', 'D', 'D', 'D', 'D', '4', '9', 'D')
+tee_clubs <- c('4', 'D', 'D', 'D', 'D', '9', 'D', '5', 'D',
+               'D', '6', 'D', 'D', 'D', '6', 'D', 'D', 'D')
 
-index <- 10.1
+index <- 11.0
 ```
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
@@ -150,176 +176,167 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-## Input Club Metrics
+### Input Club Metrics
+
+```{r Get the Club Metrics df, include = T, message = F, warning = F, echo = T, eval = T}
+club_metrics_df <- golf::getTrackedShotsDataShape(round_date = round_date)
+```
+
 
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
-club_metrics_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
-    dplyr::filter(grepl(date, pattern = round_date)) |> 
-    dplyr::mutate(tracked_shots = gross - putts) |> 
-    dplyr::full_join(
-      DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT r.*, c.par FROM rounds r
-                                                   INNER JOIN courses c
-                                                   ON r.course_name = c.course_name
-                                                   AND r.tees = c.tees
-                                                   AND r.hole = c.hole;")) |> 
-        dplyr::mutate(date = lubridate::as_date(date)) |> 
-        dplyr::filter(grepl(date, pattern = round_date))
-    ) |> 
-    dplyr::select(course_name, date, tees, hole, par, gross, tracked_shots)
-club_metrics_df <- tryCatch({golf::getTrackedShotsDataShape(round_date = round_date)}, error = function(e){e$message})
-
 club_choice <- c(
-  '4', '9', 'SW', 'SW', 'P',
-  '9',
-  'D', '4', '5', 'PW',
-  '4', 'SW', 'LW',
-  '9', 'P',
-  'D', '3W', 'GW', 'SW',
-  'D', '5', 'GW', 'SW', 'GW',
-  'D', '9', 'GW',
-  '8', 'LW',
-  
-  'D', 'GW', 'PW',
-  '8', 'PW',
-  'D', 'GW',
-  'D', '5', 'SW', 'LW', 'LW', 'LW',
-  'D', '5', 'GW', 'SW', 'PW',
-  'D', '5', 'SW',
-  '4', '8',
+  '4', 'PW', 'PW',
+  'D', '4', 'SW', 'LW',
+  'D', '3W', 'SW',
+  'D', '7', 'PW', 'P',
+  'D', '8', 'PW',
   '9', 'GW',
-  'D', '5', 'GW', 'LW'
+  'D', 'PW', 'PW', 'P',
+  '5', 'SW',
+  'D', '6', 'SW', 'GW', 'P',
+  
+  'D', 'GW', 'SW',
+  '6',
+  'D', 'GW', 'SW',
+  'D', '4', 'SW',
+  'D', 'PW',
+  '6', '6', 'GW',
+  'D', '3W', 'SW', 'GW',
+  'D', '4', 'P',
+  'D', '7', 'SW'
 )
 
 dist_to_target <- c(
-  220, 150, 14, 10, 8,
-  161,
-  270, 100, 230, 20,
-  220, 85, 15,
-  155, 11,
-  270, 250, 65, 15,
-  270, 200, 70, 20, 20,
-  270, 155, 25,
-  174, 20,
+  220, 140, 10,
+  270, 115, 30, 15,
+  270, 250, 30,
+  270, 175, 20, 10,
+  270, 165, 13,
+  145, 19,
+  270, 135, 25, 15,
+  205, 40,
+  270, 190, 65, 21, 11,
   
-  270, 100, 18,
-  165, 10,
-  270, 108,
-  270, 200, 55, 15, 15, 15,
-  270, 155, 45, 15, 10,
-  270, 185, 26,
-  220, 165,
-  135, 85,
-  270, 200, 100, 20
+  270, 125, 24,
+  190,
+  270, 120, 45, 
+  270, 120, 90,
+  270, 140,
+  190, 190, 10,
+  270, 250, 100, 10,
+  270, 150, 5,
+  270, 154, 32
 )
 
 yds <- c(
-  236, 151, 4, 2, 4,
-  155, 6,
-  281, 108,
-  218, 110, 216, 14,
-  163, 21,
-  260, 237, 84, 15,
-  200, 142, 55, 49, 28,
-  274, 170, 34,
-  154, 30,
+  219, 131, 8,
+  308, 82, 16, 16,
+  272, 260, 28,
+  259, 168, 20, 10,
+  255, 167, 17,
+  123, 8,
+  257, 97, 39, 19,
+  210, 36,
+  279, 165, 33, 21, 10,
   
-  289, 87, 13,
-  155, 7,
-  281, 108,
-  276, 145, 42, 8, 4, 13,
-  256, 153, 21, 26, 10,
-  153, 175, 24,
-  205, 164,
-  50, 100,
-  243, 113, 94, 20
+  290, 102, 23,
+  188,
+  267, 69, 49,
+  304, 159, 90,
+  286, 139,
+  180, 184, 5,
+  248, 222, 114, 6,
+  273, 144, 4,
+  265, 142, 16
 )
 
 lie_type <- c(
-  'tee', 'fairway', 'rough', 'rough', 'fairway',
-  'tee',
-  'tee', 'rough', 'fairway', 'fairway',
-  'tee', 'sand', 'sand',
-  'tee', 'fairway',
-  'tee', 'fairway', 'rough', 'rough',
-  'tee', 'rough', 'rough', 'rough', 'rough',
+  'tee', 'rough', 'fairway',
+  'tee', 'rough', 'sand', 'sand',
   'tee', 'fairway', 'rough',
+  'tee', 'fairway', 'fairway', 'fairway',
+  'tee', 'rough', 'fairway',
+  'tee', 'rough', 
+  'tee', 'fairway', 'fairway', 'fairway',
   'tee', 'rough',
+  'tee', 'fairway', 'rough', 'rough', 'fairway',
   
   'tee', 'rough', 'fairway',
-  'tee', 'fairway',
-  'tee', 'fairway',
-  'tee', 'fairway', 'sand', 'sand', 'sand', 'sand',
-  'tee', 'fairway', 'rough', 'rough', 'fairway',
-  'tee', 'fairway', 'rough',
-  'tee', 'rough',
-  'tee', 'rough',
-  'tee', 'fwbunker', 'rough', 'fairway'
+  'tee',
+  'tee', 'fairway', 'fairway',
+  'tee', 'rough', 'rough',
+  'tee', 'fairway', 
+  'tee', 'tee', 'fairway',
+  'tee', 'rough', 'rough', 'fairway',
+  'tee', 'rough', 'fairway',
+  'tee', 'rough', 'rough'
+  
 )
 
 target_status <- c(
-  'yes', 'no', 'no', 'no', 'yes',
-  'yes',
-  'no', 'yes', 'yes', 'yes',
-  'no', 'no', 'no',
-  'no', 'yes',
-  'yes', 'no', 'no', 'yes',
-  'no', 'no', 'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'no', 'no', 'yes',
   'yes', 'no', 'yes',
-  'no', 'yes',
-  
-  'no', 'yes', 'yes',
-  'no', 'yes',
-  'yes', 'yes',
-  'yes', 'no', 'no', 'no', 'no', 'no',
-  'yes', 'no', 'no', 'no', 'yes',
+  'yes', 'no', 'no', 'yes',
   'no', 'no', 'yes',
   'no', 'yes',
+  'yes', 'no', 'no', 'yes',
   'no', 'yes',
-  'no', 'no', 'no', 'yes'
+  'yes', 'no', 'no', 'no', 'yes',
+  
+  'no', 'no', 'yes',
+  'yes',
+  'yes', 'no', 'yes',
+  'no', 'no', 'yes',
+  'yes', 'yes',
+  'no', 'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'no', 'yes'
 )
 
 location <- c(
+  'right', 'right', 'on_target',
+  'left', 'short', 'short', 'on_target',
+  'on_target', 'right', 'on_target',
+  'on_target', 'long', 'long', 'on_target',
+  'right', 'short', 'on_target',
+  'short', 'on_target',
+  'on_target', 'short', 'long', 'on_target',
+  'long', 'on_target',
   'on_target', 'right', 'short', 'short', 'on_target',
-  'on_target',
-  'left', 'on_target', 'on_target', 'on_target',
-  'right', 'short', 'long',
-  'long', 'long',
-  'on_target', 'right', 'long', 'on_target',
-  'left', 'left', 'short', 'long', 'on_target',
-  'on_target', 'long', 'long',
-  'short', 'long',
   
-  'right', 'on_target', 'short',
-  'short', 'on_target',
+  'right', 'short', 'on_target',
+  'on_target',
+  'on_target', 'short', 'on_target',
+  'right', 'right', 'on_target',
   'on_target', 'on_target',
-  'on_target', 'right', 'short', 'short', 'short', 'on_target',
-  'short', 'right', 'short', 'long', 'on_target',
-  'left', 'left', 'on_target',
-  'right', 'on_target',
-  'short', 'on_target',
-  'right', 'short', 'right', 'on_target'
+  'short', 'short', 'on_target',
+  'right', 'right', 'long', 'on_target',
+  'long', 'right', 'on_target',
+  'right', 'short', 'on_target'
 )
 
 type_of_shot <- c(
-  'full', 'full', 'chip', 'chip', 'putt',
-  'full',
-  'full', 'punch', 'full', 'chip',
-  'full', 'fwbunker', 'gsbunker',
-  'full', 'chip',
-  'full', 'full', 'punch', 'chip',
-  'full', 'full', 'punch', 'chip', 'chip',
-  'full', 'full', 'chip',
-  'full', 'chip',
+  'tee', 'full', 'chip',
+  'tee', 'punch', 'gsbunker', 'gsbunker',
+  'tee', 'full', 'chip',
+  'tee', 'full', 'chip', 'chip',
+  'tee', 'full', 'chip',
+  'tee', 'chip',
+  'tee', 'full', 'chip', 'chip',
+  'tee', 'chip',
+  'tee', 'full', 'chip', 'chip', 'chip',
   
-  'full', 'choked', 'chip',
-  'full', 'chip',
-  'full', 'choked',
-  'full', 'full', 'fwbunker', 'gsbunker', 'gsbunker', 'gsbunker',
-  'full', 'full', 'chip', 'chip', 'chip',
-  'full', 'full', 'chip',
-  'full', 'full',
-  'full', 'choked',
-  'full', 'full', 'choked', 'chip'
+  'tee', 'full', 'chip',
+  'tee',
+  'tee', 'full', 'chip',
+  'tee', 'punch', 'full',
+  'tee', 'full',
+  'tee', 'tee', 'chip',
+  'tee', 'full', 'full', 'chip',
+  'tee', 'punch', 'chip',
+  'tee', 'full', 'chip'
 )
 ```
 
@@ -332,7 +349,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      
      length(hole_scores) > 0
 ) {
-
+  length(club_choice)
   club_metrics <- golf::uploadClubMetrics(club_metrics = club_metrics_df,
                                           club_choice = club_choice,
                                           distance_to_target = dist_to_target,
@@ -346,6 +363,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
     dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x)))
   head(club_metrics)
 }
+
+club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_shots))
 ```
 
 ```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
@@ -369,9 +388,15 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+## Summarize Metrics
 
-## Gather and Format
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('## Summarize Metrics {.tabset .tabset-pills .tabset-fade}\n')
+}
+```
+
+### Gather and Format
 
 Gather and format from the database
 
@@ -412,7 +437,7 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
 ```
 
 
-## Compute Advanced Metrics
+### Compute Advanced Metrics
 
 Compute more nuanced metrics
 
@@ -484,44 +509,54 @@ scores_sum <- scores |>
 ```
 
 ```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, eval = T}
-head(scores_sum)
+head(scores_sum |> 
+       dplyr::arrange(desc(date)))
 ```
 
-## View Metrics {.tabset .tabset-pills .tabset-fade}
+### View Metrics
 
 Separate and view the metrics:
 
-### Scoring Metrics
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('### View Metrics {.tabset .tabset-pills .tabset-fade}\n')
+}
+```
+
+#### Scoring Metrics
 
 Scores and Handicap
 
 ```{r Separate Scoring Metrics, include = T, warning = F, message = F, eval = T}
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
-head(scoring_metrics)
+head(scoring_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
-### Stroke Metrics
+#### Stroke Metrics
 
 Pars, birdies, bogies, etc.
 
 ```{r Separate Stroke Metrics, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
-head(stroke_metrics)
+head(stroke_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
-### Around-the-Green Metrics
+#### Around-the-Green Metrics
 
 Chips, putts, etc.
 
 ```{r Separate Around the Green Metrics, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpAndDown%`, putts, `Avg GIR putts`)
-head(atg_metrics)
+head(atg_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
-### Ball Striking Metrics
+#### Ball Striking Metrics
 
 Approach and tee accuracy
 
@@ -530,11 +565,12 @@ ball_striking_metrics <- scores_sum |>
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
-head(ball_striking_metrics)
+head(ball_striking_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 
-### Club Metrics
+#### Club Metrics
 
 Yardage and accuracy for each club
 
@@ -554,7 +590,8 @@ stroke_quality_min <- stroke_quality |>
                    rd_min_yd_diff = round(min(yd_diff), 1),
                    n = dplyr::n()) |> 
   dplyr::relocate(n, .after = club)
-head(stroke_quality_min)
+head(stroke_quality_min |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ```{r Separate Stroke Quality Metrics Maximum, include = T, warning = F, message = F, echo = F, eval = T}
@@ -565,7 +602,8 @@ stroke_quality_max <- stroke_quality |>
                    rd_max_yd_diff = round(max(yd_diff), 1),
                    n = dplyr::n()) |> 
   dplyr::relocate(n, .after = club)
-head(stroke_quality_max)
+head(stroke_quality_max |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ```{r Separate Stroke Quality Metrics Avg, include = T, warning = F, message = F, echo = F, eval = T}
@@ -588,13 +626,20 @@ stroke_quality_avg <- stroke_quality |>
   dplyr::relocate(rd_club_miss_direction_n, .after = miss_direction) |> 
   dplyr::rename(`rd club strokes` = n) |> 
   dplyr::rename(`rd club miss dir` = rd_club_miss_direction_n)
-head(stroke_quality_avg)
+head(stroke_quality_avg |> 
+       dplyr::arrange(desc(date)))
 ```
 
 
-# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+## Plot Metrics
 
-## Scoring Metrics
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('## Plot Metrics {.tabset .tabset-pills .tabset-fade}\n')
+}
+```
+
+### Scoring Metrics
 
 ```{r PlotScoringMetrics, include = T, message = F, warning = F, eval = T}
 scoring_metrics |> 
@@ -648,7 +693,7 @@ scoring_metrics |>
   ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b')
 ```
 
-## Stroke Metrics
+### Stroke Metrics
 
 ```{r PlotStrokeMetrics, include = T, message = F, warning = F, eval = T}
 stroke_metrics |> 
@@ -687,7 +732,7 @@ stroke_metrics |>
   ggplot2::facet_wrap(~factor(metric, levels = c('doubles+', 'bogies', 'pars', 'birdies')), nrow = 1)
 ```
 
-## Around the Green Metrics
+### Around the Green Metrics
 
 ```{r PlotAroundTheGreenMetrics, include = T, message = F, warning = F, eval = T}
 atg_metrics |> 
@@ -726,7 +771,7 @@ atg_metrics |>
   ggplot2::facet_wrap(~factor(metric, levels = c('chips', 'putts', 'chips+putts', 'UpAndDown%', 'Avg GIR putts')), scales = 'free')
 ```
 
-## Ball Striking Metrics
+### Ball Striking Metrics
 
 ```{r PlotBallStrikingMetrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
 ball_striking_metrics |> 
@@ -767,9 +812,15 @@ ball_striking_metrics |>
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
 ```
 
-## Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
+### Stroke Quality Metrics
 
-### Minima
+```{r, results='asis', echo=FALSE}
+if (knitr::is_html_output()) {
+  cat('### Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}\n')
+}
+```
+
+#### Minima
 
 ```{r PlotStrokeQualityMinMetrics, include = T, message = F, warning = F, eval = T, fig.width=11}
 stroke_quality_min |> 
@@ -808,7 +859,7 @@ stroke_quality_min |>
                       scales = 'free')
 ```
 
-### Maxima
+#### Maxima
 
 ```{r PlotStrokeQualityMaxMetrics, include = T, message = F, warning = F, eval = T, fig.width=11}
 stroke_quality_max |> 
@@ -847,7 +898,7 @@ stroke_quality_max |>
                       scales = 'free')
 ```
 
-### Average
+#### Average
 
 ```{r PlotStrokeQualityMetricAverages, include = T, message = F, warning = F, eval = T,fig.width=11}
 stroke_quality_avg |> 
@@ -890,7 +941,7 @@ stroke_quality_avg |>
                       scales = 'free')
 ```
 
-## Main Metrics
+### Main Metrics
 
 ```{r PlotMainMetrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
 scores_sum |> 
