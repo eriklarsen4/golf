@@ -295,6 +295,10 @@ The **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** `F
 
 ## Model Predictions
 
+These predictions are **not** historical-- they are current:
+
+  + i.e. the model did *not* predict anything close the **72** in August 2025
+
 ```{r PlotModels, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
   dplyr::ungroup() |> 
@@ -527,7 +531,15 @@ scores_sum |>
                      size = 3, color = 'black')
 ```
 
-This plot of residuals shifts the previous plot upward, inverts it about the x-axis, and rotates it slightly about the origin, revealing the actual `Net Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
+Relative to the previous plot, this plot of residuals:
+
++ shifts the previous plot upward
+
++ inverts it about the x-axis
+
++ rotates it slightly about the origin
+
+It shows the `Actual Net Score` relative to the `Predicted Gross Score` over time, color-coded by `course`, and annotated by `Handicap Index` at the time of the round.
 
 `Net Score` is roughly `Gross Score` - `Handicap Index`.
 

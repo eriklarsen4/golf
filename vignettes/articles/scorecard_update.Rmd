@@ -31,13 +31,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Set up Environment
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
-  cat('## Set up Environment {.tabset .tabset-pills .tabset-fade}\n')
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('## Set-up Environment {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Set-up Environment</strong></summary>\n')
+} else {
+  cat('## Set-up Environment\n')
 }
 ```
+
+### Attach Packages
 
 ```{r Attach Packages, include = T, message = F, warning = F, eval = T}
 library(golf)
@@ -53,15 +59,21 @@ library(RSQLite)
 library(emayili)
 ```
 
+### Connect to db
+
 ```{r Connect to the db, include = T, message = F, warning = F, eval = T}
 con <- golf::get_db_connection()
 ```
 
-## Record New Scorecard
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
   cat('## Record New Scorecard {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Record New Scorecard</strong></summary>\n')
+} else {
+  cat('## Record New Scorecard\n')
 }
 ```
 
@@ -95,11 +107,15 @@ tee_clubs <- c('4', 'D', 'D', 'D', 'D', '9', 'D', '5', 'D',
 index <- 11.0
 ```
 
+### Specify Course and Tees
+
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
  Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees) 
 }
 ```
+
+### Get Scoring Metrics
 
 ```{r Get Scoring Metrics, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
@@ -115,6 +131,20 @@ if ( length(hole_scores) > 0 ) {
                        tee_club = tee_clubs) 
 }
 ```
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('## Update the db {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Update the db</strong></summary>\n')
+} else {
+  cat('## Update the db\n')
+}
+```
+
+### Update the Players Table
 
 ```{r Update the players table of the db, include = T, message = F, warning = F, echo = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
@@ -137,6 +167,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
+### Update the Courses Table
+
 ```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -155,6 +187,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    )
 }
 ```
+
+### Update the Rounds Table
 
 ```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
@@ -176,12 +210,13 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-### Input Club Metrics
+### Get Club Metrics df
 
 ```{r Get the Club Metrics df, include = T, message = F, warning = F, echo = T, eval = T}
 club_metrics_df <- golf::getTrackedShotsDataShape(round_date = round_date)
 ```
 
+### Annotate Club Metrics
 
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 club_choice <- c(
@@ -340,6 +375,8 @@ type_of_shot <- c(
 )
 ```
 
+### Get Shot Metrics
+
 ```{r Gather shot metrics data, include = T, message = F, warning = F, echo = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -367,6 +404,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_shots))
 ```
 
+### Update the Club Metrics Table
+
 ```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -388,11 +427,15 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
-## Summarize Metrics
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
   cat('## Summarize Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Summarize Metrics</strong></summary>\n')
+} else {
+  cat('## Summarize Metrics\n')
 }
 ```
 
@@ -435,7 +478,6 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole, stroke) |> 
   dplyr::ungroup()
 ```
-
 
 ### Compute Advanced Metrics
 
@@ -513,15 +555,19 @@ head(scores_sum |>
        dplyr::arrange(desc(date)))
 ```
 
-### View Metrics
-
-Separate and view the metrics:
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
   cat('### View Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>View Metrics</strong></summary>\n')
+} else {
+  cat('### View Metrics\n')
 }
 ```
+
+Separate and view metrics
 
 #### Scoring Metrics
 
@@ -631,11 +677,15 @@ head(stroke_quality_avg |>
 ```
 
 
-## Plot Metrics
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
-  cat('## Plot Metrics {.tabset .tabset-pills .tabset-fade}\n')
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('## Plot Metric Summaries {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Plot Metric Summaries</strong></summary>\n')
+} else {
+  cat('## Plot Metric Summaries\n')
 }
 ```
 
@@ -812,11 +862,15 @@ ball_striking_metrics |>
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
 ```
 
-### Stroke Quality Metrics
-
 ```{r, results='asis', echo=FALSE}
-if (knitr::is_html_output()) {
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
   cat('### Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Stroke Quality Metrics</strong></summary>\n')
+} else {
+  cat('### Stroke Quality Metrics\n')
 }
 ```
 
@@ -988,10 +1042,5 @@ scores_sum |>
                                  'GIR%', 'Par 3 GIRs', 'Iron FIR%', 'Driver FIR%')),
                       scales = 'free',
                       ncol = 4)
-```
-
-
-```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F, eval = T}
-DBI::dbDisconnect(conn = con)
 ```
 

@@ -7,7 +7,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Environment {.tabset .tabset-fade .tabset-pills}
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Environment {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Environment</strong></summary>\n')
+} else {
+  cat('# Environment\n')
+}
+```
 
 ## Attach Packages
 
@@ -32,10 +42,21 @@ library(emayili)
 ## Connect to the db
 
 ```{r Connect to the db, include = T, message = F, warning = F, eval = T}
-con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+con <- golf::get_db_connection()
 ```
 
-# Record New Scorecard {.tabset .tabset-pills .tabset-fade}
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Record New Scorecard {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Record New Scorecard</strong></summary>\n')
+} else {
+  cat('# Record New Scorecard\n')
+}
+```
 
 ## Input the Data
 
@@ -82,7 +103,18 @@ if ( length(hole_scores) > 0 ) {
 }
 ```
 
-# Update db {.tabset .tabset-pills .tabset-fade}
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Update db {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Update db</strong></summary>\n')
+} else {
+  cat('# Update db\n')
+}
+```
 
 Update the db if the new round hasn't been logged yet
 
@@ -156,7 +188,18 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Summarize Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Summarize Metrics</strong></summary>\n')
+} else {
+  cat('# Summarize Metrics\n')
+}
+```
 
 ## Gather and Format
 
@@ -258,10 +301,22 @@ scores_sum <- scores |>
 ```
 
 ```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, eval = T}
-head(scores_sum)
+head(scores_sum |> 
+       dplyr::arrange(desc(date)))
 ```
 
-## Separate Metrics {.tabset .tabset-pills .tabset-fade}
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('## Separate Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Separate Metrics</strong></summary>\n')
+} else {
+  cat('## Separate Metrics\n')
+}
+```
 
 Separate the metrics:
 
@@ -272,7 +327,8 @@ Scores and Handicap
 ```{r Separate By Type 1, include = T, warning = F, message = F, eval = T}
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
-head(scoring_metrics)
+head(scoring_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Stroke Metrics
@@ -282,7 +338,8 @@ Pars, birdies, bogies, etc.
 ```{r Separate By Type 2, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
-head(stroke_metrics)
+head(stroke_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Around-the-Green Metrics
@@ -292,7 +349,8 @@ Chips, putts, etc.
 ```{r Separate By Type 3, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpAndDown%`, putts, `Avg GIR putts`)
-head(atg_metrics)
+head(atg_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Ball Striking Metrics
@@ -304,10 +362,22 @@ ball_striking_metrics <- scores_sum |>
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
-head(ball_striking_metrics)
+head(ball_striking_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
-# Plot Metrics {.tabset .tabset-pills .tabset-fade}
+
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Plot Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Plot Metrics</strong></summary>\n')
+} else {
+  cat('# Plot Metrics\n')
+}
+```
 
 ## Scoring Metrics
 
@@ -522,9 +592,4 @@ scores_sum |>
                                  'GIR%', 'Par 3 GIRs', 'Iron FIR%', 'Driver FIR%')),
                       scales = 'free',
                       ncol = 4)
-```
-
-
-```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F, eval = T}
-DBI::dbDisconnect(conn = con)
 ```
