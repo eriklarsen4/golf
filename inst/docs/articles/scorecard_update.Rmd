@@ -7,16 +7,13 @@ output:
     toc: true
     fig_width: 10
     fig_height: 10
+    code_folding: hide
   pdf_document:
     fig_width: 10
     fig_height: 10
     latex_engine: xelatex
   md_document:
     variant: gfm
-vignette: >
-  %\VignetteIndexEntry{Scorecard Update vignette}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
@@ -27,7 +24,7 @@ knitr::opts_chunk$set(
   fig.width = 10,
   fig.height = 10,
   dev = c("png", "pdf"),
-  fig.path = "../../inst/docs/figures/scorecard_update"
+  fig.path = "../figures/scorecard_update"
 )
 ```
 

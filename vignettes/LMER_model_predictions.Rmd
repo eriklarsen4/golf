@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
   fig.width = 10,
   fig.height = 10,
   dev = c("png", "pdf"),
-  fig.path = "../../inst/docs/figures/LMER_predictions"
+  fig.path = "../inst/docs/figures/LMER_predictions"
 )
 ```
 
