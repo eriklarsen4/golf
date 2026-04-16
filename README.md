@@ -1,5 +1,31 @@
-I developed this repository from real-world golf data-- data I curated from rounds I played. As a member of the **United States Golf Association** (**Arizona; Arizong Golf Association**), these rounds were "posted": official scores used to estimate a **GHIN** (**Global Handicap Index Number**).
+I developed this repository from real-world golf data-- data I curated from rounds I played. As a member of the **United States Golf Association** (**Arizona Golf Association Chapter**), these rounds were official scores used to compute my official **GHIN** (**Global Handicap Index Number**), meaning I played with players who verified I played out every single stroke (no gimmes), before submitting my scorecard to the USGA.
 
-I recently added shot tracking data-- distances estimated by a Garmin watch for (for now) strokes off the tee and approach shots (really, any large swings the watch can clearly differentiate based on its accelerometer). For now, this omits smaller shots on and near the green where the arms do not move as quickly or high as in tee shots or shots with longer clubs.
+The data includes
 
-Some of the data is ideal for linear mixed modeling and/or time-series modeling. It may expand, depending on additional data.
+Stroke-level stats/metrics:
+
+  + stroke distances estimated by a Garmin GPS watch for all non-putts
+  + lie type
+  + miss direction
+  + club selection
+  
+Hole-by-hole stats/metrics:
+
+  + number of strokes
+  + chips
+  + putts
+  + penalties
+  + double bogey / bogey / par / birdie / eagle, etc.
+
+Course-level data:
+
+  + course
+  + course rating
+  + tee selection
+  + slope
+  + Handicap Index
+
+The data is ideal for numerous types of modeling, including linear mixed models, time series, and decision trees
+It will likely expand, depending on additional data
+
+Please see the vignettes for details
