@@ -1,9 +1,9 @@
-#' @title uploadClubMetrics
+#' @title upload_club_metrics
 #' @description
-#' \strong{uploadClubMetrics} is a function that harmonizes the Garmin shot tracking data
+#' \strong{upload_club_metrics} is a function that harmonizes the Garmin shot tracking data
 #' with round scores data
 #'
-#' @param club_metrics a data frame object containing the results returned from \link[golf]{getTrackedShotsDataShape}
+#' @param club_metrics a data frame object containing the results returned from \link[golf]{get_tracked_shots_data_shape}
 #' 
 #' @param club_choice a character vector specifying the club selection for a tracked stroke
 #' \describe{can be any one of: 
@@ -73,7 +73,7 @@
 #'
 #' @examples
 #' # first, get the correct tracked shots for a given round
-#' club_metrics_df <- getTrackedShotsDataShape(round_date = '2026-02-08')
+#' club_metrics_df <- get_tracked_shots_data_shape(round_date = '2026-02-08')
 #' df <- golf::Card |> dplyr::filter(course == 'Randolph North' & date == '2026-02-08')
 #' choices_of_club <- df |> dplyr::select(club) |> unlist() |> as.character()
 #' target_dist <- df |> dplyr::select(yds_to_target) |> unlist() |> as.numeric()
@@ -83,7 +83,7 @@
 #' locations <- df |> dplyr::select(miss_direction) |> unlist() |> as.character()
 #' shot_types <- df|> dplyr::select(shot_type) |> unlist() |> as.character()
 #'  
-#' uploadClubMetrics(
+#' upload_club_metrics(
 #' club_metrics = club_metrics_df,
 #' club_choice = choices_of_club,
 #' distance_to_target = target_dist,
@@ -102,7 +102,7 @@
 #'
 #' @export
 # ----
-uploadClubMetrics <- function(club_metrics, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
+upload_club_metrics <- function(club_metrics, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
   assertthat::assert_that(!missing(club_metrics), msg = "'club_metrics', is a required parameter! Please use 'club_metrics_df' as required input!")
   assertthat::assert_that(is.data.frame(club_metrics), msg = "'club_metrics', is a required parameter! Please make sure the passed object is a data frame!")
   assertthat::assert_that(!missing(club_choice), msg = "'club_choice' is a required parameter! Please see help file for valid strings.")

@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
   fig.width = 10,
   fig.height = 10,
   dev = c("png", "pdf"),
-  fig.path = "figures/"
+  fig.path = "/inst/docs/figures/scorecard_update"
 )
 ```
 
@@ -111,7 +111,7 @@ index <- 11.0
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
- Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees) 
+ Card <- golf::get_course(course = round_course, date = round_date, tees = round_tees) 
 }
 ```
 
@@ -119,7 +119,7 @@ if ( length(hole_scores) > 0 ) {
 
 ```{r Get Scoring Metrics, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
- Card <- golf::logScore(Scorecard = Card,
+ Card <- golf::log_score(Scorecard = Card,
                        hole_by_hole = hole_scores,
                        GHIN = 10526424,
                        index = index,
@@ -213,7 +213,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ### Get Club Metrics df
 
 ```{r Get the Club Metrics df, include = T, message = F, warning = F, echo = T, eval = T}
-club_metrics_df <- golf::getTrackedShotsDataShape(round_date = round_date)
+club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date)
 ```
 
 ### Annotate Club Metrics
@@ -387,7 +387,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      length(hole_scores) > 0
 ) {
   length(club_choice)
-  club_metrics <- golf::uploadClubMetrics(club_metrics = club_metrics_df,
+  club_metrics <- golf::upload_club_metrics(club_metrics = club_metrics_df,
                                           club_choice = club_choice,
                                           distance_to_target = dist_to_target,
                                           distance_traveled = yds,

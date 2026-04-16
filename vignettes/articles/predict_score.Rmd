@@ -1,26 +1,45 @@
 ---
-title: "Model Predictions"
+title: "LMER Model Predictions"
 author: "Erik Larsen"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
-    code_folding: hide
     toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
-    keep_md: true
+    fig_width: 10
+    fig_height: 10
+  pdf_document:
+    fig_width: 10
+    fig_height: 10
+    latex_engine: xelatex
+  md_document:
+    variant: gfm
+vignette: >
+  %\VignetteIndexEntry{LMER Model Predictions vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 10,
+  dev = c("png", "pdf"),
+  fig.path = "/inst/docs/figures/predict_score"
+)
+```
 
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
-  cat('# Environment {.tabset .tabset-pills .tabset-fade}\n')
+  cat('## Set-up Environment {.tabset .tabset-pills .tabset-fade}\n')
 } else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Environment</strong></summary>\n')
+  cat('<details><summary><strong>Set-up Environment</strong></summary>\n')
 } else {
-  cat('# Environment\n')
+  cat('## Set-up Environment\n')
 }
 ```
 
@@ -35,12 +54,6 @@ library(brms)
 library(DBI)
 library(RSQLite)
 library(emayili)
-```
-
-## Connect to the db
-
-```{r Connect to the db, include = T, message = F, warning = F, echo = T}
-con <- golf::get_db_connection()
 ```
 
 ```{r, results='asis', echo=FALSE}
@@ -60,6 +73,10 @@ if (identical(fmt, "html")) {
 Gather and format from the database
 
 ```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
+
+## connect to the db
+con <- golf::get_db_connection()
+
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -225,6 +242,9 @@ head(ball_striking_metrics |>
 Yardage and accuracy on tracked shots
 
 ```{r Stroke Quality, include = T, warning= F, message = F, echo = T}
+## connect to the db
+con <- golf::get_db_connection()
+
 stroke_quality <- DBI::dbGetQuery(conn = con,
                                   statement = paste0("SELECT DISTINCT * FROM club_metrics;")) |>
   dplyr::mutate(date = lubridate::as_date(date),
@@ -315,6 +335,16 @@ vc_df <- gross_lmer |>
   as.data.frame()
 ```
 
+## Export Model Results to db
+
+```{r Export Model Results to db, include = T, message = F, warning = F, eval = T, echo = T}
+golf::export_lm_round_predictions(
+  model = gross_lmer,
+  scores_sum = scores_sum
+)
+```
+
+
 ## Model Interpretation
 
 The aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`**. The average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dplyr::rename(Gross_Score = 24) |> dplyr::summarize(avg_gross = mean(Gross_Score)) |> unlist() |> as.numeric()`**. 
@@ -352,6 +382,8 @@ For every additional `day` in time, `Gross Score` drops by **`r nlme::fixed.effe
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
+con <- golf::get_db_connection()
+
 round_date <- lubridate::as_date('2026-04-19')
 index <- 11.0
 course <- "Randolph North"
@@ -621,8 +653,8 @@ This plot of residuals reveals the `Actual Gross Score` relative to the `Predict
 
 + the navy blue line represents the dividing line between over/under performing where:
 
-  + any scores below the line represent rounds where I performed better than the model's prediction.
-  + any scores above the line represent rounds where I performed worse than the model's prediction.
+  + any scores *below* the line represent rounds where I performed *better* than the model's prediction.
+  + any scores *above* the line represent rounds where I performed *worse* than the model's prediction.
   
 + `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Gross Score`s compared to predicted `Gross Score`s at each respective course.
 
@@ -716,8 +748,8 @@ It shows the `Actual Net Score` relative to the `Predicted Gross Score` over tim
 
 + the navy blue line represents the dividing line between over/under performing where:
 
-  + any scores below the line represent rounds where I performed worse than the model's prediction.
-  + any scores above the line represent rounds where I performed better than the model's prediction.
+  + any scores *below* the line represent rounds where I performed *worse* than the model's prediction.
+  + any scores *above* the line represent rounds where I performed *better* than the model's prediction.
   
 + `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Net Score`s compared to `Predicted Gross Score`s at each respective course.
 
@@ -1020,9 +1052,4 @@ scores_sum |>
                        alpha = 0.5, color = 'navy') +
   ggplot2::geom_text(aes(x = course_rating, y = `Net Score`, label = `Handicap Index`),
                      size = 3, color = 'black')
-```
-
-
-```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F}
-DBI::dbDisconnect(conn = con)
 ```

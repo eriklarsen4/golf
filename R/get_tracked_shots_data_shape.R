@@ -1,6 +1,6 @@
-#' @title getTrackedShotsDataShape
+#' @title get_tracked_shots_data_shape
 #' @description
-#' \strong{getTrackedShotsDataShape} is a function that confirms the data shape of Garmin-tracked shots (all official non-putts).
+#' \strong{get_tracked_shots_data_shape} is a function that confirms the data shape of Garmin-tracked shots (all official non-putts).
 #'
 #' @param round_date a string in YYYY-MM-DD format, specifying the date played.
 #'
@@ -11,7 +11,7 @@
 #' Prepares the data of tracked shots for data entry.
 #'
 #' @examples
-#' getTrackedShotsDataShape(round_date = '2026-02-08')
+#' get_tracked_shots_data_shape(round_date = '2026-02-08')
 #'
 #' @import assertthat
 #' @import DBI
@@ -21,7 +21,7 @@
 #'
 #' @export
 # ----
-getTrackedShotsDataShape <- function(round_date){
+get_tracked_shots_data_shape <- function(round_date){
   assertthat::assert_that(!missing(round_date), msg = "'round_date' is a required parameter! Please see help file for valid strings.")
   assertthat::assert_that(grepl(round_date, pattern = '[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}'), msg = "'round_date' requires strings in YYYY-MM-DD format!")
   

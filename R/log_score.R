@@ -1,6 +1,6 @@
-#' @title logScore
+#' @title log_score
 #' @description
-#' \strong{logScore} is a function that analyzes the score of a user on a specified course
+#' \strong{log_score} is a function that analyzes the score of a user on a specified course
 #'
 #' @param Scorecard a dataframe object comprising a scorecard
 #' \describe{\item{\strong{Scorecard}}{: e.g. \strong{Card}}}
@@ -30,8 +30,8 @@
 #' Completes and (pending input) analyzes the scorecard of the specific course and tees for data entry
 #'
 #' @examples
-#' Card <- getCourse(course = 'North', date = '2025-12-01', tees = 'combo')
-#' logScore(Scorecard = Card,
+#' Card <- get_course(course = 'North', date = '2025-12-01', tees = 'combo')
+#' log_score(Scorecard = Card,
 #'           hole_by_hole = c(5, 6, 3, 5, 5, 3, 6, 5, 3, 5, 6, 2, 5, 6, 3, 4, 4, 7),
 #'           GHIN = 10526424,
 #'           index = 10.4,
@@ -54,7 +54,7 @@
 #'
 #' @export
 # ----
-logScore <- function(Scorecard, hole_by_hole, GHIN = NULL, index = NULL, FIR = NULL, GIR = NULL, putts = NULL, chips = NULL, penalties = NULL, tee_club = NULL) {
+log_score <- function(Scorecard, hole_by_hole, GHIN = NULL, index = NULL, FIR = NULL, GIR = NULL, putts = NULL, chips = NULL, penalties = NULL, tee_club = NULL) {
   assertthat::assert_that(!missing(Scorecard), msg = "'Scorecard' is a required parameter!")
   assertthat::assert_that(!missing(hole_by_hole), msg = "'hole_by_hole' is a required parameter!")
   assertthat::assert_that(is.numeric(hole_by_hole), msg = "'hole_by_hole' must be 18 integers!")

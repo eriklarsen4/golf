@@ -7,7 +7,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Environment {.tabset .tabset-fade .tabset-pills}
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Environment {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Environment</strong></summary>\n')
+} else {
+  cat('# Environment\n')
+}
+```
 
 ## Attach Packages
 
@@ -22,19 +32,26 @@ library(RSQLite)
 library(emayili)
 ```
 
-## Connect to the db
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
 
-```{r Connect to the db, include = T, message = F, warning = F, echo = T}
-con <- RSQLite::dbConnect(drv = RSQLite::SQLite(), dbname = 'golf_data')
+if (identical(fmt, "html")) {
+  cat('# Summarize Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Summarize Metrics</strong></summary>\n')
+} else {
+  cat('# Summarize Metrics\n')
+}
 ```
-
-# Summarize Metrics {.tabset .tabset-pills .tabset-fade}
 
 ## Gather and Format
 
 Gather and format from the database
 
 ```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
+## connect to the db
+con <- golf::get_db_connection()
+
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -130,10 +147,21 @@ scores_sum <- scores |>
 ```
 
 ```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, echo = T}
-head(scores_sum)
+head(scores_sum |> 
+       dplyr::arrange(desc(date)))
 ```
 
-## Separate Metrics {.tabset .tabset-pills .tabset-fade}
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('## Separate Metrics {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Separate Metrics</strong></summary>\n')
+} else {
+  cat('## Separate Metrics\n')
+}
+```
 
 Separate the metrics:
 
@@ -144,7 +172,8 @@ Round scores and `Handicap Index`
 ```{r Separate By Type 1, include = T, warning = F, message = F, echo = T}
 scoring_metrics <- scores_sum |> 
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
-head(scoring_metrics)
+head(scoring_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Stroke Metrics
@@ -154,7 +183,8 @@ Above/below par
 ```{r Separate By Type 2, include = T, warning = F, message = F, echo = T}
 stroke_metrics <- scores_sum |> 
   dplyr::select(`doubles+`, bogies, pars, birdies)
-head(stroke_metrics)
+head(stroke_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Around-the-Green Metrics
@@ -164,7 +194,8 @@ Chips, putts, etc.
 ```{r Separate By Type 3, include = T, warning = F, message = F, echo = T}
 atg_metrics <- scores_sum |> 
   dplyr::select(chips, `chips+putts`, `UpDown%`, putts, `Avg GIR putts`)
-head(atg_metrics)
+head(atg_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
 ### Ball Striking
@@ -176,10 +207,21 @@ ball_striking_metrics <- scores_sum |>
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
-head(ball_striking_metrics)
+head(ball_striking_metrics |> 
+       dplyr::arrange(desc(date)))
 ```
 
-# LMER Model {.tabset .tabset-pills .tabset-fade}
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# LMER Model {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>LMER Model</strong></summary>\n')
+} else {
+  cat('# LMER Model\n')
+}
+```
 
 ## Fit LMER
 
@@ -291,13 +333,23 @@ The **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** `F
 
 + This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
 
-# Plot Model {.tabset .tabset-pills .tabset-fade}
+```{r, results='asis', echo=FALSE}
+fmt <- knitr::pandoc_to()
+
+if (identical(fmt, "html")) {
+  cat('# Plot Model {.tabset .tabset-pills .tabset-fade}\n')
+} else if (identical(fmt, "markdown")) {
+  cat('<details><summary><strong>Plot Model</strong></summary>\n')
+} else {
+  cat('# Plot Model\n')
+}
+```
 
 ## Model Predictions
 
 These predictions are **not** historical-- they are current:
 
-  + i.e. the model did *not* predict anything close the **72** in August 2025
+  + i.e. the model did *not* predict anything close to the **72** in August 2025
 
 ```{r PlotModels, include = T, message = F, warning = F, echo = F, render = T}
 scores_sum |> 
@@ -849,9 +901,4 @@ scores_sum |>
                        alpha = 0.5, color = 'navy') +
   ggplot2::geom_text(aes(x = course_rating, y = `Net Score`, label = `Handicap Index`),
                      size = 3, color = 'black')
-```
-
-
-```{r Disconnect from the DB, include = T, message = F, warning = F, echo = F}
-DBI::dbDisconnect(conn = con)
 ```

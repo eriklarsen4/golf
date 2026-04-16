@@ -1,6 +1,6 @@
-#' @title getCourse
+#' @title get_course
 #' @description
-#' \strong{getCourse} is a function that specifies the course played by a user
+#' \strong{get_course} is a function that specifies the course played by a user
 #'
 #' @param course a string comprising one of:
 #'    "Randolph North"
@@ -31,7 +31,7 @@
 #' Prepares the scorecard of the specific course and tees for data entry.
 #'
 #' @examples
-#' getCourse(course = 'North', date = '2025-12-01', tees = 'combo')
+#' get_course(course = 'North', date = '2025-12-01', tees = 'combo')
 #'
 #' @import lubridate
 #' @import dplyr
@@ -40,7 +40,7 @@
 #'
 #' @export
 # ----
-getCourse <- function(course, date, tees){
+get_course <- function(course, date, tees){
   assertthat::assert_that(!missing(course), msg = "'course' is a required parameter! Please see help file for valid strings.")
   assertthat::assert_that(grepl(course,
                                 pattern = '(Randolph|North|Randolph North)|(Dell|Urich|Dell Urich)|Silverbell|(Fred|Enke|Fred Enke)|Sewailo|(AZN|Arizona National|National)|(Quarry|Quarry Pines|QP)|El Rio|(Crooked|Crooked Tree)') |> any(),

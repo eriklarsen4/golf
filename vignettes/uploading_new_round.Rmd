@@ -84,13 +84,13 @@ index <- 10.2
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
- Card <- golf::getCourse(course = round_course, date = round_date, tees = round_tees) 
+ Card <- golf::get_course(course = round_course, date = round_date, tees = round_tees) 
 }
 ```
 
 ```{r Get Metrics, include = T, message = F, warning = F, eval = T}
 if ( length(hole_scores) > 0 ) {
- Card <- golf::logScore(Scorecard = Card,
+ Card <- golf::log_score(Scorecard = Card,
                        hole_by_hole = hole_scores,
                        GHIN = '10526424',
                        index = index,
