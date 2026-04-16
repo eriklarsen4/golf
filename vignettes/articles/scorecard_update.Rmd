@@ -27,9 +27,13 @@ knitr::opts_chunk$set(
   fig.width = 10,
   fig.height = 10,
   dev = c("png", "pdf"),
-  fig.path = "/inst/docs/figures/scorecard_update"
+  fig.path = "../../inst/docs/figures/scorecard_update"
 )
 ```
+
+# Overview
+
+This vignette shows the data logging process of each round and shows trends and metric averages
 
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
@@ -57,12 +61,6 @@ library(RSQLite)
 # library(keyring)
 # library(mailR)
 library(emayili)
-```
-
-### Connect to db
-
-```{r Connect to the db, include = T, message = F, warning = F, eval = T}
-con <- golf::get_db_connection()
 ```
 
 ```{r, results='asis', echo=FALSE}
@@ -146,7 +144,9 @@ if (identical(fmt, "html")) {
 
 ### Update the Players Table
 
-```{r Update the players table of the db, include = T, message = F, warning = F, echo = F, eval = T}
+```{r Update the players table of the db, include = T, message = F, warning = F, echo = T, eval = T}
+con <- golf::get_db_connection()
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -170,6 +170,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ### Update the Courses Table
 
 ```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
+con <- golf::get_db_connection()
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -191,6 +193,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ### Update the Rounds Table
 
 ```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
+con <- golf::get_db_connection()
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -378,6 +382,8 @@ type_of_shot <- c(
 ### Get Shot Metrics
 
 ```{r Gather shot metrics data, include = T, message = F, warning = F, echo = F, eval = T}
+con <- golf::get_db_connection()
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -407,6 +413,8 @@ club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_sho
 ### Update the Club Metrics Table
 
 ```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
+con <- golf::get_db_connection()
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -444,6 +452,8 @@ if (identical(fmt, "html")) {
 Gather and format from the database
 
 ```{r Summarize Stroke Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+con <- golf::get_db_connection()
+
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -468,6 +478,8 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 ```
 
 ```{r Summarize Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+con <- golf::get_db_connection()
+
 stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT * FROM club_metrics;"
 )) |> 

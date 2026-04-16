@@ -7,6 +7,42 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 10,
+  dev = c("png", "pdf"),
+  fig.path = "../../inst/docs/figures/LMER_predictions"
+)
+```
+
+# Overview
+
+This vignette shows the linear mixed model used to measure my performance for each golf round and use that information to predict my performance for the next golf round
+
+It does this by incorporating my skill level and where I've played in the past
+
+Skill level is officially determined by the **USGA** as a `Handicap Index`: how many shots, on average, a player takes to complete a round at a given course with a given difficulty relative to that course's average
+
+  + i.e. a player with a **10.0** `Handicap Index` is expected, on average, to take **82 shots** to complete a round at a course where the average number of strokes has been determined to be **72**
+  
+`Gross Score` is a total number of shots hit by a given player for any individual hole
+
+  + this is extrapolated across each of 18 holes, so `Gross Score` can mean a total of shots for a hole *or* a total of shots for a round
+  
+  + the average `Gross Score` over a player's best **8 rounds** *from their last 20* is used to determine their `Handicap Index`
+  
+Thus, this vignette shows the model used to predict the opposite:
+
+  + given my `Handicap Index` and `Gross Score`s at previous courses of varying difficulty in the past,
+  
+    + **what will be my next** `Gross Score`?
+    
+Note that I use the terms, `strokes`, and, `shots`, interchangeably, though putts are not connoted as `shots`
+
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
 
@@ -240,24 +276,27 @@ gross_lmer <- lme4::lmer(
     dplyr::ungroup() |> 
     dplyr::mutate(
       
-      course_rating = mean(course_rating) - course_rating, # center the course ratings at the mean course rating
+      course_rating = mean(course_rating) - course_rating, 
       
       course = gsub(date_course,
                     pattern = '[0-9]|\\-|\\\n|\\.',
                     replacement = ''), # extract the course names
       
-      `Handicap Index` = mean(`Handicap Index`), # convert the index to a mean index
-      
+      `Handicap Index` = mean(`Handicap Index`) - `Handicap Index`,
       days = as.numeric(date - min(date) + 1,
                         units = 'days')
       ) |> # create a 'days' metric starting at the first day joining the club 
     
     dplyr::relocate(days, .after = date),
   
-  formula = `Gross Score` ~ 
-    `Handicap Index` + 
+  formula = 
+    `Gross Score` ~
+    `Handicap Index` +
     course_rating +
-    days + (1 + `Handicap Index` | course*course_rating)
+    course + 
+    days +
+    (1 + `Handicap Index`|course) + # random intercepts and random slopes for Gross Score at a course given a Handicap Index
+    (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a course rating given a Handicap Index
            )
 ```
 
@@ -266,16 +305,23 @@ gross_lmer <- lme4::lmer(
 ```{r Show Model results, include = T, message = F, warning = F, eval = T, echo = F}
 summary(gross_lmer)
 ```
+```{r Extract RE, include = T, message = F, warning = F, eval = T, echo = F}
+vc_df <- gross_lmer |> 
+  brms::VarCorr() |> 
+  as.data.frame()
+```
 
 ## Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-round_date <- lubridate::as_date('2026-01-25')
-index <- 10.2
-course <- "Randolph"
-tees <- 'combo'
+con <- golf::get_db_connection()
+
+round_date <- lubridate::as_date('2026-04-19')
+index <- 11.0
+course <- "Randolph North"
+tees <- 'blue'
 
 new_df <- DBI::dbGetQuery(
   conn = con,
@@ -288,6 +334,16 @@ new_df <- DBI::dbGetQuery(
   dplyr::as_data_frame() |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
+    
+    index_mean = scores_sum |> 
+      dplyr::ungroup() |> 
+      dplyr::mutate(
+        `Handicap Index` = mean(`Handicap Index`),
+        course_name = gsub(date_course,
+                           pattern = '[0-9]|\\-|\\\n|\\.',
+                           replacement =  '')) |> 
+      dplyr::distinct(`Handicap Index`) |> 
+      unlist() |> as.numeric(),
     
     `Handicap Index` = index, # enter current index
     
@@ -307,8 +363,9 @@ new_df <- DBI::dbGetQuery(
       dplyr::mutate(days = as.numeric(date - min(date) + 1, units = 'days')) |> 
       dplyr::slice_tail() |> 
       dplyr::select(days) |> unlist() |> as.numeric()) |> 
-  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating) |> 
-  dplyr::select(-course_rating_mean) |> 
+  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating,
+                `Handicap Index` = ((`Handicap Index` + index_mean)/2) - `Handicap Index`) |> 
+  dplyr::select(-course_rating_mean, -index_mean) |> 
   dplyr::rename(course = course_name)
 ```
 
@@ -319,19 +376,47 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   round(., 0)
 ```
 
-## Model Interpretation
+## Big Picture: Handicap Index as a Fixed Effect Predicting Gross Score
 
-The aggregate average `Gross Score` (intercept of `Fixed effects`) is **`r nlme::fixed.effects(gross_lmer)[1] |> as.numeric() %>% round(.,2)`** (yikes, that's bad). 
+The model's aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`**. This is model's estimated average first `Gross Score`.
 
-+ For every **`r nlme::fixed.effects(gross_lmer)[2] |> as.numeric() %>% round(., 2)`** additional strokes relative to the average `course_rating` (how difficult the course is), the `Gross Score` **increases by 1 stroke**.
+My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dplyr::rename(Gross_Score = 24) |> dplyr::summarize(avg_gross = mean(Gross_Score)) |> unlist() |> as.numeric()`**. 
 
-This makes sense. There's a lot of variation in `Gross Score` between and within courses, as shown by the `Random effects` `Variance` (`Intercept`s). Otherwise, we would expect `course_rating` to have a stronger relationship to `Gross Score`: the coefficient, representing the slope of the aggregate effect on `Gross Score`, i.e. independent of `course` and `Handicap Index`, would be larger.
+For every additional `Handicap Index` point larger than the average `Handicap Index`, my `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Hand')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
 
-+ A small `t-value` of this `Fixed effect` suggests it is a relatively weak predictor of `Gross Score`. This makes sense when viewing the `Scores` plot and comparing the relatively flat line of `course_rating` with the downward trend of `Handicap Index` and `Gross Score`.
++ This makes sense because `Gross Score` is directly used to determine `Handicap Index` and is positively correlated (high `Gross Score` = high `Handicap Index`)
 
-The **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** `Fixed effect estimate` of `days` on `Gross Score` means that, for every additional day, `Gross Score` decreases by **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2) |> abs()`** strokes; the `Gross Score` is getting smaller over time.
+  + In other words, a player with great skill will have a low `Handicap Index` (i.e. **0**), meaning they average `par` (the course average) for an entire round, while a worse player (who averages above `par`, the course average) will have a higher `Handicap Index`
+  
+    + We know this to be true
+  
+    + `Handicap Index` effectively corrects for skill-level to determine who performed better that day
+    
++ While this makes sense, I wonder whether `Handicap Index` should have a larger `Fixed effect` `Estimate`, which essentially asks, "how much does this variable predict the target (`Gross Score`, here)?"
 
-+ This effect is clearer than `course_rating`, as the magnitude of the `t value` is larger (and greater than 1), and is evident on the time-series graph of the `Scoring` plot, where `Gross Score` is roughly getting smaller over time (along the x-axis), overall and independent of course.
+  + The effect is significant (**`t value` = ** **`r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Ha')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1)
+  
+  + Again, `Handicap Index` is a metric *directly derived from* `Gross Score`, thus, I'm unsure how many strokes (`Gross Score`) index points should be worth! **1?** **More?** Does it vary by skill, or is it uniform?
+
+## A Deeper Dig: Course, Course Rating, and Time
+
+For every additional `course_rating` point (aka, a stroke) greater than the average `course_rating` (~69-70 strokes in this dataset), `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer)[3] |> as.numeric() %>% round(.,2)`** strokes.
+
+  + This also makes sense: harder courses should yield higher `Gross Score`s
+  
+    + These courses vary in their difficulty, independent of player skill (`Handicap Index`), by **`r vc_df |> dplyr::filter(grp == 'course_rating' & grepl(var1, pattern = 'Int') & is.na(var2)) |> dplyr::select(vcov) |>  as.numeric() %>% round(., 2)`** strokes, on average, even though `course_rating` is supposed to account for course difficulty across all courses. This is the **`Random effects` `Variance` (`Intercept`)**.
+    
+    + When compared to the `Residual` `Variance`, **`r vc_df |> dplyr::filter(grp == 'Residual') |> dplyr::select(vcov) |> unlist() |> as.numeric() %>% round(., 2)`**, a `course_rating` variance of **`r vc_df |> dplyr::filter(grp == 'course_rating' & grepl(var1, pattern = 'Int') & is.na(var2)) |> dplyr::select(vcov) |>  as.numeric() %>% round(., 2)`** is very high-- I play differently according to `course_rating`
+
+The `course` also has an effect on `Gross Score`: I play more consistently at some courses than others, as suggested by the large variance of **`r vc_df |> dplyr::filter(grp == 'course' & var1 == '(Intercept)' & is.na(var2)) |> dplyr::select(vcov) |> unlist() |> as.numeric() %>% round(., 2)`** strokes
+
+For every additional `day` in time, my `Gross Score` drops by **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)`** strokes.
+
+  + While this seems tiny, extrapolating days to months or weeks, this becomes very evident (**`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*30`** strokes per month; **`r nlme::fixed.effects(gross_lmer)['days'] |> as.numeric() %>% round(.,2)*365`** strokes per year)
+
+  + Linear extrapolation in this sense is misleading: there will be a limit to lowering `Gross Score` and there will also be variation in the process
+
+  + But this effect is strongly significant (**t value = ** **`r stats::coef(summary(gross_lmer))['days', 't value'] |> as.numeric() %>% round(., 2)`**) and appears to be the primary driver of the trend
 
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
@@ -361,14 +446,6 @@ scores_sum |>
                 `Predicted Gross` = stats::predict(gross_lmer, re.form = NULL)) |> # add the lmer's predicted Gross Scores
   dplyr::distinct(course_name, course_rating, date, days, `Gross Score`, `Handicap Index`,`Predicted Gross`) |> 
   
-  dplyr::add_row(course_name = 'mean') |> # add all mean values
-  dplyr::mutate(course_rating = dplyr::case_when(course_name == 'mean' ~ mean(course_rating, na.rm = T), TRUE ~ course_rating),
-                days = dplyr::case_when(course_name == 'mean' ~ mean(days, na.rm = T), TRUE ~ days),
-                `Gross Score` = dplyr::case_when(course_name == 'mean' ~ lme4::fixef(gross_lmer)[1] |> as.numeric(), TRUE ~ `Gross Score`),
-                date = dplyr::case_when(course_name == 'mean' ~ mean(date, na.rm = T), TRUE ~ date),
-                `Handicap Index` = dplyr::case_when(course_name == 'mean' ~ mean(`Handicap Index`, na.rm = T), TRUE ~ `Handicap Index`),
-                `Predicted Gross` = dplyr::case_when(course_name == 'mean' ~ mean(`Predicted Gross`, na.rm = T), TRUE ~ `Predicted Gross`)) |>
-  
   dplyr::add_row(course_name = paste0('Next Round at ', new_df$course)) |> # add projection values
   dplyr::mutate(course_rating = dplyr::case_when(grepl(course_name,pattern = 'Next') ~ DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT course_name, course_rating
                                                                     FROM courses
@@ -388,11 +465,11 @@ scores_sum |>
   
   dplyr::group_by(course_name) |> 
   ggplot2::ggplot(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name)) +
-  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 2, inherit.aes = F) +
-  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', size = 3, inherit.aes = F) +
-  ggplot2::geom_point(size = 5, inherit.aes = T) +
-  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), method = 'lm', se = F) +
-  ggplot2::labs(title = paste0('Model-Predicted Gross Scores\n(colored lines, point with text)\noverlaid on Actual Gross Scores\nas of ', Sys.Date()),
+  ggplot2::geom_point(size = 5, alpha = 0.7, inherit.aes = T) +
+  ggplot2::geom_line(aes(x = date, y = `Gross Score`), color = 'black', alpha = 0.5, size = 1.5, inherit.aes = F) +
+  ggplot2::geom_line(aes(x = date, y = `Predicted Gross`), color = 'navy', alpha = 0.7, size = 3, inherit.aes = F) +
+  ggplot2::geom_smooth(aes(x = date, y = `Gross Score`, group = course_name, color = course_name, fill = course_name), size = 2, method = 'lm', se = F) +
+  ggplot2::labs(title = paste0('LMER-Predicted Gross Scores\n(navy or with text)\nas of ', Sys.Date()),
                 color = 'Course') +
   ggplot2::theme_bw() +
   ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 13),
@@ -420,7 +497,6 @@ scores_sum |>
                            as.numeric() %>%
                            round(., 0)),
                      inherit.aes = F, size = 3, color = 'black', hjust = -0.1)
-  
 ```
 
 The model is a random intercept, random slope model.
@@ -502,8 +578,8 @@ This plot of residuals reveals the actual `Gross Score` relative to the `Predict
 
 + the navy blue line represents the dividing line between over/under performing where:
 
-  + any scores below the line represent rounds where I performed better than the model's prediction
-  + any scores above the line represent rounds where I performed worse than the model's prediction
+  + **below** the line = I performed **better** than the model's prediction
+  + **above** the line = I performed **worse** than the model's prediction
   
 + `Randolph North`, `Silverbell`, and `Dell Urich` each have lines representing the trend of actual `Gross Score`s compared to predicted `Gross Score`s at each respective course.
 
@@ -737,9 +813,9 @@ This also supports the ideas that, independent of time and `Handicap Index`, I s
 
 + Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich` trend still doesn't reverse, though the overall trend does-- independent of time and one outlier/corrective round, I perform worse at a course with a lower `Handicap Index`
 
-## Actual Gross Score vs Handicap Index, 72 removed
 
-```{r PlotGrossScoreVsHandicapIndexWithout72, include = T, message = F, warning = F, echo = F, render = T}
+```{r PlotGrossScoreVsHandicapIndexWithout72, include = F, message = F, warning = F, echo = F, render = F}
+## Actual Gross Score vs Handicap Index, 72 removed
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
@@ -845,9 +921,9 @@ scores_sum |>
                      size = 3, color = 'black')
 ```
 
-## Actual Net Score vs Course Rating without 72 and Combo Tees
+```{r PlotNetScoreVsCourseRatingWithout72AndCombos, include = F, message = F, warning= F, echo = F, render = F}
 
-```{r PlotNetScoreVsCourseRatingWithout72AndCombos, include = T, message = F, warning= F, echo = F, render = T}
+## Actual Net Score vs Course Rating without 72 and Combo Tees
 scores_sum |> 
   dplyr::ungroup() |> 
   dplyr::mutate(
