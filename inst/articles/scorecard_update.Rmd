@@ -16,7 +16,7 @@ output:
     variant: gfm
 ---
 
-```{r setup, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup, include = F, echo = F, message = F, warning = F}
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
@@ -28,11 +28,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Overview
+## Overview
 
 This vignette shows the data logging process of each round and shows trends and metric averages
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -60,7 +60,7 @@ library(RSQLite)
 library(emayili)
 ```
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -127,7 +127,7 @@ if ( length(hole_scores) > 0 ) {
 }
 ```
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -158,7 +158,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    value = players <- Card |> 
                      dplyr::select(GHIN, index, date) |> 
                      dplyr::distinct() |> 
-                     dplyr::rename(handicap_index = index)
+                     dplyr::rename(handicap_index = index) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
   
 }
@@ -182,7 +183,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    value = course <- Card |> 
                      dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
                      dplyr::distinct() |> 
-                     dplyr::rename(course_name = course)
+                     dplyr::rename(course_name = course) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -206,7 +208,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                      dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
                      dplyr::distinct() |>
                      dplyr::rename(handicap_index = index) |> 
-                     dplyr::rename(course_name = course)
+                     dplyr::rename(course_name = course) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -422,7 +425,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      ) {
   DBI::dbAppendTable(conn = con,
                    name = 'club_metrics',
-                   value = club_metrics
+                   value = club_metrics |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -432,7 +436,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -564,7 +568,7 @@ head(scores_sum |>
        dplyr::arrange(desc(date)))
 ```
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -686,7 +690,7 @@ head(stroke_quality_avg |>
 ```
 
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -871,7 +875,7 @@ ball_striking_metrics |>
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
 ```
 
-```{r, results='asis', echo=FALSE}
+```{r, results='asis', echo = F}
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {

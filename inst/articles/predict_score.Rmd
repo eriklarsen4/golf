@@ -95,7 +95,6 @@ if (identical(fmt, "html")) {
 Gather and format from the database
 
 ```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
-
 ## connect to the db
 con <- golf::get_db_connection()
 
@@ -174,7 +173,7 @@ scores_sum <- scores |>
                                               TRUE ~ 0)
                 ) |> 
   dplyr::rename(`Handicap Index` = handicap_index) |> 
-  dplyr::group_by(date, date_course, course_rating, `Handicap Index`) |> 
+  dplyr::group_by(GHIN, date, date_course, course_rating, `Handicap Index`) |> 
   dplyr::summarize(
                    FIRs = sum(FIR, na.rm = F),
                    `Iron FIRs` = sum(`Iron FIRs`, na.rm = T),
@@ -351,7 +350,7 @@ gross_lmer <- lme4::lmer(
                     replacement = ''), # extract the course names
       
       `Handicap Index` = mean(`Handicap Index`) - `Handicap Index`,
-      days = as.numeric(date - min(date) + 1,
+      days = as.numeric(as.Date(date) - min(as.Date(date)) + 1,
                         units = 'days')
       ) |> # create a 'days' metric starting at the first day joining the club 
     
@@ -384,7 +383,8 @@ vc_df <- gross_lmer |>
 ```{r Export Model Results to db, include = T, message = F, warning = F, eval = T, echo = T}
 golf::export_lm_round_predictions(
   model = gross_lmer,
-  scores_sum = scores_sum
+  scores_sum = scores_sum |> 
+    dplyr::mutate(date = as.character(date))
 )
 ```
 
