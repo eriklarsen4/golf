@@ -19,6 +19,16 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r db-isolation, include=FALSE}
+# Create a disposable copy of the production DB for vignette execution
+tmp_db <- tempfile(fileext = ".db")
+file.copy(system.file("extdata", "golf_data.db", package = "golf"), tmp_db, overwrite = TRUE)
+
+# Override the package's DB path for the vignette
+db_path <- tmp_db
+```
+
+
 # Overview
 
 This vignette shows the linear mixed model used to measure my performance for each golf round and use that information to predict my performance for the next golf round
@@ -68,7 +78,7 @@ Gather and format from the database
 
 ```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
 ## connect to the db
-con <- golf::get_db_connection()
+con <- golf::get_db_connection(db_path = db_path)
 
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
@@ -133,7 +143,7 @@ scores_sum <- scores |>
                                               TRUE ~ 0)
                 ) |> 
   dplyr::rename(`Handicap Index` = handicap_index) |> 
-  dplyr::group_by(date, date_course, course_rating, `Handicap Index`) |> 
+  dplyr::group_by(GHIN, date, date_course, course_rating, `Handicap Index`) |> 
   dplyr::summarize(
                    FIRs = sum(FIR, na.rm = F),
                    `Iron FIRs` = sum(`Iron FIRs`, na.rm = T),
@@ -290,12 +300,21 @@ vc_df <- gross_lmer |>
   as.data.frame()
 ```
 
+## Export Model Results to db
+
+```{r Export Model Results to db, include = T, message = F, warning = F, eval = T, echo = T}
+golf::export_lm_round_predictions(
+  model = gross_lmer,
+  scores_sum = scores_sum
+)
+```
+
 ## Predict Next Round
 
 Predict the next round's `Gross Score` according to the model
 
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
-con <- golf::get_db_connection()
+con <- golf::get_db_connection(db_path = db_path)
 
 round_date <- lubridate::as_date('2026-04-19')
 index <- 11.0
@@ -841,20 +860,4 @@ scores_sum |>
                        alpha = 0.5, color = 'navy') +
   ggplot2::geom_text(aes(x = course_rating, y = `Net Score`, label = `Handicap Index`),
                      size = 3, color = 'black')
-```
-
-```{r rebuild-articles, include=FALSE}
-# Rebuild all articles after DB update
-
-article_dir <- "inst/articles"
-
-articles <- list.files(
-  article_dir,
-  pattern = "\\.Rmd$",
-  full.names = TRUE
-)
-
-for (f in articles) {
-  rmarkdown::render(f, output_format = "all", quiet = TRUE)
-}
 ```

@@ -25,6 +25,15 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r db-isolation, include=FALSE}
+# Create a disposable copy of the production DB for vignette execution
+tmp_db <- tempfile(fileext = ".db")
+file.copy(system.file("extdata", "golf_data.db", package = "golf"), tmp_db, overwrite = TRUE)
+
+# Override the package's DB path for the vignette
+db_path <- tmp_db
+```
+
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
 
@@ -52,13 +61,6 @@ library(RSQLite)
 # library(mailR)
 library(emayili)
 ```
-
-## Connect to the db
-
-```{r Connect to the db, include = T, message = F, warning = F, eval = T}
-con <- golf::get_db_connection()
-```
-
 
 ```{r, results='asis', echo=FALSE}
 fmt <- knitr::pandoc_to()
@@ -135,6 +137,8 @@ Update the db if the new round hasn't been logged yet
 ## Players Table
 
 ```{r Update the players table of the db, include = T, message = F, warning = F, eval = T}
+con <- golf::get_db_connection(db_path = db_path)
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -158,6 +162,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ## Courses Table
 
 ```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
+con <- golf::get_db_connection(db_path = db_path)
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -179,6 +185,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ## Rounds Table
 
 ```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
+con <- golf::get_db_connection(db_path = db_path)
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -220,6 +228,8 @@ if (identical(fmt, "html")) {
 Gather and format from the database
 
 ```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+con <- golf::get_db_connection(db_path = db_path)
+
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -395,7 +405,7 @@ if (identical(fmt, "html")) {
 
 ## Scoring Metrics
 
-```{r Plot Scoring Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotScoringMetrics, include = T, message = F, warning = F, eval = T}
 scoring_metrics |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating),
                 `Handicap Index` = `Handicap Index`*4.5) |>
@@ -450,7 +460,7 @@ scoring_metrics |>
 
 ## Stroke Metrics
 
-```{r Plot Stroke Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotStrokeMetrics, include = T, message = F, warning = F, eval = T}
 stroke_metrics |> 
   tidyr::pivot_longer(cols = c(`doubles+`:birdies), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -487,7 +497,7 @@ stroke_metrics |>
 
 ## Around the Green Metrics
 
-```{r Plot Around the Green Metrics, include = T, message = F, warning = F, eval = T}
+```{r PlotAroundTheGreenMetrics, include = T, message = F, warning = F, eval = T}
 atg_metrics |> 
   tidyr::pivot_longer(cols = c(chips:`Avg GIR putts`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -524,7 +534,7 @@ atg_metrics |>
 
 ## Ball Striking Metrics
 
-```{r Plot Ball Striking Metrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
+```{r PlotBallStrikingMetrics, include = T, message = F, warning = F, eval = T, fig.width=8, fig.height = 8}
 ball_striking_metrics |> 
   tidyr::pivot_longer(cols = c(GIRs:`Driver FIR%`), names_to = 'metric', values_to = 'value', values_drop_na = F) |> 
   ggplot2::ggplot(aes(x = date_course, y = value, group = metric, color = metric, fill = metric)) +
@@ -563,7 +573,7 @@ ball_striking_metrics |>
 
 ## Main Metrics
 
-```{r Plot Main Metrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
+```{r PlotMainMetrics, include = T, message = F, warning = F, eval = T, fig.height=12, fig.width=10}
 scores_sum |> 
   dplyr::mutate(course_rating = dplyr::case_when(grepl(date_course, pattern = 'Sewailo') ~ 68.9, TRUE ~ course_rating)) |> 
   tidyr::pivot_longer(cols = c(`Handicap Index`, `Gross Score`, `Net Score`,
@@ -606,21 +616,4 @@ scores_sum |>
                                  'GIR%', 'Par 3 GIRs', 'Iron FIR%', 'Driver FIR%')),
                       scales = 'free',
                       ncol = 4)
-```
-
-
-```{r rebuild-articles, include=FALSE}
-# Rebuild all articles after DB update
-
-article_dir <- "inst/articles"
-
-articles <- list.files(
-  article_dir,
-  pattern = "\\.Rmd$",
-  full.names = TRUE
-)
-
-for (f in articles) {
-  rmarkdown::render(f, output_format = "all", quiet = TRUE)
-}
 ```
