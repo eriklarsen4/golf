@@ -1,10 +1,10 @@
 ### Overview
 
-This vignette shows the linear mixed model used to measure my
+This markdown shows the linear mixed model used to measure my
 performance for each golf round and use that information to predict my
 performance for the next golf round
 
-It does this by incorporating my skill level and where I’ve played in
+It does this by incorporating my skill level at each course I’ve played in
 the past
 
 Skill level is officially determined by the **USGA** as a
@@ -20,12 +20,12 @@ course’s average
 individual hole
 
 - this is extrapolated across each of 18 holes, so `Gross Score` can
-  mean a total of shots for a hole *or* a total of shots for a round
+  mean a total of shots for a hole *or* a total of strokes for a round
 
 - the average `Gross Score` over a player’s best **8 rounds** *from
   their last 20* is used to determine their `Handicap Index`
 
-Thus, this vignette shows the model used to predict the opposite:
+Thus, this markdown shows the model used to predict the opposite:
 
 - given my `Handicap Index` and `Gross Score`s at previous courses of
   varying difficulty in the past,
@@ -36,6 +36,9 @@ Note that I use the terms, `strokes`, and, `shots`, interchangeably,
 though putts are not connoted as `shots`
 
 ### Code Environment Details
+
+<details>
+<summary>Click to expand</summary>
 
 #### Attach Packages
 
@@ -49,8 +52,12 @@ library(DBI)
 library(RSQLite)
 library(emayili)
 ```
+</details>
 
 ### Code for Summarizing Metrics
+
+<details>
+<summary>Click to expand</summary>
 
 #### Gather and Format Scores
 
@@ -82,14 +89,12 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole) |> 
   dplyr::ungroup()
 ```
-
-### Code for Computing Advanced Metrics
-
-#### Compute Metrics
-
-Compute more nuanced metrics
+</details>
 
 ### Advanced Metrics Snapshot
+
+<details>
+<summary>Click to expand</summary>
 
 ``` r
 head(scores_sum |> 
@@ -107,11 +112,12 @@ head(scores_sum |>
     ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8          2         0            83          73
     ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9          2         0            85          75
 
-### Group Metrics
-
-Separate the metrics:
+</details>
 
 #### Scoring Metrics
+
+<details>
+<summary>Click to expand</summary>
 
 Round scores and `Handicap Index`
 
@@ -133,7 +139,12 @@ head(scoring_metrics |>
     ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2            83          73
     ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2            85          75
 
+</details>
+
 #### Stroke Metrics
+
+<details>
+<summary>Click to expand</summary>
 
 Above/below par
 
@@ -155,7 +166,12 @@ head(stroke_metrics |>
     ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70            2      8     7       1
     ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70            2      9     7       0
 
+</details>
+
 #### Around-the-Green Metrics
+
+<details>
+<summary>Click to expand</summary>
 
 Chips, putts, etc.
 
@@ -177,7 +193,12 @@ head(atg_metrics |>
     ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70      11            46      22.2    35            2.14
     ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70      15            51      18.2    36            2.17
 
+</details>
+
 #### Ball Striking
+
+<details>
+<summary>Click to expand</summary>
 
 Approach and tee accuracy
 
@@ -201,7 +222,12 @@ head(ball_striking_metrics |>
     ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70       7   38.9            3     2   14.3           0         0               2          16.7
     ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70       6   33.3            2     4   28.6           0       NaN               4          28.6
 
+</details>
+
 #### Shot Quality
+
+<details>
+<summary>Click to expand</summary>
 
 Yardage and accuracy on tracked shots
 
@@ -233,7 +259,12 @@ head(stroke_quality |>
     ## 5 Randolph North 2026-04-05 blue      2     4     6      2 rough   4               115           82 no        short          punch    
     ## 6 Randolph North 2026-04-05 blue      2     4     6      3 sand    SW               30           16 no        short          gsbunker
 
+</details>
+
 ### LMER Model
+
+<details>
+<summary>Click to expand</summary>
 
 #### Fit a LMER Model
 
@@ -282,7 +313,11 @@ gross_lmer <- lme4::lmer(
     (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a course rating given a Handicap Index
            )
 ```
+</details>
 
+<details>
+<summary>Click to expand</summary>
+  
 #### LMER Model Summary
 
     ## Linear mixed model fit by REML ['lmerMod']
@@ -336,9 +371,13 @@ golf::export_lm_round_predictions(
   scores_sum = scores_sum
 )
 ```
+</details>
 
 ### Model Interpretations
 
+<details>
+<summary>Click to expand</summary>
+  
 #### Big Picture: Handicap Index as a Fixed Effect Predicting Gross Score
 
 The model’s aggregate average `Gross Score` (**`(Intercept)` `Estimate`
@@ -414,11 +453,14 @@ strokes.
 - But this effect is strongly significant (**t value = ** **-3.29**) and
   appears to be the primary driver of the trend
 
+</details>
+
 ### Predict the Next Round
 
-Predict the next round’s `Gross Score` according to the model
+<details>
+<summary>Click to expand</summary>
 
-#### Show Prediction
+Predict the next round’s `Gross Score` according to the model
 
 ``` r
 ## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
@@ -429,7 +471,12 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
 
     ## [1] 81
 
-### Plot the Model
+</details>
+
+### Plots
+
+<details>
+<summary>Click to expand</summary>
 
 #### Model by Course
 
@@ -458,7 +505,12 @@ course has a different slope, starting at a different y-intercept
   `course_rating`, `Handicap Index`, and `days` (date/time) at
   `Dell Urich`
 
+</details>
+
 #### Model Predictions
+
+<details>
+<summary>Click to expand</summary>
 
 These predictions are **not** historical– they are current:
 
@@ -467,7 +519,12 @@ These predictions are **not** historical– they are current:
 
 ![](../figures/LMER_predictions/PlotModels-1.png)<!-- -->
 
+</details>
+
 #### Actual Gross vs Predicted Gross (performance vs prediction)
+
+<details>
+<summary>Click to expand</summary>
 
 ![](../figures/LMER_predictions/PlotActualVsPredictedGross-1.png)<!-- -->
 
@@ -516,7 +573,12 @@ annotated by `Handicap Index` at the time of the round.
     - Other latent variables may contribute to this variability, such as
       course/weather/event conditions
 
+</details>
+
 #### Actual Net vs Predicted Gross (skill-adjusted performance vs prediction)
+
+<details>
+<summary>Click to expand</summary>
 
 ![](../figures/LMER_predictions/PlotActualNetVsPredictedGross-1.png)<!-- -->
 
@@ -580,7 +642,12 @@ the time of the round.
     - Other latent variables may contribute to this variability, such as
       course/weather/event conditions
 
+</details>
+
 #### Actual Gross vs Course Rating (performance vs course difficulty)
+
+<details>
+<summary>Click to expand</summary>
 
 ![](../figures/LMER_predictions/PlotGrossScoreVsCourseRating-1.png)<!-- -->
 
@@ -597,7 +664,12 @@ without the substantial `Gross Score` **72** outlier.
   trend and logic that **higher `course ratings` correlate to higher
   `Gross Score`s**
 
+</details>
+
 #### Actual Gross vs Handicap Index (performance vs skill-level)
+
+<details>
+<summary>Click to expand</summary>
 
 ![](../figures/LMER_predictions/PlotGrossScoreVsHandicapIndex-1.png)<!-- -->
 
@@ -610,6 +682,13 @@ This also supports the ideas that, independent of time and
   independent of time and one outlier/corrective round, I perform worse
   at a course with a lower `Handicap Index`.
 
+</details>
+
 #### Actual Net vs Course Rating (skill-adjusted performance vs course difficulty)
 
+<details>
+<summary>Click to expand</summary>
+
 ![](../figures/LMER_predictions/PlotNetScoreVsCourseDifficulty-1.png)<!-- -->
+
+</details>
