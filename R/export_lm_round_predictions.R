@@ -94,8 +94,8 @@ export_lm_round_predictions <- function(model, scores_sum) {
   preds <- scores_sum |>
     dplyr::ungroup() |>
     dplyr::mutate(
-      player_date = paste0(.data$GHIN, "_", format(.data$date, "%Y%m%d")),
-      date = format(.data$date, "%Y%m%d"),
+      player_date = paste0(.data$GHIN, "_", format(as.Date(.data$date), "%Y%m%d")),
+      date = format(as.Date(.data$date), "%Y%m%d"),
       predicted_score = round(as.numeric(stats::predict(model, newdata = scores_sum)), 0),
       model_version   = model_version,
       generated_at    = generated_at,
