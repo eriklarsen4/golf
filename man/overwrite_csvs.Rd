@@ -4,10 +4,7 @@
 \alias{overwrite_csvs}
 \title{update power bi .csv's}
 \usage{
-overwrite_csvs(most_recent_round_date)
-}
-\arguments{
-\item{most_recent_round_date}{a YYYY-MM-DD formatted string variable of the most recent round}
+overwrite_csvs()
 }
 \description{
 function used to check the db of round dates written to tables and overwrite .csv's if not up-to-date
@@ -16,7 +13,7 @@ This regenerates every .csv file in inst/extdata/golf_exports
 }
 \examples{
 \dontrun{
-golf::overwrite_csvs(most_recent_round_date = '2026-04-05')
+golf::overwrite_csvs()
 }
 
 }

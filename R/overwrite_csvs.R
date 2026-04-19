@@ -3,11 +3,10 @@
 #' @description function used to check the db of round dates written to tables and overwrite .csv's if not up-to-date
 #'
 #' This regenerates every .csv file in inst/extdata/golf_exports
-#' @param most_recent_round_date a YYYY-MM-DD formatted string variable of the most recent round
 #' 
 #' @examples
 #' \dontrun{
-#' golf::overwrite_csvs(most_recent_round_date = '2026-04-05')
+#' golf::overwrite_csvs()
 #' }
 #' 
 #' @import DBI
@@ -16,7 +15,7 @@
 #' @import stringr
 #' @import utils
 #' @export
-overwrite_csvs <- function(most_recent_round_date) {
+overwrite_csvs <- function() {
   
   con <- golf::get_db_connection()
   
