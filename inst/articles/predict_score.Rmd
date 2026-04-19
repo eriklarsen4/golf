@@ -51,6 +51,9 @@ knitr::opts_chunk$set(
   dev = c("png", "pdf"),
   fig.path = "../figures/LMER_predictions/"
 )
+
+real_db <- here::here("inst", "extdata", "golf_data.db")
+con <- golf::get_db_connection(db_path = real_db)
 ```
 
 ```{r, results='asis', echo=FALSE}
@@ -404,7 +407,7 @@ if (identical(fmt, "html")) {
 
 The model's aggregate average `Gross Score` (**`(Intercept)` `Estimate` of `Fixed effects`**) is **`r nlme::fixed.effects(gross_lmer)['(Intercept)'] |> as.numeric() %>% round(.,2)`**. This is model's estimated average first `Gross Score`.
 
-My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dplyr::rename(Gross_Score = 24) |> dplyr::summarize(avg_gross = mean(Gross_Score)) |> unlist() |> as.numeric()`**. 
+My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dplyr::rename(Gross_Score = 25) |> dplyr::summarize(avg_gross = mean(Gross_Score)) |> unlist() |> as.numeric()`**. 
 
 For every additional `Handicap Index` point larger than the average `Handicap Index`, my `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Hand')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
 

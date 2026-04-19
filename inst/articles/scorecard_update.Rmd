@@ -26,6 +26,9 @@ knitr::opts_chunk$set(
   dev = c("png", "pdf"),
   fig.path = "../figures/scorecard_update/"
 )
+
+real_db <- here::here("inst", "extdata", "golf_data.db")
+con <- golf::get_db_connection(db_path = real_db)
 ```
 
 ## Overview

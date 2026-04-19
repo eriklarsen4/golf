@@ -19,6 +19,9 @@ get_tracked_shots_data_shape(round_date)
 Prepares the data of tracked shots for data entry.
 }
 \examples{
+\dontrun{
 get_tracked_shots_data_shape(round_date = '2026-02-08')
+}
+
 
 }

@@ -89,6 +89,7 @@ with round scores data
 Prepares the data of tracked shots for data entry.
 }
 \examples{
+\dontrun{
 # first, get the correct tracked shots for a given round
 club_metrics_df <- get_tracked_shots_data_shape(round_date = '2026-02-08')
 df <- golf::Card |> dplyr::filter(course == 'Randolph North' & date == '2026-02-08')
@@ -109,5 +110,6 @@ lie_type = type_of_lie,
 target_status = targets_YN,
 location = locations,
 type_of_shot = shot_types)
+}
 
 }
