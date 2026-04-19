@@ -49,6 +49,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
   # ensure table exists
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS predictions_round_lm (
+      player_date TEXT,
       date TEXT,
       course_name TEXT,
       predicted_score REAL,
@@ -56,7 +57,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
       generated_at TEXT,
       features_hash TEXT,
       notes TEXT,
-      PRIMARY KEY (date, course_name, model_version)
+      PRIMARY KEY (player_date, course_name, model_version)
     );
   ")
   
@@ -84,7 +85,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
       course_rating = mean(.data$course_rating) - .data$course_rating, # center the course rating
       `Handicap Index` = mean(.data$`Handicap Index`) - .data$`Handicap Index`, # center the Handicap Index
       
-      days = as.numeric(.data$date - min(.data$date) + 1, units = "days") # start days from day = 1
+      days = as.numeric(as.Date(.data$date) - min(as.Date(.data$date)) + 1, units = "days") # start days from day = 1
     ) |>
     dplyr::relocate(.data$days, .after = .data$date)
   
@@ -93,13 +94,16 @@ export_lm_round_predictions <- function(model, scores_sum) {
   preds <- scores_sum |>
     dplyr::ungroup() |>
     dplyr::mutate(
-      predicted_score = as.numeric(stats::predict(model, newdata = scores_sum)),
+      player_date = paste0(.data$GHIN, "_", format(.data$date, "%Y%m%d")),
+      date = format(.data$date, "%Y%m%d"),
+      predicted_score = round(as.numeric(stats::predict(model, newdata = scores_sum)), 0),
       model_version   = model_version,
       generated_at    = generated_at,
       features_hash   = NA_character_,
       notes           = NA_character_
     ) |>
     dplyr::select(
+      .data$player_date,
       .data$date,
       .data$course_name,
       .data$predicted_score,

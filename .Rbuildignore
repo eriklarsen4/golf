@@ -10,7 +10,10 @@
 ^.+?.png
 ^.+?.html
 ^data-raw$
-^.+?.csv
+^.csv$
 ^scorecard_update
 compose_email
 ^golf_data$
+^skill_model$
+^inst/extdata/duckdb\.exe$
+^golf_data\.db$

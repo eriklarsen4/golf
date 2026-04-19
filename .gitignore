@@ -9,3 +9,4 @@ Card.csv
 compose_email
 email_template.Rmd
 inst/doc
+skill_model.R

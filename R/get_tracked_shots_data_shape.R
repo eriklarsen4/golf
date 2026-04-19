@@ -25,9 +25,7 @@ get_tracked_shots_data_shape <- function(round_date){
   assertthat::assert_that(!missing(round_date), msg = "'round_date' is a required parameter! Please see help file for valid strings.")
   assertthat::assert_that(grepl(round_date, pattern = '[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}'), msg = "'round_date' requires strings in YYYY-MM-DD format!")
   
-  if (!grepl(ls(), pattern = '^con$|^conn$') |> any() ){
-    con <- golf::get_db_connection() 
-  }
+  con <- golf::get_db_connection() 
   
   club_metrics_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
     dplyr::mutate(date = as.character(.data$date)) |>
