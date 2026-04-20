@@ -96,8 +96,6 @@
 #' }
 #'
 #' @import assertthat
-#' @import DBI
-#' @import RSQLite
 #' @import lubridate
 #' @import dplyr
 #' @import tidyr

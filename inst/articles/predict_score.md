@@ -101,16 +101,17 @@ head(scores_sum |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 × 25
-    ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties `Gross Score` `Net Score`
-    ##   <date>     <chr>                                      <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>      <int>     <int>         <dbl>       <dbl>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9          3         2            88          80
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5          4         1            82          74
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6          3         1            84          75
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7          6         0            92          82
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8          2         0            83          73
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9          2         0            85          75
+    ## # A tibble: 6 × 26
+    ## # Groups:   GHIN, date, date_course, course_rating [6]
+    ##      GHIN date       date_course course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies
+    ##     <int> <date>     <chr>               <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>
+    ## 1  1.05e7 2026-04-05 "2026-04-0…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9
+    ## 2  1.05e7 2026-03-29 "2026-03-2…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5
+    ## 3  1.05e7 2026-03-08 "2026-03-0…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6
+    ## 4  1.05e7 2026-02-22 "2026-02-2…          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7
+    ## 5  1.05e7 2026-02-08 "2026-02-0…          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8
+    ## 6  1.05e7 2026-01-25 "2026-01-2…          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9
+    ## # ℹ 4 more variables: `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>
 
 </details>
 
@@ -128,16 +129,16 @@ head(scoring_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 × 6
-    ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
-    ##   <date>     <chr>                                      <dbl>            <dbl>         <dbl>       <dbl>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11              88          80
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10              82          74
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10              84          75
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1            92          82
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2            83          73
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2            85          75
+    ## # A tibble: 6 × 7
+    ## # Groups:   GHIN, date, date_course, course_rating [6]
+    ##       GHIN date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
+    ##      <int> <date>     <chr>                                      <dbl>            <dbl>         <dbl>       <dbl>
+    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11              88          80
+    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10              82          74
+    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10              84          75
+    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1            92          82
+    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2            83          73
+    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2            85          75
 
 </details>
 
@@ -155,16 +156,16 @@ head(stroke_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 × 7
-    ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating `doubles+` bogies  pars birdies
-    ##   <date>     <chr>                                      <dbl>      <int>  <int> <int>   <int>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7          3      9     6       0
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3          4      5     7       2
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7          3      6     9       0
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68            6      7     5       0
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70            2      8     7       1
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70            2      9     7       0
+    ## # A tibble: 6 × 8
+    ## # Groups:   GHIN, date, date_course, course_rating [6]
+    ##       GHIN date       date_course                        course_rating `doubles+` bogies  pars birdies
+    ##      <int> <date>     <chr>                                      <dbl>      <int>  <int> <int>   <int>
+    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7          3      9     6       0
+    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3          4      5     7       2
+    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7          3      6     9       0
+    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68            6      7     5       0
+    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70            2      8     7       1
+    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70            2      9     7       0
 
 </details>
 
@@ -182,16 +183,16 @@ head(atg_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 × 8
-    ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating chips `chips+putts` `UpDown%` putts `Avg GIR putts`
-    ##   <date>     <chr>                                      <dbl> <dbl>         <dbl>     <dbl> <int>           <dbl>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7    21            52      20      31            2   
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3    15            46      20      31            1.71
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7    12            45      30      33            2.14
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68      18            52      16.7    34            2   
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70      11            46      22.2    35            2.14
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70      15            51      18.2    36            2.17
+    ## # A tibble: 6 × 9
+    ## # Groups:   GHIN, date, date_course, course_rating [6]
+    ##       GHIN date       date_course                        course_rating chips `chips+putts` `UpDown%` putts `Avg GIR putts`
+    ##      <int> <date>     <chr>                                      <dbl> <dbl>         <dbl>     <dbl> <int>           <dbl>
+    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7    21            52      20      31            2   
+    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3    15            46      20      31            1.71
+    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7    12            45      30      33            2.14
+    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68      18            52      16.7    34            2   
+    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70      11            46      22.2    35            2.14
+    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70      15            51      18.2    36            2.17
 
 </details>
 
@@ -211,16 +212,16 @@ head(ball_striking_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 × 12
-    ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
-    ##   <date>     <chr>                                      <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7     3   16.7            1     6   42.9           0         0               6          46.2
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3     7   38.9            1     5   38.5           2        66.7             3          30  
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7     7   38.9            2     2   14.3           0         0               2          16.7
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68       3   16.7            1     7   53.8           1        33.3             6          60  
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70       7   38.9            3     2   14.3           0         0               2          16.7
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70       6   33.3            2     4   28.6           0       NaN               4          28.6
+    ## # A tibble: 6 × 13
+    ## # Groups:   GHIN, date, date_course, course_rating [6]
+    ##       GHIN date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
+    ##      <int> <date>     <chr>                                      <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
+    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7     3   16.7            1     6   42.9           0         0               6          46.2
+    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3     7   38.9            1     5   38.5           2        66.7             3          30  
+    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7     7   38.9            2     2   14.3           0         0               2          16.7
+    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68       3   16.7            1     7   53.8           1        33.3             6          60  
+    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70       7   38.9            3     2   14.3           0         0               2          16.7
+    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70       6   33.3            2     4   28.6           0       NaN               4          28.6
 
 </details>
 
@@ -297,7 +298,7 @@ gross_lmer <- lme4::lmer(
                     replacement = ''), # extract the course names
       
       `Handicap Index` = mean(`Handicap Index`) - `Handicap Index`,
-      days = as.numeric(date - min(date) + 1,
+      days = as.numeric(as.Date(date) - min(as.Date(date)) + 1,
                         units = 'days')
       ) |> # create a 'days' metric starting at the first day joining the club 
     
@@ -322,8 +323,8 @@ gross_lmer <- lme4::lmer(
 
     ## Linear mixed model fit by REML ['lmerMod']
     ## Formula: `Gross Score` ~ `Handicap Index` + course_rating + course + days +      (1 + `Handicap Index` | course) + (1 + `Handicap Index` |      course_rating)
-    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = mean(course_rating) -      course_rating, course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",      replacement = ""), `Handicap Index` = mean(`Handicap Index`) -  
-    ##     `Handicap Index`, days = as.numeric(date - min(date) + 1,      units = "days")), days, .after = date)
+    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = mean(course_rating) -      course_rating, course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
+    ##     replacement = ""), `Handicap Index` = mean(`Handicap Index`) -      `Handicap Index`, days = as.numeric(as.Date(date) - min(as.Date(date)) +      1, units = "days")), days, .after = date)
     ## 
     ## REML criterion at convergence: 143.5
     ## 
@@ -368,7 +369,8 @@ gross_lmer <- lme4::lmer(
 ``` r
 golf::export_lm_round_predictions(
   model = gross_lmer,
-  scores_sum = scores_sum
+  scores_sum = scores_sum |> 
+    dplyr::mutate(date = as.character(date))
 )
 ```
 </details>

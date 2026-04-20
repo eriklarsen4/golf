@@ -1,20 +1,3 @@
-#' @title update power bi .csv's
-#' 
-#' @description function used to check the db of round dates written to tables and overwrite .csv's if not up-to-date
-#'
-#' This regenerates every .csv file in inst/extdata/golf_exports
-#' 
-#' @examples
-#' \dontrun{
-#' golf::overwrite_csvs()
-#' }
-#' 
-#' @import DBI
-#' @import readr
-#' @import dplyr
-#' @import stringr
-#' @import utils
-#' @export
 overwrite_csvs <- function() {
   
   con <- golf::get_db_connection()
@@ -25,7 +8,7 @@ overwrite_csvs <- function() {
   "%notin%" <- Negate("%in%")
   
   tables <- c(DBI::dbListTables(conn = con))[which(DBI::dbListTables(conn = con) %notin% 'courses' == T)] # db tables with date as column
-  pbi <- dir(file.path("inst", "extdata", "golf_exports"), pattern = paste0(tables, '.csv', collapse = "|"), full.names = T) # all tables used by power bi
+  pbi <- dir(file.path("inst", "extdata", "golf_exports"), pattern = paste0(tables, '\\.csv', collapse = "|"), full.names = T) # all tables used by power bi
   
   most_recent_round_date_pbi <- lapply(pbi, function(x){
     readr::read_csv(x, col_names = T, show_col_types = F) |> 
@@ -47,10 +30,26 @@ overwrite_csvs <- function() {
     names(most_recent_round_date_db)[t] <- tables[t]
   }
   
+  # conditional overwrite
   for (t in tables) {
+    
+    # skip unmatched .csv / db tables
+    if ( !(t %in% names(most_recent_round_date_pbi)) ) {
+      next
+    }
+    
+    if ( most_recent_round_date_pbi[[t]]  < most_recent_round_date_db[[t]]
+         ) {
+     
+      outfile <- pbi[basename(pbi) == paste0(t,".csv")]
+      
       utils::write.csv(x = DBI::dbGetQuery(conn = con,
-                                    statement = paste0("SELECT DISTINCT * FROM ", t, ";")),
-                file = pbi[which(!is.na(stringr::str_extract(pbi, pattern = paste0("(", t,")$"))))], append = F, row.names = F, col.names = T)
+                                           statement = paste0("SELECT DISTINCT * FROM ", t, ";")),
+                       file = out_file,
+                       append = F,
+                       row.names = F, 
+                       col.names = T)
+    }
   }
   
 }

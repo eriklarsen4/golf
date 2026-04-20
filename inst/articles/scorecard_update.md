@@ -99,7 +99,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    value = players <- Card |> 
                      dplyr::select(GHIN, index, date) |> 
                      dplyr::distinct() |> 
-                     dplyr::rename(handicap_index = index)
+                     dplyr::rename(handicap_index = index) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
   
 }
@@ -123,7 +124,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    value = course <- Card |> 
                      dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
                      dplyr::distinct() |> 
-                     dplyr::rename(course_name = course)
+                     dplyr::rename(course_name = course) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -147,7 +149,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                      dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
                      dplyr::distinct() |>
                      dplyr::rename(handicap_index = index) |> 
-                     dplyr::rename(course_name = course)
+                     dplyr::rename(course_name = course) |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -322,20 +325,20 @@ type_of_shot <- c(
     ##    tracked_shots sum(tracked_shots)
     ## 1              3                 55
     ## 2              4                 55
-    ## 3              3                 55
-    ## 4              4                 55
-    ## 5              3                 55
-    ## 6              2                 55
-    ## 7              4                 55
+    ## 3              4                 55
+    ## 4              2                 55
+    ## 5              4                 55
+    ## 6              1                 55
+    ## 7              3                 55
     ## 8              2                 55
-    ## 9              5                 55
-    ## 10             3                 55
-    ## 11             1                 55
+    ## 9              3                 55
+    ## 10             4                 55
+    ## 11             3                 55
     ## 12             3                 55
     ## 13             3                 55
-    ## 14             2                 55
-    ## 15             3                 55
-    ## 16             4                 55
+    ## 14             5                 55
+    ## 15             2                 55
+    ## 16             3                 55
     ## 17             3                 55
     ## 18             3                 55
 
@@ -354,7 +357,8 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      ) {
   DBI::dbAppendTable(conn = con,
                    name = 'club_metrics',
-                   value = club_metrics
+                   value = club_metrics |> 
+                     dplyr::mutate(date = as.character(date))
                    )
 }
 ```
@@ -487,14 +491,15 @@ head(scores_sum |>
 
     ## # A tibble: 6 × 26
     ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course                        course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties `Gross Score` `Net Score` `UpAndDown%`
-    ##   <date>     <chr>                                      <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>      <int>     <int>         <dbl>       <dbl>        <dbl>
-    ## 1 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9          3         2            88          80         20  
-    ## 2 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5          4         1            82          74         20  
-    ## 3 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6          3         1            84          75         30  
-    ## 4 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7          6         0            92          82         16.7
-    ## 5 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8          2         0            83          73         22.2
-    ## 6 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9          2         0            85          75         18.2
+    ##   date       date_course         course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies
+    ##   <date>     <chr>                       <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>
+    ## 1 2026-04-05 "2026-04-05\nRando…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9
+    ## 2 2026-03-29 "2026-03-29\nDell …          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5
+    ## 3 2026-03-08 "2026-03-08\nRando…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6
+    ## 4 2026-02-22 "2026-02-22\nDell …          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7
+    ## 5 2026-02-08 "2026-02-08\nRando…          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8
+    ## 6 2026-01-25 "2026-01-25\nRando…          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9
+    ## # ℹ 5 more variables: `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>, `UpAndDown%` <dbl>
 
 ### View Metrics
 

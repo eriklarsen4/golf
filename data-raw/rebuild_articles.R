@@ -1,9 +1,11 @@
-#' Rebuild all articles in inst/articles
-#'
-#' This regenerates every .Rmd file in inst/articles into its
-#' corresponding output formats (HTML + MD by default).
-#'
-#' @export
+# Rebuild all articles in inst/articles
+#
+# This regenerates every .Rmd file in inst/articles into its
+# corresponding output formats (HTML + MD by default).
+# 
+# @import rmarkdown
+#
+# @export
 rebuild_articles <- function() {
   # Resolve the article directory relative to the package root
   article_dir <- file.path("inst", "articles")
