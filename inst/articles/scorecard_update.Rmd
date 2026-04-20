@@ -56,7 +56,7 @@ library(lme4)
 library(mgcv)
 library(brms)
 library(DBI)
-library(RSQLite)
+library(duckdb)
 # library(blastula)
 # library(keyring)
 # library(mailR)
@@ -79,28 +79,28 @@ if (identical(fmt, "html")) {
 
 ```{r Annotate the new data, include = T, message = F, warning = F, echo = T, eval = T}
 round_course <- 'Randolph North'
-round_date <- '2026-04-05'
+round_date <- '2026-04-19'
 round_tees <- 'blue'
 
-hole_scores <- c(4, 6, 5, 5, 5, 4, 6, 4, 6,
-                 5, 3, 5, 5, 4, 6, 6, 4, 5)
+hole_scores <- c(5, 5, 6, 4, 5, 4, 4, 4, 8,
+                 4, 3, 6, 6, 4, 4, 5, 6, 8)
 
-FIRs <- c(0, 0, 1, 1, 0, 0, 1, 0, 0,
-          1, 0, 1, 0, 1, 0, 0, 0, 0)
+FIRs <- c(0, 0, 1, rep(0, 6),
+          rep(0, 7), 1, 1)
 
-GIRs <- c(0, 0, 1, rep(0, 6),
+GIRs <- c(0, 0, 0, 1, 0, 0, 1, 0, 0,
           0, 1, 0, 0, 1, rep(0, 4)) 
 
-putts_rec <- c(1, 2, 2, 1, 2, 2, 2, 2, 1,
-               2, 2, 2, 2, 2, 1, 2, 1, 2)
+putts_rec <- c(rep(2, 8), 3,
+               1, 2, 2, 2, 2, 1, 2, 3, 2)
 
-chips_rec <- c(1, 2, 1, 2, 1, 1, 2, 1, 3,
-               1, 0, 1, 1, 0, 1, 1, 1, 1)
+chips_rec <- c(1, 1, 1, 0, 0, 1, 0, 1, 3,
+               1, 0, 2, 1, 0, 2, 1, 1, 4)
 
-penalties_rec <- c(rep(0, 14), 2, 0, 0, 0)
+penalties_rec <- c(rep(0, 18))
 
-tee_clubs <- c('4', 'D', 'D', 'D', 'D', '9', 'D', '5', 'D',
-               'D', '6', 'D', 'D', 'D', '6', 'D', 'D', 'D')
+tee_clubs <- c('D', 'D', 'D', 'D', 'D', '9', 'D', '5', 'D',
+               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
 
 index <- 11.0
 ```
@@ -186,8 +186,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    value = course <- Card |> 
                      dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
                      dplyr::distinct() |> 
-                     dplyr::rename(course_name = course) |> 
-                     dplyr::mutate(date = as.character(date))
+                     dplyr::rename(course_name = course)
                    )
 }
 ```
@@ -220,165 +219,167 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ### Get Club Metrics df
 
 ```{r Get the Club Metrics df, include = T, message = F, warning = F, echo = T, eval = T}
-club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date)
+club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date) |> 
+  dplyr::mutate(hole = gsub(hole, pattern = 'hole_', replacement = '') |> as.numeric()) |> 
+  dplyr::arrange(hole) |> 
+  dplyr::mutate(hole = paste0("hole_", hole))
 ```
 
 ### Annotate Club Metrics
 
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 club_choice <- c(
-  '4', 'PW', 'PW',
-  'D', '4', 'SW', 'LW',
-  'D', '3W', 'SW',
-  'D', '7', 'PW', 'P',
-  'D', '8', 'PW',
+  'D', 'GW', 'PW',
+  'D', '5', 'SW',
+  'D', '3W', 'GW', 'PW',
+  'D', '6',
+  'D', '4', 'PW',
   '9', 'GW',
-  'D', 'PW', 'PW', 'P',
+  'D', '7',
   '5', 'SW',
-  'D', '6', 'SW', 'GW', 'P',
+  'D', '3W', 'SW', 'SW', 'LW',
   
-  'D', 'GW', 'SW',
-  '6',
-  'D', 'GW', 'SW',
-  'D', '4', 'SW',
-  'D', 'PW',
-  '6', '6', 'GW',
-  'D', '3W', 'SW', 'GW',
-  'D', '4', 'P',
-  'D', '7', 'SW'
+  'D', 'GW', 'P',
+  '7',
+  'D', 'GW', 'GW', 'P',
+  'D', '3W', '7', 'GW',
+  'D', '8',
+  '7', 'PW', 'PW',
+  'D', '3W', '7',
+  'D', 'GW', 'GW',
+  'D', '7', 'GW', '7', 'GW', 'LW'
 )
 
 dist_to_target <- c(
-  220, 140, 10,
-  270, 115, 30, 15,
-  270, 250, 30,
-  270, 175, 20, 10,
-  270, 165, 13,
-  145, 19,
-  270, 135, 25, 15,
-  205, 40,
-  270, 190, 65, 21, 11,
+  275, 95, 10,
+  275, 215, 25,
+  275, 250, 89, 16,
+  275, 182,
+  275, 220, 145,
+  135, 40,
+  275, 92,
+  200, 65,
+  275, 250, 65, 45, 15,
   
-  270, 125, 24,
-  190,
-  270, 120, 45, 
-  270, 120, 90,
-  270, 140,
-  190, 190, 10,
-  270, 250, 100, 10,
-  270, 150, 5,
-  270, 154, 32
+  275, 115, 5,
+  185,
+  275, 120, 50, 3,
+  275, 250, 75, 50,
+  275, 165,
+  185, 30, 8,
+  275, 250, 30,
+  275, 115, 55,
+  275, 185, 20, 30, 25, 10
 )
 
 yds <- c(
-  219, 131, 8,
-  308, 82, 16, 16,
-  272, 260, 28,
-  259, 168, 20, 10,
-  255, 167, 17,
-  123, 8,
-  257, 97, 39, 19,
-  210, 36,
-  279, 165, 33, 21, 10,
+  264, 83, 11,
+  195, 222, 17,
+  247, 242, 72, 19,
+  240, 182, 
+  225, 74, 145,
+  97, 35,
+  263, 92,
+  221, 64,
+  224, 183, 125, 72, 10,
   
-  290, 102, 23,
-  188,
-  267, 69, 49,
-  304, 159, 90,
-  286, 139,
-  180, 184, 5,
-  248, 222, 114, 6,
-  273, 144, 4,
-  265, 142, 16
+  294, 115, 5,
+  186,
+  276, 73, 60, 6, 
+  127, 281, 76, 46,
+  277, 154,
+  160, 38, 6,
+  285, 257, 35,
+  279, 62, 55,
+  255, 154, 16, 18, 23, 7
 )
 
 lie_type <- c(
   'tee', 'rough', 'fairway',
-  'tee', 'rough', 'sand', 'sand',
-  'tee', 'fairway', 'rough',
-  'tee', 'fairway', 'fairway', 'fairway',
-  'tee', 'rough', 'fairway',
-  'tee', 'rough', 
+  'tee', 'rough', 'rough',
   'tee', 'fairway', 'fairway', 'fairway',
   'tee', 'rough',
-  'tee', 'fairway', 'rough', 'rough', 'fairway',
+  'tee', 'rough', 'rough',
+  'tee', 'rough', 
+  'tee', 'rough',
+  'tee', 'fairway',
+  'tee', 'rough', 'rough', 'rough', 'sand',
   
   'tee', 'rough', 'fairway',
   'tee',
-  'tee', 'fairway', 'fairway',
-  'tee', 'rough', 'rough',
-  'tee', 'fairway', 
-  'tee', 'tee', 'fairway',
+  'tee', 'rough', 'fairway', 'fairway',
   'tee', 'rough', 'rough', 'fairway',
-  'tee', 'rough', 'fairway',
-  'tee', 'rough', 'rough'
-  
+  'tee', 'rough', 
+  'tee', 'fairway', 'fairway',
+  'tee', 'fairway', 'rough',
+  'tee', 'fairway', 'fairway',
+  'tee', 'fairway', 'rough', 'rough', 'rough', 'sand'
 )
 
 target_status <- c(
   'no', 'no', 'yes',
-  'no', 'no', 'no', 'yes',
-  'yes', 'no', 'yes',
-  'yes', 'no', 'no', 'yes',
+  'no', 'no', 'yes',
+  'yes', 'yes', 'no', 'yes',
+  'no', 'yes',
   'no', 'no', 'yes',
   'no', 'yes',
-  'yes', 'no', 'no', 'yes',
   'no', 'yes',
-  'yes', 'no', 'no', 'no', 'yes',
+  'no', 'yes', 
+  'no', 'no', 'no', 'no', 'yes',
   
   'no', 'no', 'yes',
   'yes',
-  'yes', 'no', 'yes',
-  'no', 'no', 'yes',
-  'yes', 'yes',
-  'no', 'no', 'yes',
   'no', 'no', 'no', 'yes',
+  'no', 'no', 'yes', 'yes',
+  'no', 'yes',
   'no', 'no', 'yes',
-  'no', 'no', 'yes'
+  'yes', 'no', 'yes',
+  'yes', 'no', 'yes',
+  'yes', 'no', 'no', 'no', 'no', 'yes'
 )
 
 location <- c(
-  'right', 'right', 'on_target',
-  'left', 'short', 'short', 'on_target',
-  'on_target', 'right', 'on_target',
-  'on_target', 'long', 'long', 'on_target',
-  'right', 'short', 'on_target',
-  'short', 'on_target',
-  'on_target', 'short', 'long', 'on_target',
-  'long', 'on_target',
-  'on_target', 'right', 'short', 'short', 'on_target',
+  'left', 'short', 'on_target',
+  'left', 'right', 'on_target',
+  'on_target', 'on_target', 'short', 'on_target',
+  'right', 'on_target',
+  'left', 'short', 'on_target',
+  'right', 'on_target',
+  'right', 'on_target',
+  'right', 'on_target',
+  'left', 'short', 'long', 'right', 'on_target',
   
-  'right', 'short', 'on_target',
+  'left', 'right', 'on_target',
   'on_target',
+  'long', 'short', 'long', 'on_target',
+  'left', 'right', 'on_target', 'on_target',
+  'left', 'on_target',
+  'short', 'long', 'on_target',
+  'on_target', 'right', 'on_target',
   'on_target', 'short', 'on_target',
-  'right', 'right', 'on_target',
-  'on_target', 'on_target',
-  'short', 'short', 'on_target',
-  'right', 'right', 'long', 'on_target',
-  'long', 'right', 'on_target',
-  'right', 'short', 'on_target'
+  'on_target', 'right', 'right', 'short', 'short', 'on_target'
 )
 
 type_of_shot <- c(
+  'tee', 'choked', 'chip',
   'tee', 'full', 'chip',
-  'tee', 'punch', 'gsbunker', 'gsbunker',
-  'tee', 'full', 'chip',
-  'tee', 'full', 'chip', 'chip',
-  'tee', 'full', 'chip',
+  'tee', 'full', 'choked', 'chip',
+  'tee', 'full',
+  'tee', 'full', 'full',
   'tee', 'chip',
-  'tee', 'full', 'chip', 'chip',
+  'tee', 'punch',
   'tee', 'chip',
-  'tee', 'full', 'chip', 'chip', 'chip',
+  'tee', 'full', 'choked', 'chip', 'gsbunker',
   
   'tee', 'full', 'chip',
   'tee',
-  'tee', 'full', 'chip',
-  'tee', 'punch', 'full',
+  'tee', 'full', 'chip', 'chip',
+  'tee', 'full', 'punch', 'chip',
   'tee', 'full',
-  'tee', 'tee', 'chip',
-  'tee', 'full', 'full', 'chip',
-  'tee', 'punch', 'chip',
-  'tee', 'full', 'chip'
+  'tee', 'chip', 'chip',
+  'tee', 'full', 'chip', 
+  'tee', 'full', 'chip',
+  'tee', 'full', 'chip', 'punch', 'chip', 'gsbunker'
 )
 ```
 
@@ -638,7 +639,7 @@ Yardage and accuracy for each club
 
 ```{r Separate Stroke Quality Metrics, include = T, warning = F, message = F, echo = F, eval = T}
 stroke_quality <- stroke_quality |> 
-  # dplyr::filter(grepl(shot_type, pattern = 'full')) |> 
+  # dplyr::filter(grepl(shot_type, pattern = 'full')) |>
   dplyr::mutate(dplyr::across(dplyr::contains("yds"), ~as.numeric(.x))) |> 
   dplyr::mutate(yd_diff = yds_to_target - yds_traveled,
                 on_target = dplyr::case_when(on_target == 'yes' ~ 1, TRUE ~ 0))
@@ -669,7 +670,8 @@ head(stroke_quality_max |>
 ```
 
 ```{r Separate Stroke Quality Metrics Avg, include = T, warning = F, message = F, echo = F, eval = T}
-stroke_quality_avg <- stroke_quality |> 
+full_stroke_quality_avg <- stroke_quality |> 
+  dplyr::filter(grepl(shot_type, pattern = 'full|tee')) |> 
   dplyr::group_by(date, club) |> 
   dplyr::summarize(rd_avg_yds_to_target = round(mean(yds_to_target), 1),
                    rd_avg_yds_traveled = round(mean(yds_traveled),1),
@@ -678,6 +680,7 @@ stroke_quality_avg <- stroke_quality |>
                    n = dplyr::n()) |> 
   dplyr::full_join(
     stroke_quality |> 
+      dplyr::filter(grepl(shot_type, pattern = 'full|tee')) |> 
       dplyr::group_by(date, club, miss_direction) |> 
       dplyr::summarize(rd_club_miss_direction_n = dplyr::n()) |> 
       dplyr::group_by(date, club) |>
@@ -688,7 +691,7 @@ stroke_quality_avg <- stroke_quality |>
   dplyr::relocate(rd_club_miss_direction_n, .after = miss_direction) |> 
   dplyr::rename(`rd club strokes` = n) |> 
   dplyr::rename(`rd club miss dir` = rd_club_miss_direction_n)
-head(stroke_quality_avg |> 
+head(full_stroke_quality_avg |> 
        dplyr::arrange(desc(date)))
 ```
 
@@ -968,10 +971,10 @@ stroke_quality_max |>
                       scales = 'free')
 ```
 
-#### Average
+#### Full Stroke Average
 
 ```{r PlotStrokeQualityMetricAverages, include = T, message = F, warning = F, eval = T,fig.width=11}
-stroke_quality_avg |> 
+full_stroke_quality_avg |> 
   dplyr::ungroup() %>%
   dplyr::mutate(dplyr::across(dplyr::everything(), ~as.character(.x))) |> 
   tidyr::pivot_longer(cols = c(dplyr::contains("rd")), names_to = 'metric', values_to = 'vals') |> 
@@ -991,7 +994,7 @@ stroke_quality_avg |>
   ggplot2::geom_point(alpha = 0.4, size = 3) +
   ggplot2::geom_line(alpha = 0.4, size = 2) +
   ggplot2::geom_smooth(method = 'lm', se = F) +
-  ggplot2::labs(title = 'Stroke Averages by Club', x = 'date', y = 'value (yards or units)', fill = 'club') +
+  ggplot2::labs(title = 'Full Stroke Averages by Club', x = 'date', y = 'value (yards or units)', fill = 'club') +
   ggplot2::guides(alpha = 'none', size = 'none') +
   ggplot2::theme_bw() +
   ggplot2::theme(title = ggplot2::element_text(face = 'bold', size = 12),
