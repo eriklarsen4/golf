@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 ```{r db-isolation, include=FALSE}
 # Create a disposable copy of the production DB for vignette execution
 tmp_db <- tempfile(fileext = ".db")
-file.copy(system.file("extdata", "golf_data.db", package = "golf"), tmp_db, overwrite = TRUE)
+file.copy(system.file("extdata", "golf.duckdb", package = "golf"), tmp_db, overwrite = TRUE)
 
 # Override the package's DB path for the vignette
 db_path <- tmp_db

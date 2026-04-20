@@ -52,7 +52,7 @@ knitr::opts_chunk$set(
   fig.path = "../figures/LMER_predictions/"
 )
 
-real_db <- here::here("inst", "extdata", "golf_data.db")
+real_db <- here::here("inst", "extdata", "golf.duckdb")
 con <- golf::get_db_connection(db_path = real_db)
 ```
 

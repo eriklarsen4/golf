@@ -12,11 +12,9 @@ Imports:
     tidyr,
     lubridate,
     assertthat,
-    RSQLite,
     DBI,
-    readr,
-    stringr,
-    devtools
+    devtools,
+    duckdb
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:

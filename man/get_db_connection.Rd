@@ -2,16 +2,17 @@
 % Please edit documentation in R/env_setup.R
 \name{get_db_connection}
 \alias{get_db_connection}
-\title{Create a db connection}
+\title{Create a DuckDB connection}
 \usage{
 get_db_connection(db_path = NULL)
 }
 \arguments{
-\item{db_path}{Path to SQLite db. If NULL, uses source-tree DB when developing.}
+\item{db_path}{Path to DuckDB db. If NULL, uses source-tree DB when developing.}
 }
 \value{
-DBIConnection
+a DBIConnection
 }
 \description{
-Lazily opens a SQLite connection and reuses it for the session
+Lazily opens a DuckDB connection and reuses it for the session
+Uses source-tree DB during development; installed DB is read-only
 }
