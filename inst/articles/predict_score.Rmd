@@ -77,7 +77,7 @@ library(lme4)
 library(mgcv)
 library(brms)
 library(DBI)
-library(RSQLite)
+library(duckdb)
 library(emayili)
 ```
 
@@ -462,9 +462,9 @@ Predict the next round's `Gross Score` according to the model
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
 con <- golf::get_db_connection()
 
-round_date <- lubridate::as_date('2026-04-19')
+round_date <- lubridate::as_date('2026-04-26')
 index <- 11.0
-course <- "Randolph North"
+course <- "Dell Urich"
 tees <- 'blue'
 
 new_df <- DBI::dbGetQuery(
