@@ -28,4 +28,4 @@ Course-level data:
 The data is ideal for numerous types of modeling, including linear mixed models, time series, and decision trees
 It will likely expand, depending on additional data
 
-Please see the vignettes for details
+Please see the [articles](https://github.com/eriklarsen4/golf/tree/main/inst/articles) for details
