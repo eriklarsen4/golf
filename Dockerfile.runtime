@@ -1,0 +1,19 @@
+FROM rocker/r-ver:4.5.2
+
+# System dependencies for R packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install remotes for package installation
+RUN R -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
+
+WORKDIR /app
+COPY . /app
+
+# Install your package and its dependencies
+RUN R -e "remotes::install_local('/app', upgrade = 'never')"
+
+CMD ["R"]
