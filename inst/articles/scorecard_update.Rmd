@@ -17,6 +17,7 @@ output:
 ---
 
 ```{r setup, include = F, echo = F, message = F, warning = F}
+# set chunks, absolute path to the db
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
@@ -27,15 +28,18 @@ knitr::opts_chunk$set(
   fig.path = "../figures/scorecard_update/"
 )
 
-real_db <- here::here("inst", "extdata", "golf.duckdb")
+# make sure the connection is to the actual db, not a temp; get to the repo root
+real_db <- fs::path_abs(paste0(getwd(), "../../../inst/extdata/golf.duckdb"))
 con <- golf::get_db_connection(db_path = real_db)
 ```
 
 ## Overview
 
-This vignette shows the data logging process of each round and shows trends and metric averages
+This markdown shows the data logging process of each round, and shows performance trends and metric averages
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -64,6 +68,8 @@ library(emayili)
 ```
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -78,6 +84,8 @@ if (identical(fmt, "html")) {
 ### Input the Scores Data
 
 ```{r Annotate the new data, include = T, message = F, warning = F, echo = T, eval = T}
+# required inputs to fill out the scorecard
+
 round_course <- 'Randolph North'
 round_date <- '2026-04-19'
 round_tees <- 'blue'
@@ -108,6 +116,7 @@ index <- 11.0
 ### Specify Course and Tees
 
 ```{r Specify the Course and Tees, include = T, message = F, warning = F, eval = T}
+# get the scorecard for the new round, ensuring hole-by-hole scores are filled
 if ( length(hole_scores) > 0 ) {
  Card <- golf::get_course(course = round_course, date = round_date, tees = round_tees) 
 }
@@ -116,6 +125,7 @@ if ( length(hole_scores) > 0 ) {
 ### Get Scoring Metrics
 
 ```{r Get Scoring Metrics, include = T, message = F, warning = F, eval = T}
+# fill the scorecard for the new round, ensuring hole-by-hole scores are filled
 if ( length(hole_scores) > 0 ) {
  Card <- golf::log_score(Scorecard = Card,
                        hole_by_hole = hole_scores,
@@ -131,6 +141,8 @@ if ( length(hole_scores) > 0 ) {
 ```
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -146,6 +158,9 @@ if (identical(fmt, "html")) {
 
 ```{r Update the players table of the db, include = T, message = F, warning = F, echo = T, eval = T}
 con <- golf::get_db_connection()
+
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'players' table
 
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -173,6 +188,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
 con <- golf::get_db_connection()
 
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'courses' table
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -195,6 +213,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 
 ```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
 con <- golf::get_db_connection()
+
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'rounds' table
 
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
@@ -219,6 +240,9 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 ### Get Club Metrics df
 
 ```{r Get the Club Metrics df, include = T, message = F, warning = F, echo = T, eval = T}
+# create a dataframe, specifying the shape for tracked shots on each hole
+  # -> all strokes from off the green
+
 club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date) |> 
   dplyr::mutate(hole = gsub(hole, pattern = 'hole_', replacement = '') |> as.numeric()) |> 
   dplyr::arrange(hole) |> 
@@ -228,6 +252,7 @@ club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date) |
 ### Annotate Club Metrics
 
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+# manually annotate from Garmin Golf App log
 club_choice <- c(
   'D', 'GW', 'PW',
   'D', '5', 'SW',
@@ -388,6 +413,10 @@ type_of_shot <- c(
 ```{r Gather shot metrics data, include = T, message = F, warning = F, echo = F, eval = T}
 con <- golf::get_db_connection()
 
+# if the data is newer than the last round in the 'club_metrics' table, append
+  # the new annotations (expands from 18 rows by the number determined from the 
+  # get_tracked_shots_data_shape function)
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -419,6 +448,9 @@ club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_sho
 ```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
 con <- golf::get_db_connection()
 
+# if the data is newer than the last round in the 'club_metrics' table, append
+  # the new data to the table
+
 if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
      dplyr::distinct(date) |> 
      unlist() %>% 
@@ -437,10 +469,13 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 
 
 ```{r Clear Environment, include = T, message = F, warning = F, eval = T}
+# clean the global environment
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -459,6 +494,15 @@ Gather and format from the database
 ```{r Summarize Stroke Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 con <- golf::get_db_connection()
 
+# get the hole-by-hole scores from each round in the database
+
+  # join the hole-by-hole scores from the 'rounds' table to the 'courses' table
+    # need each hole's par rating 
+    # need each course's course_rating from the 'courses' table
+  
+  # join the 'rounds' and 'courses' tables to the 'players' table
+    # need handicap_index from the 'players' table
+
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT sub.* FROM
   (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
@@ -472,8 +516,8 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   AND sub.handicap_index = p.handicap_index
   AND sub.date = p.date;"
 )) |> 
-  dplyr::mutate(date = lubridate::as_date(date),
-                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> # enforce hole order
                   as.numeric()) |> 
   dplyr::relocate(par, .after = hole) |> 
   dplyr::relocate(course_rating, .after = tees) |>
@@ -485,11 +529,13 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
 ```{r Summarize Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 con <- golf::get_db_connection()
 
+# get stroke metrics from the 'club_metrics' table
+
 stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   "SELECT DISTINCT * FROM club_metrics;"
 )) |> 
-  dplyr::mutate(date = lubridate::as_date(date),
-                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> # enforce hole order
                   as.numeric()) |> 
   dplyr::group_by(date) |> 
   dplyr::arrange(desc(date), hole, stroke) |> 
@@ -501,6 +547,7 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
 Compute more nuanced metrics
 
 ```{r Compute Advanced Metrics 1, include = T, warning = F, message = F, eval = T}
+# define metrics
 scores_sum <- scores |>
   dplyr::mutate(date_course = paste0(date,
                                      '\n',
@@ -535,7 +582,10 @@ scores_sum <- scores |>
                                                 chips > 0 ~ 1,
                                               TRUE ~ 0)
                 ) |> 
-  dplyr::rename(`Handicap Index` = handicap_index) |> 
+  dplyr::rename(`Handicap Index` = handicap_index)
+
+# summarize by round
+scores_sum <- scores_sum |> 
   dplyr::group_by(date, date_course, course_rating, `Handicap Index`) |> 
   dplyr::summarize(
                    FIRs = sum(FIR, na.rm = F),
@@ -559,12 +609,24 @@ scores_sum <- scores |>
                    penalties = sum(penalties, na.rm = T),
                    `Gross Score` = mean(tot_gross, na.rm = F),
                    `Net Score` = mean(tot_net, na.rm = F)) %>%
-  dplyr::mutate(dplyr::across(c(`Iron FIRs`, `Driver FIRs`, `Iron FIR%`, `Driver FIR%`, `FIR%`), ~dplyr::if_else(is.na(FIRs), NA, .)),
-                dplyr::across(c(`Par 3 GIRs`, `Avg GIR putts`, `UpDown%`, `GIR%`), ~dplyr::if_else(is.na(GIRs), NA, .)),
+  dplyr::mutate(dplyr::across(c(`Iron FIRs`, `Driver FIRs`,
+                                `Iron FIR%`, `Driver FIR%`, `FIR%`),
+                              ~dplyr::if_else(is.na(FIRs), NA, .)),
+                
+                dplyr::across(c(`Par 3 GIRs`, `Avg GIR putts`,
+                                `UpDown%`, `GIR%`), 
+                              ~dplyr::if_else(is.na(GIRs), NA, .)),
+                
                 `chips+putts` = dplyr::case_when(is.na(chips) ~ NA_real_,
                                                  TRUE ~ `chips+putts`)) %>% 
-  dplyr::mutate(`UpAndDown%` = dplyr::case_when(grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
-                `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
+  
+  dplyr::mutate(
+    
+    `UpAndDown%` = dplyr::case_when(
+      
+      grepl(date, pattern = '07-13|09-21') ~ NA, TRUE ~ `UpDown%`),
+    
+    `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))
 ```
 
 ```{r Compute Advanced Metrics 2, include = T, warning = F, message = F, eval = T}
@@ -573,6 +635,8 @@ head(scores_sum |>
 ```
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -697,6 +761,8 @@ head(full_stroke_quality_avg |>
 
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -882,6 +948,8 @@ ball_striking_metrics |>
 ```
 
 ```{r, results='asis', echo = F}
+# add snippet for html tab pills for html export; regular .md heading
+
 fmt <- knitr::pandoc_to()
 
 if (identical(fmt, "html")) {
@@ -922,13 +990,13 @@ stroke_quality_min |>
                  strip.text.y.right = ggplot2::element_text(face = 'bold', size = 9),
                  strip.text.x.top = ggplot2::element_text(face = 'bold', size = 10)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric), cols = vars(factor(club,
-                                                              levels = 
-                                                                c('D', '3W', '4',
-                                                               '5', '6', '7',
-                                                               '8', '9', 'PW',
-                                                               'GW', 'SW', 'LW',
-                                                               'P'))),
+  ggplot2::facet_grid(
+    
+    rows = vars(metric), 
+    
+    cols = vars(factor(club, levels = c('D', '3W', '4', '5',
+                                        '6', '7', '8', '9',
+                                        'PW', 'GW', 'SW', 'LW', 'P'))),
                       scales = 'free')
 ```
 
@@ -961,13 +1029,13 @@ stroke_quality_max |>
                  strip.text.y.right = ggplot2::element_text(face = 'bold', size = 9),
                  strip.text.x.top = ggplot2::element_text(face = 'bold', size = 10)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric), cols = vars(factor(club,
-                                                              levels = 
-                                                                c('D', '3W', '4',
-                                                               '5', '6', '7',
-                                                               '8', '9', 'PW',
-                                                               'GW', 'SW', 'LW',
-                                                               'P'))),
+  ggplot2::facet_grid(
+    
+    rows = vars(metric), 
+    
+    cols = vars(factor(club, levels = c('D', '3W', '4', '5',
+                                        '6', '7', '8', '9',
+                                        'PW', 'GW', 'SW', 'LW', 'P'))),
                       scales = 'free')
 ```
 
@@ -1006,11 +1074,13 @@ full_stroke_quality_avg |>
                  strip.text.y.right = ggplot2::element_text(face = 'bold', size = 9),
                  strip.text.x.top = ggplot2::element_text(face = 'bold', size = 10)) + 
   ggplot2::scale_x_date(date_breaks = 'weeks', date_labels = '%b %d') +
-  ggplot2::facet_grid(rows = vars(metric),
-                      cols = vars(factor(club,
-                                         levels = c('D', '3W', '4', '5', '6',
-                                                    '7', '8', '9', 'PW', 'GW',
-                                                    'SW', 'LW', 'P'))),
+  ggplot2::facet_grid(
+    
+    rows = vars(metric), 
+    
+    cols = vars(factor(club, levels = c('D', '3W', '4', '5',
+                                        '6', '7', '8', '9',
+                                        'PW', 'GW', 'SW', 'LW', 'P'))),
                       scales = 'free')
 ```
 
