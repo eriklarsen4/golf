@@ -12,3 +12,7 @@ inst/doc
 skill_model.R
 *.tar.gz
 *.zip
+.Rproj.user
+.positai
+.Rproj.user
+.positai

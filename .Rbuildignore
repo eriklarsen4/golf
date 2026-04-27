@@ -17,3 +17,5 @@ compose_email
 ^skill_model$
 ^inst/extdata/duckdb\.exe$
 ^golf_data\.db$
+^\.positai$
+^\.claude$
