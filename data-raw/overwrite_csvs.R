@@ -42,7 +42,7 @@ overwrite_csvs <- function() {
     if ( most_recent_round_date_pbi[[t]]  < most_recent_round_date_db[[t]]
          ) {
      
-      outfile <- pbi[basename(pbi) == paste0(t,".csv")]
+      out_file <- pbi[basename(pbi) == paste0(t,".csv")]
       
       utils::write.csv(x = DBI::dbGetQuery(conn = con,
                                            statement = paste0("SELECT DISTINCT * FROM ", t, ";")),
