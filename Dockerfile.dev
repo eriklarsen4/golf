@@ -1,45 +1,39 @@
 FROM rocker/r-ver:4.5.2
 
-# System dependencies for Python, ML libraries, and R packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
+# System deps
+RUN apt-get update && apt-get install -y \
+    python3.11 python3.11-dev python3.11-venv \
     python3-pip \
-    python3-venv \
-    python3-dev \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
-    libjpeg-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
     libpng-dev \
     libtiff5-dev \
-    libavformat-dev \
-    libavcodec-dev \
-    libavutil-dev \
-    libswscale-dev \
-    libxext6 \
-    libxrender1 \
-    libxt6 \
+    libjpeg-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# DO NOT upgrade pip — Debian blocks this
-# Install Python ML stack (CPU versions)
-RUN pip install \
-    torch --index-url https://download.pytorch.org/whl/cpu \
-    scikit-learn \
-    xgboost \
-    lightgbm \
-    opencv-python \
-    --break-system-packages
+# Python 3.11 environment
+RUN python3.11 -m pip install --upgrade pip
 
-# Install remotes for R package installation
-RUN R -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
+COPY python/requirements.txt /tmp/requirements.txt
+RUN python3.11 -m pip install -r /tmp/requirements.txt
 
+# R package dependencies
+RUN R -e "install.packages(c('tidyverse','duckdb','DBI','rmarkdown','reticulate','devtools'))"
+
+# Copy repo
 WORKDIR /workspace
-COPY . /workspace
+COPY . .
 
-# Install your R package and its dependencies
-RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org'); remotes::install_local('/app', upgrade='never')"
+# Install golf package in dev mode
+RUN R -e "devtools::install_local('.', dependencies = TRUE)"
 
-ENV RETICULATE_PYTHON=/usr/bin/python3
+# Bind reticulate to Python 3.11
+RUN R -e "library(reticulate); use_python('/usr/bin/python3.11', required = TRUE)"
 
-CMD ["bash"]
+CMD ["/bin/bash"]

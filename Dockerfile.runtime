@@ -1,19 +1,31 @@
 FROM rocker/r-ver:4.5.2
 
-# System dependencies for R packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# System deps
+RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install remotes for package installation
-RUN R -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
+# R dependencies
+RUN R -e "install.packages(c('tidyverse','duckdb','DBI'))"
 
-WORKDIR /app
-COPY . /app
+# Copy repo
+WORKDIR /workspace
+COPY . .
 
-# Install your package and its dependencies
-RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org'); remotes::install_local('/app', upgrade='never')"
+# Install golf package
+RUN R -e "install.packages('.', repos = NULL, type = 'source')"
+
+# Copy DuckDB + predictions
+COPY inst/extdata/golf.duckdb /workspace/inst/extdata/golf.duckdb
+COPY inst/predictions /workspace/inst/predictions
 
 CMD ["R"]

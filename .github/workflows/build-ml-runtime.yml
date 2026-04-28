@@ -1,0 +1,24 @@
+name: Build golf-ml-runtime
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - Dockerfile.ml-runtime
+      - inst/models/**
+      - python/inference/**
+      - python/requirements.txt
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push golf-ml-runtime
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.ml-runtime
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/golf-ml-runtime:latest
