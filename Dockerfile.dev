@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
-RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip --break-system-packages
 
 # Python ML stack (CPU versions)
 RUN pip install \
@@ -31,7 +31,8 @@ RUN pip install \
     scikit-learn \
     xgboost \
     lightgbm \
-    opencv-python
+    opencv-python \
+    --break-system-packages
 
 # Install remotes for R package installation
 RUN R -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
