@@ -21,10 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN python3 -m pip install --upgrade pip --break-system-packages
-
-# Python ML stack (CPU versions)
+# DO NOT upgrade pip — Debian blocks this
+# Install Python ML stack (CPU versions)
 RUN pip install \
     torch --index-url https://download.pytorch.org/whl/cpu \
     tensorflow-cpu \
@@ -41,9 +39,8 @@ WORKDIR /workspace
 COPY . /workspace
 
 # Install your R package and its dependencies
-RUN R -e "remotes::install_local('/workspace', upgrade = 'never')"
+RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org'); remotes::install_local('/app', upgrade='never')"
 
-# Configure reticulate to use system Python
 ENV RETICULATE_PYTHON=/usr/bin/python3
 
 CMD ["bash"]
