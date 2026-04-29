@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - Dockerfile.runtime
+      - docker/Dockerfile.runtime
       - inst/extdata/golf.duckdb
       - inst/predictions/**
       - R/**
@@ -21,6 +21,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.runtime
+          file: docker/Dockerfile.runtime
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/golf-runtime:latest
