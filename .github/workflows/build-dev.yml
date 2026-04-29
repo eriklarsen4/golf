@@ -1,8 +1,8 @@
-name: Build golf-dev
+name: Build Golf-dev
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
     paths:
       - docker/Dockerfile.dev
       - python/**

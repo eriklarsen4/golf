@@ -1,8 +1,8 @@
-name: Build golf-ml-runtime
+name: Build Golf-ml-runtime
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
     paths:
       - docker/Dockerfile.ml-runtime
       - inst/models/**

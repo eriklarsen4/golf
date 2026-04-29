@@ -1,8 +1,8 @@
-name: Build golf-runtime
+name: Build Golf-runtime
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
     paths:
       - docker/Dockerfile.runtime
       - inst/extdata/golf.duckdb
