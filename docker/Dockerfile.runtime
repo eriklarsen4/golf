@@ -1,0 +1,31 @@
+FROM rocker/r-ver:4.5.2
+
+# System deps
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# R dependencies
+RUN R -e "install.packages(c('tidyverse','duckdb','DBI'))"
+
+# Copy repo
+WORKDIR /workspace
+COPY . .
+
+# Install golf package
+RUN R -e "install.packages('.', repos = NULL, type = 'source')"
+
+# Copy DuckDB + predictions
+COPY inst/extdata/golf.duckdb /workspace/inst/extdata/golf.duckdb
+COPY inst/predictions /workspace/inst/predictions
+
+CMD ["R"]

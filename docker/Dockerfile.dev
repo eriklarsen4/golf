@@ -1,0 +1,39 @@
+FROM rocker/r-ver:4.5.2
+
+# System deps
+RUN apt-get update && apt-get install -y \
+    python3.11 python3.11-dev python3.11-venv \
+    python3-pip \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 3.11 environment
+RUN python3.11 -m pip install --upgrade pip
+
+COPY python/requirements.txt /tmp/requirements.txt
+RUN python3.11 -m pip install -r /tmp/requirements.txt
+
+# R package dependencies
+RUN R -e "install.packages(c('tidyverse','duckdb','DBI','rmarkdown','reticulate','devtools'))"
+
+# Copy repo
+WORKDIR /workspace
+COPY . .
+
+# Install golf package in dev mode
+RUN R -e "devtools::install_local('.', dependencies = TRUE)"
+
+# Bind reticulate to Python 3.11
+RUN R -e "library(reticulate); use_python('/usr/bin/python3.11', required = TRUE)"
+
+CMD ["/bin/bash"]

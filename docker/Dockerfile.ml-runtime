@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+# System deps
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python ML stack
+COPY python/requirements.txt /tmp/requirements.txt
+RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
+
+# Copy model weights + inference code
+WORKDIR /workspace
+COPY inst/models /workspace/models
+COPY python/inference /workspace/inference
+
+CMD ["python", "-m", "inference.run"]
