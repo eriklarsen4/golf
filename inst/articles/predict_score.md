@@ -344,7 +344,6 @@ golf::export_lm_round_predictions(
   scores_sum = scores_sum |> 
     dplyr::mutate(date = as.character(date))
 )
-broom.mixed::tidy(gross_lmer, effects = 'fixed')
 ```
 
 ### Model Interpretations

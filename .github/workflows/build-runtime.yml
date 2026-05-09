@@ -21,6 +21,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.runtime
+          file: inst/docker/Dockerfile.runtime
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/golf-runtime:latest
