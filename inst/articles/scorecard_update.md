@@ -3,7 +3,7 @@
 This markdown shows the data logging process of each round, and shows
 performance trends and metric averages
 
-## Set-up Environment
+## Set-Up Environment
 
 ### Attach Packages
 
@@ -11,14 +11,8 @@ performance trends and metric averages
 library(golf)
 library(tidyverse)
 library(lme4)
-library(mgcv)
-library(brms)
 library(DBI)
 library(duckdb)
-# library(blastula)
-# library(keyring)
-# library(mailR)
-library(emayili)
 ```
 
 ## Record New Scorecard
@@ -446,9 +440,9 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-### Compute Advanced Metrics
+### Compute Metrics
 
-Compute more nuanced metrics
+Compute standard metrics
 
 ``` r
 # define metrics
@@ -538,17 +532,17 @@ head(scores_sum |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 x 26
+    ## # A tibble: 6 × 26
     ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course             course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties `Gross Score` `Net Score`
-    ##   <date>     <chr>                           <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>      <int>     <int>         <dbl>       <dbl>
-    ## 1 2026-04-19 "2026-04-19\nRandolph ~          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56      15.4     6       0      8          4         0            91          83
-    ## 2 2026-04-05 "2026-04-05\nRandolph ~          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9          3         2            88          80
-    ## 3 2026-03-29 "2026-03-29\nDell Uric~          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5          4         1            82          74
-    ## 4 2026-03-08 "2026-03-08\nRandolph ~          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6          3         1            84          75
-    ## 5 2026-02-22 "2026-02-22\nDell Uric~          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7          6         0            92          82
-    ## 6 2026-02-08 "2026-02-08\nRandolph ~          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8          2         0            83          73
-    ## # i 1 more variable: `UpAndDown%` <dbl>
+    ##   date       date_course course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts`
+    ##   <date>     <chr>               <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>
+    ## 1 2026-04-19 "2026-04-1…          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56
+    ## 2 2026-04-05 "2026-04-0…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52
+    ## 3 2026-03-29 "2026-03-2…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46
+    ## 4 2026-03-08 "2026-03-0…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45
+    ## 5 2026-02-22 "2026-02-2…          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52
+    ## 6 2026-02-08 "2026-02-0…          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46
+    ## # ℹ 9 more variables: `UpDown%` <dbl>, pars <int>, birdies <int>, bogies <int>, `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>, `UpAndDown%` <dbl>
 
 ### View Metrics
 
@@ -565,7 +559,7 @@ head(scoring_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 x 6
+    ## # A tibble: 6 × 6
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
     ##   <date>     <chr>                                      <dbl>            <dbl>         <dbl>       <dbl>
@@ -578,7 +572,27 @@ head(scoring_metrics |>
 
 #### Stroke Metrics
 
-Pars, birdies, bogies, etc.
+In golf, every hole has a `par`– an average number of strokes taken to
+get the ball in the hole
+
+There are (almost always), three different `par`s on every course:
+
+- `par 3`s
+- `par 4`s
+- `par 5`s
+
+A shorthand to determine how a golfer performed across holes is to rate
+how many strokes *relative to par* they were (-1, -2, +1, +2, etc)
+
+These numbers are given names:
+
+- `0 = par`
+- `-2 = eagle`
+- `-1 = birdie`
+- `+1 = bogey`
+- `+2 = double bogey`
+
+I quantify these below:
 
 ``` r
 stroke_metrics <- scores_sum |> 
@@ -587,7 +601,7 @@ head(stroke_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 x 7
+    ## # A tibble: 6 × 7
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating `doubles+` bogies  pars birdies
     ##   <date>     <chr>                                      <dbl>      <int>  <int> <int>   <int>
@@ -600,7 +614,15 @@ head(stroke_metrics |>
 
 #### Around-the-Green Metrics
 
-Chips, putts, etc.
+`Chips`: + strokes around the green taken to get onto the green
+
+`Putts`: + strokes taken with the putter on the green
+
+`Avg GIR putts`: + Average \# of putts on holes where the ball was hit
+on to the green within 2 strokes of par (green in regulation, `GIR`)
+
+`UpDown%` (aka `Scramble%`): + \# of holes without a `GIR` but par was
+made / \# of holes without a `GIR`
 
 ``` r
 atg_metrics <- scores_sum |> 
@@ -609,7 +631,7 @@ head(atg_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 x 8
+    ## # A tibble: 6 × 8
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating chips `chips+putts` `UpAndDown%` putts `Avg GIR putts`
     ##   <date>     <chr>                                      <dbl> <dbl>         <dbl>        <dbl> <int>           <dbl>
@@ -624,6 +646,16 @@ head(atg_metrics |>
 
 Approach and tee accuracy
 
+`GIR (green in regulation)`: + hole where the ball was hit on to the
+green within 2 strokes of par
+
+`FIR (fairway in regulation)`: + hole where the ball was hit on to the
+fairway from the tee box (only on par 4’s and par 5’s)
+
+`Iron FIR`: + hole where an iron was used off the tee for a `FIR`
+
+`Driver FIR`: + hole where driver was used off the tee for a `FIR`
+
 ``` r
 ball_striking_metrics <- scores_sum |> 
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
@@ -633,7 +665,7 @@ head(ball_striking_metrics |>
        dplyr::arrange(desc(date)))
 ```
 
-    ## # A tibble: 6 x 12
+    ## # A tibble: 6 × 12
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
     ##   <date>     <chr>                                      <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
@@ -648,7 +680,7 @@ head(ball_striking_metrics |>
 
 Yardage and accuracy for each club
 
-    ## # A tibble: 6 x 6
+    ## # A tibble: 6 × 6
     ## # Groups:   date [1]
     ##   date       club      n rd_min_yds_to_target rd_min_yds_traveled rd_min_yd_diff
     ##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
@@ -659,7 +691,7 @@ Yardage and accuracy for each club
     ## 5 2026-04-19 7         7                   30                  18             -5
     ## 6 2026-04-19 8         1                  165                 154             11
 
-    ## # A tibble: 6 x 6
+    ## # A tibble: 6 × 6
     ## # Groups:   date [1]
     ##   date       club      n rd_max_yds_to_target rd_max_yds_traveled rd_max_yd_diff
     ##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
@@ -670,7 +702,7 @@ Yardage and accuracy for each club
     ## 5 2026-04-19 7         7                  185                 186             31
     ## 6 2026-04-19 8         1                  165                 154             11
 
-    ## # A tibble: 6 x 10
+    ## # A tibble: 6 × 10
     ## # Groups:   date [1]
     ##   date       club  `rd club strokes` miss_direction `rd club miss dir` rd_avg_yds_to_target rd_avg_yds_traveled rd_avg_yd_diff rd_avg_accuracy `rd club % miss direction`
     ##   <date>     <chr>             <int> <chr>                       <int>                <dbl>               <dbl>          <dbl>           <dbl>                      <dbl>

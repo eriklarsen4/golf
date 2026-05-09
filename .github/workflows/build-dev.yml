@@ -20,6 +20,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.dev
+          file: inst/docker/Dockerfile.dev
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/golf-dev:latest

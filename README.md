@@ -1,3 +1,11 @@
+  <!-- badges: start -->
+  [![R-CMD-check](https://github.com/eriklarsen4/golf/actions/workflows/golf-r-package-checks.yml/badge.svg)](https://github.com/eriklarsen4/golf/actions/workflows/golf-r-package-checks.yml.yml)
+  ![R](https://img.shields.io/badge/r-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
+  ![PyPI](https://img.shields.io/badge/PyPI-not_yet_published-lightgrey?logo=pypi&logoColor=white)
+  ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+  <!-- badges: end -->
+
+
 I developed this repository from real-world golf data-- data I curated from rounds I played. As a member of the **United States Golf Association** (**Arizona Golf Association Chapter**), these rounds were official scores used to compute my official **GHIN** (**Global Handicap Index Number**), meaning I played with players who verified I played out every single stroke (no gimmes), before submitting my scorecard to the USGA.
 
 The data includes

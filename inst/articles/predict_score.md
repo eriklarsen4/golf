@@ -1,26 +1,37 @@
 ### Overview
 
-This markdown shows the linear mixed model used to measure my
-performance for each golf round and use that information to predict my
-performance for the next golf round
+This markdown is:
 
-It does this by incorporating my skill level at each course I’ve played in
-the past
+- a rough proxy for a tutorial on interpreting linear mixed model
+  outputs
+
+- a light introduction to golf scoring systems
+
+The markdown shows:
+
+- the linear mixed model used to measure my performance for each golf
+  round and predict my performance in the next golf round
+
+The model does this by incorporating my skill level and where I’ve
+played in the past
+
+#### Introduction
 
 Skill level is officially determined by the **USGA** as a
-`Handicap Index`: how many shots, on average, a player takes to complete
-a round at a given course with a given difficulty relative to that
-course’s average
+`Handicap Index`: how many strokes, on average, a player takes to
+complete a round at a given course with a given difficulty relative to
+that course’s average:
 
-- i.e. a player with a **10.0** `Handicap Index` is expected, on
-  average, to take **82 shots** to complete a round at a course where
-  the average number of strokes has been determined to be **72**
+- a player with a **10.0** `Handicap Index` is expected, on average, to
+  take **82 strokes** to complete a round at a course where the average
+  number of strokes has been determined to be **72**
 
-`Gross Score` is a total number of shots hit by a given player for any
-individual hole
+`Gross Score` is a total number of strokes taken by a given player for
+any individual hole
 
-- this is extrapolated across each of 18 holes, so `Gross Score` can
-  mean a total of shots for a hole *or* a total of strokes for a round
+- this is extrapolated across each of 18 holes, so while `Gross Score`
+  can mean a total of strokes for a hole *or* a total of strokes for a
+  round, in this markdown, **it is per round**
 
 - the average `Gross Score` over a player’s best **8 rounds** *from
   their last 20* is used to determine their `Handicap Index`
@@ -35,10 +46,7 @@ Thus, this markdown shows the model used to predict the opposite:
 Note that I use the terms, `strokes`, and, `shots`, interchangeably,
 though putts are not connoted as `shots`
 
-### Code Environment Details
-
-<details>
-<summary>Click to expand</summary>
+### Gather Data and Format Scores
 
 #### Attach Packages
 
@@ -46,20 +54,10 @@ though putts are not connoted as `shots`
 library(golf)
 library(tidyverse)
 library(lme4)
-library(mgcv)
-library(brms)
 library(DBI)
-library(RSQLite)
-library(emayili)
 ```
-</details>
 
-### Code for Summarizing Metrics
-
-<details>
-<summary>Click to expand</summary>
-
-#### Gather and Format Scores
+#### Gather Scores
 
 Gather and format from the database
 
@@ -89,38 +87,14 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole) |> 
   dplyr::ungroup()
 ```
-</details>
 
-### Advanced Metrics Snapshot
+#### Compute Metrics
 
-<details>
-<summary>Click to expand</summary>
-
-``` r
-head(scores_sum |> 
-       dplyr::arrange(desc(date)))
-```
-
-    ## # A tibble: 6 × 26
-    ## # Groups:   GHIN, date, date_course, course_rating [6]
-    ##      GHIN date       date_course course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies
-    ##     <int> <date>     <chr>               <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>
-    ## 1  1.05e7 2026-04-05 "2026-04-0…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9
-    ## 2  1.05e7 2026-03-29 "2026-03-2…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5
-    ## 3  1.05e7 2026-03-08 "2026-03-0…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6
-    ## 4  1.05e7 2026-02-22 "2026-02-2…          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7
-    ## 5  1.05e7 2026-02-08 "2026-02-0…          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8
-    ## 6  1.05e7 2026-01-25 "2026-01-2…          70               10.2     4           0       NaN               4          28.6   28.6     6            2   33.3    36            2.17    15            51      18.2     7       0      9
-    ## # ℹ 4 more variables: `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>
-
-</details>
+Compute standard metrics
 
 #### Scoring Metrics
 
-<details>
-<summary>Click to expand</summary>
-
-Round scores and `Handicap Index`
+Show Per-Round `Gross Score`s, `Net Score`s and `Handicap Index`
 
 ``` r
 scoring_metrics <- scores_sum |> 
@@ -133,21 +107,36 @@ head(scoring_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
     ##      <int> <date>     <chr>                                      <dbl>            <dbl>         <dbl>       <dbl>
-    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11              88          80
-    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10              82          74
-    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10              84          75
-    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1            92          82
-    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2            83          73
-    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70               10.2            85          75
-
-</details>
+    ## 1 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"            71.7             11              91          83
+    ## 2 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7             11              88          80
+    ## 3 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3             10              82          74
+    ## 4 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7             10              84          75
+    ## 5 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68               10.1            92          82
+    ## 6 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70               10.2            83          73
 
 #### Stroke Metrics
 
-<details>
-<summary>Click to expand</summary>
+In golf, every hole has a `par`– an average number of strokes taken to
+get the ball in the hole
 
-Above/below par
+There are (almost always), three different `par`s on every course:
+
+- `par 3`s
+- `par 4`s
+- `par 5`s
+
+A shorthand to determine how a golfer performed across holes is to rate
+how many strokes *relative to par* they were (-1, -2, +1, +2, etc)
+
+These numbers are given names:
+
+- `0 = par`
+- `-2 = eagle`
+- `-1 = birdie`
+- `+1 = bogey`
+- `+2 = double bogey`
+
+I quantify these below:
 
 ``` r
 stroke_metrics <- scores_sum |> 
@@ -160,21 +149,24 @@ head(stroke_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                        course_rating `doubles+` bogies  pars birdies
     ##      <int> <date>     <chr>                                      <dbl>      <int>  <int> <int>   <int>
-    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7          3      9     6       0
-    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3          4      5     7       2
-    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7          3      6     9       0
-    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68            6      7     5       0
-    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70            2      8     7       1
-    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70            2      9     7       0
-
-</details>
+    ## 1 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"            71.7          4      8     6       0
+    ## 2 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7          3      9     6       0
+    ## 3 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3          4      5     7       2
+    ## 4 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7          3      6     9       0
+    ## 5 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68            6      7     5       0
+    ## 6 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70            2      8     7       1
 
 #### Around-the-Green Metrics
 
-<details>
-<summary>Click to expand</summary>
+`Chips`: + strokes around the green taken to get onto the green
 
-Chips, putts, etc.
+`Putts`: + strokes taken with the putter on the green
+
+`Avg GIR putts`: + Average \# of putts on holes where the ball was hit
+on to the green within 2 strokes of par (green in regulation, `GIR`)
+
+`UpDown%` (aka `Scramble%`): + \# of holes without a `GIR` but par was
+made / \# of holes without a `GIR`
 
 ``` r
 atg_metrics <- scores_sum |> 
@@ -187,21 +179,26 @@ head(atg_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                        course_rating chips `chips+putts` `UpDown%` putts `Avg GIR putts`
     ##      <int> <date>     <chr>                                      <dbl> <dbl>         <dbl>     <dbl> <int>           <dbl>
-    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7    21            52      20      31            2   
-    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3    15            46      20      31            1.71
-    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7    12            45      30      33            2.14
-    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68      18            52      16.7    34            2   
-    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70      11            46      22.2    35            2.14
-    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70      15            51      18.2    36            2.17
-
-</details>
+    ## 1 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"            71.7    20            56      15.4    36            2   
+    ## 2 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7    21            52      20      31            2   
+    ## 3 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3    15            46      20      31            1.71
+    ## 4 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7    12            45      30      33            2.14
+    ## 5 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68      18            52      16.7    34            2   
+    ## 6 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70      11            46      22.2    35            2.14
 
 #### Ball Striking
 
-<details>
-<summary>Click to expand</summary>
-
 Approach and tee accuracy
+
+`GIR (green in regulation)`: + hole where the ball was hit on to the
+green within 2 strokes of par
+
+`FIR (fairway in regulation)`: + hole where the ball was hit on to the
+fairway from the tee box (only on par 4’s and par 5’s)
+
+`Iron FIR`: + hole where an iron was used off the tee for a `FIR`
+
+`Driver FIR`: + hole where driver was used off the tee for a `FIR`
 
 ``` r
 ball_striking_metrics <- scores_sum |> 
@@ -216,19 +213,14 @@ head(ball_striking_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
     ##      <int> <date>     <chr>                                      <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
-    ## 1 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7     3   16.7            1     6   42.9           0         0               6          46.2
-    ## 2 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3     7   38.9            1     5   38.5           2        66.7             3          30  
-    ## 3 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7     7   38.9            2     2   14.3           0         0               2          16.7
-    ## 4 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68       3   16.7            1     7   53.8           1        33.3             6          60  
-    ## 5 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70       7   38.9            3     2   14.3           0         0               2          16.7
-    ## 6 10526424 2026-01-25 "2026-01-25\nRandolph North\n10.2"          70       6   33.3            2     4   28.6           0       NaN               4          28.6
-
-</details>
+    ## 1 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"            71.7     4   22.2            1     3   21.4           0       NaN               3          21.4
+    ## 2 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"            71.7     3   16.7            1     6   42.9           0         0               6          46.2
+    ## 3 10526424 2026-03-29 "2026-03-29\nDell Urich\n10"                70.3     7   38.9            1     5   38.5           2        66.7             3          30  
+    ## 4 10526424 2026-03-08 "2026-03-08\nRandolph North\n10"            71.7     7   38.9            2     2   14.3           0         0               2          16.7
+    ## 5 10526424 2026-02-22 "2026-02-22\nDell Urich\n10.1"              68       3   16.7            1     7   53.8           1        33.3             6          60  
+    ## 6 10526424 2026-02-08 "2026-02-08\nRandolph North\n10.2"          70       7   38.9            3     2   14.3           0         0               2          16.7
 
 #### Shot Quality
-
-<details>
-<summary>Click to expand</summary>
 
 Yardage and accuracy on tracked shots
 
@@ -253,21 +245,14 @@ head(stroke_quality |>
     ## # Groups:   date, hole, stroke [6]
     ##   course         date       tees   hole   par gross stroke lie     club  yds_to_target yds_traveled on_target miss_direction shot_type
     ##   <chr>          <date>     <chr> <int> <int> <int>  <int> <chr>   <chr>         <int>        <int> <chr>     <chr>          <chr>    
-    ## 1 Randolph North 2026-04-05 blue      1     4     4      1 tee     4               220          219 no        right          tee      
-    ## 2 Randolph North 2026-04-05 blue      1     4     4      2 rough   PW              140          131 no        right          full     
-    ## 3 Randolph North 2026-04-05 blue      1     4     4      3 fairway PW               10            8 yes       on_target      chip     
-    ## 4 Randolph North 2026-04-05 blue      2     4     6      1 tee     D               270          308 no        left           tee      
-    ## 5 Randolph North 2026-04-05 blue      2     4     6      2 rough   4               115           82 no        short          punch    
-    ## 6 Randolph North 2026-04-05 blue      2     4     6      3 sand    SW               30           16 no        short          gsbunker
+    ## 1 Randolph North 2026-04-19 blue      1     4     5      1 tee     D               275          264 no        left           tee      
+    ## 2 Randolph North 2026-04-19 blue      1     4     5      2 rough   GW               95           83 no        short          choked   
+    ## 3 Randolph North 2026-04-19 blue      1     4     5      3 fairway PW               10           11 yes       on_target      chip     
+    ## 4 Randolph North 2026-04-19 blue      2     4     5      1 tee     D               275          195 no        left           tee      
+    ## 5 Randolph North 2026-04-19 blue      2     4     5      2 rough   5               215          222 no        right          full     
+    ## 6 Randolph North 2026-04-19 blue      2     4     5      3 rough   SW               25           17 yes       on_target      chip
 
-</details>
-
-### LMER Model
-
-<details>
-<summary>Click to expand</summary>
-
-#### Fit a LMER Model
+### Fit a LMER Model
 
 Fit a lmer model to capture repeated measurements of `Gross Score`
 predicted by `Handicap Index`, `course_rating`, and time (`days`).
@@ -291,13 +276,13 @@ gross_lmer <- lme4::lmer(
     dplyr::ungroup() |> 
     dplyr::mutate(
       
-      course_rating = mean(course_rating) - course_rating, 
+      course_rating = course_rating - mean(course_rating),
       
       course = gsub(date_course,
                     pattern = '[0-9]|\\-|\\\n|\\.',
                     replacement = ''), # extract the course names
       
-      `Handicap Index` = mean(`Handicap Index`) - `Handicap Index`,
+      `Handicap Index` = -`Handicap Index` - mean(-`Handicap Index`),
       days = as.numeric(as.Date(date) - min(as.Date(date)) + 1,
                         units = 'days')
       ) |> # create a 'days' metric starting at the first day joining the club 
@@ -306,61 +291,48 @@ gross_lmer <- lme4::lmer(
   
   formula = 
     `Gross Score` ~
-    `Handicap Index` +
-    course_rating +
-    course + 
+    `Handicap Index`*course_rating +
     days +
-    (1 + `Handicap Index`|course) + # random intercepts and random slopes for Gross Score at a course given a Handicap Index
-    (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a course rating given a Handicap Index
+    (1 + `Handicap Index` + days|course) # random intercepts and random slopes for Gross Score at a course given a day in time
            )
 ```
-</details>
 
-<details>
-<summary>Click to expand</summary>
-  
 #### LMER Model Summary
 
     ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: `Gross Score` ~ `Handicap Index` + course_rating + course + days +      (1 + `Handicap Index` | course) + (1 + `Handicap Index` |      course_rating)
-    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = mean(course_rating) -      course_rating, course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
-    ##     replacement = ""), `Handicap Index` = mean(`Handicap Index`) -      `Handicap Index`, days = as.numeric(as.Date(date) - min(as.Date(date)) +      1, units = "days")), days, .after = date)
+    ## Formula: `Gross Score` ~ `Handicap Index` * course_rating + days + (1 +      `Handicap Index` + days | course)
+    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
+    ##     replacement = ""), `Handicap Index` = -`Handicap Index` -      mean(-`Handicap Index`), days = as.numeric(as.Date(date) -  
+    ##     min(as.Date(date)) + 1, units = "days")), days, .after = date)
     ## 
-    ## REML criterion at convergence: 143.5
+    ## REML criterion at convergence: 168.6
     ## 
     ## Scaled residuals: 
-    ##     Min      1Q  Median      3Q     Max 
-    ## -1.3923 -0.6164 -0.2016  0.5644  1.8382 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1.14556 -0.69880  0.00018  0.54698  1.94399 
     ## 
     ## Random effects:
-    ##  Groups        Name             Variance Std.Dev. Corr 
-    ##  course_rating (Intercept)      21.4784  4.6345        
-    ##                `Handicap Index`  0.9569  0.9782   -1.00
-    ##  course        (Intercept)      17.7971  4.2187        
-    ##                `Handicap Index` 12.0015  3.4643   0.09 
-    ##  Residual                        9.0663  3.0110        
-    ## Number of obs: 30, groups:  course_rating, 7; course, 5
+    ##  Groups   Name             Variance  Std.Dev. Corr       
+    ##  course   (Intercept)      8.720e+01 9.3379              
+    ##           `Handicap Index` 9.235e-02 0.3039    0.99      
+    ##           days             5.291e-04 0.0230   -1.00 -0.99
+    ##  Residual                  9.631e+00 3.1034              
+    ## Number of obs: 31, groups:  course, 5
     ## 
     ## Fixed effects:
-    ##                       Estimate Std. Error t value
-    ## (Intercept)          93.654681   9.349804  10.017
-    ## `Handicap Index`      2.535617   2.278252   1.113
-    ## course_rating         0.081533   1.462834   0.056
-    ## courseDell Urich     -4.945540  10.273306  -0.481
-    ## courseRandolph North -0.007814  11.700073  -0.001
-    ## courseSewailo         2.510066  14.641846   0.171
-    ## courseSilverbell     -3.787574  10.502635  -0.361
-    ## days                 -0.034983   0.010627  -3.292
+    ##                                Estimate Std. Error t value
+    ## (Intercept)                    98.71017    5.03509  19.604
+    ## `Handicap Index`                1.53220    0.78081   1.962
+    ## course_rating                   3.52206    0.88731   3.969
+    ## days                           -0.04864    0.01572  -3.093
+    ## `Handicap Index`:course_rating -2.45740    0.53982  -4.552
     ## 
     ## Correlation of Fixed Effects:
-    ##             (Intr) `HInd` crs_rt crsDlU crsRnN crsSwl crsSlv
-    ## `HndcpIndx`  0.181                                          
-    ## course_rtng -0.606 -0.106                                   
-    ## corsDllUrch -0.826 -0.162  0.454                            
-    ## crsRndlphNr -0.866 -0.143  0.635  0.748                     
-    ## courseSewal -0.558  0.239  0.331  0.526  0.494              
-    ## corsSlvrbll -0.834 -0.171  0.468  0.773  0.739  0.578       
-    ## days        -0.342 -0.217  0.350  0.078  0.146  0.095  0.168
+    ##             (Intr) `HInd` crs_rt days  
+    ## `HndcpIndx`  0.388                     
+    ## course_rtng  0.403 -0.032              
+    ## days        -0.939 -0.537 -0.480       
+    ## `HIndx`:cr_ -0.228  0.158 -0.600  0.165
     ## optimizer (nloptwrap) convergence code: 0 (OK)
     ## boundary (singular) fit: see help('isSingular')
 
@@ -373,96 +345,122 @@ golf::export_lm_round_predictions(
     dplyr::mutate(date = as.character(date))
 )
 ```
-</details>
 
 ### Model Interpretations
 
-<details>
-<summary>Click to expand</summary>
-  
-#### Big Picture: Handicap Index as a Fixed Effect Predicting Gross Score
+#### Fixed Effects
 
-The model’s aggregate average `Gross Score` (**`(Intercept)` `Estimate`
-of `Fixed effects`**) is **93.65**. This is model’s estimated average
-first `Gross Score`.
+##### Gross Score Intercept
 
-My average `Gross Score`, however, is **85.2**.
+The model’s estimated average *first* `Gross Score` (**`(Intercept)`
+`Estimate` of `Fixed effects`**) at my average `Handicap Index` and
+average `course_rating` at `Arizona National` (default reference course)
+is **98.71**.
 
-For every additional `Handicap Index` point larger than the average
-`Handicap Index`, my `Gross Score` increases by **2.54** strokes.
+My average `Gross Score`, however, is **85.39**.
 
-- This makes sense because `Gross Score` is directly used to determine
-  `Handicap Index` and is positively correlated (high `Gross Score` =
-  high `Handicap Index`)
+##### Handicap Index
 
-  - In other words, a player with great skill will have a low
-    `Handicap Index` (i.e. **0**), meaning they average `par` (the
-    course average) for an entire round, while a worse player (who
-    averages above `par`, the course average) will have a higher
+For every additional `Handicap Index` point worse (higher) than my
+average `Handicap Index`, my expected `Gross Score` increases by
+**1.53** strokes.
+
+- This makes sense because `Gross Score` is used to directly determine
+  `Handicap Index` and is positively correlated:
+
+  - high `Gross Score` = high `Handicap Index`
+
+  - In other words, a player with better skill will have a lower
     `Handicap Index`
 
-    - We know this to be true
+    - An example: a player with a **0** index means they average `par`
+      (the course average) for an entire round, across rounds, while a
+      worse player (who averages above `par`, the course average) will
+      have a higher `Handicap Index`
 
-    - `Handicap Index` effectively corrects for skill-level to determine
-      who performed better that day
+    - `Handicap Index` corrects for skill-level
 
-- While this makes sense, I wonder whether `Handicap Index` should have
-  a larger `Fixed effect` `Estimate`, which essentially asks, “how much
-  does this variable predict the target (`Gross Score`, here)?”
-
-  - The effect is significant (**`t value` = ** **1.11**; significance :
+  - The effect is significant (**`t value` = 1.96**; significance :
     abs(**t value**) \> 1)
 
   - Again, `Handicap Index` is a metric *directly derived from*
-    `Gross Score`, thus, I’m unsure how many strokes (`Gross Score`)
-    index points should be worth! **1?** **More?** Does it vary by
-    skill, or is it uniform?
+    `Gross Score`
 
-#### A Deeper Dig: Course, Course Rating, and Time
+    - I’m unsure how many strokes (`Gross Score`) index points *should*
+      be worth! **1?** **More?**
+
+    - Does it vary by skill, or is it uniform?
+
+##### Course Rating
 
 For every additional `course_rating` point (aka, a stroke) greater than
 the average `course_rating` (~69-70 strokes in this dataset),
-`Gross Score` increases by **0.08** strokes.
+`Gross Score` increases by **3.52** strokes (it decreases).
 
 - This also makes sense: harder courses should yield higher
   `Gross Score`s
 
-  - These courses vary in their difficulty, independent of player skill
-    (`Handicap Index`), by **21.48** strokes, on average, even though
-    `course_rating` is supposed to account for course difficulty across
-    all courses. This is the **`Random effects` `Variance`
-    (`Intercept`)**.
+##### Time (days)
 
-  - When compared to the `Residual` `Variance`, **9.07**, a
-    `course_rating` variance of **21.48** is very high– I play
-    differently according to `course_rating`
-
-The `course` also has an effect on `Gross Score`: I play more
-consistently at some courses than others, as suggested by the large
-variance of **17.8** strokes
-
-For every additional `day` in time, my `Gross Score` drops by **-0.03**
-strokes.
+For every additional `day` in time, my `Gross Score` drops by **-0.05**
+strokes
 
 - While this seems tiny, extrapolating days to months or weeks, this
-  becomes very evident (**-0.9** strokes per month; **-10.95** strokes
+  becomes very evident (**-1.5** strokes per month; **-18.25** strokes
   per year)
 
 - Linear extrapolation in this sense is misleading: there will be a
   limit to lowering `Gross Score` and there will also be variation in
   the process
 
-- But this effect is strongly significant (**t value = ** **-3.29**) and
+- But this effect is strongly significant (**t value =** **-3.09**) and
   appears to be the primary driver of the trend
 
-</details>
+##### Handicap Index\*Course Rating Interaction
+
+For every additional `Handicap Index` point worse (higher) than my
+average `Handicap Index` **along with** every additional `course_rating`
+point harder (above) the average course rating, the expected increase in
+my `Gross Score` is reduced by **2.46** strokes relative to what the two
+effects would contribute independently.
+
+- In other words: hard courses already impose a big penalty, so the
+  *extra* penalty by playing worse than average is smaller
+- Related: easier courses impose a larger *extra* penalty by playing
+  worse than average
+- Related: harder courses add a larger bonus when playing better than
+  average
+- Related: easier courses add a smaller bonus when playing better than
+  average
+
+#### Random Effects
+
+##### Course, Handicap Index, and Time
+
+These `courses` vary in their difficulty, independent of player skill
+(`Handicap Index`), by ~ **+/- 9.34** strokes. This value is the
+**`Random effects` `Std. Dev.` (`Intercept`) from the model summary**–
+the `Std.Dev.` of the course-level random intercepts, representing how
+much each course shifts my baseline expected `Gross Score` up or down
+relative to the overall average, *even after accounting for
+`course_rating`*.
+
+- I play different courses much differently
+
+Interestingly, `courses` also differ slightly in how sensitive they are
+to my `Handicap Index`, with a random-slope standard deviation of **+/-
+0.3** strokes per index point.
+
+While there is a fair amount of variability in `Gross Score` driven by
+the `course`, there is also just a large amount of variability in
+`Gross Score`, overall: **3.1**. This is the `Random effects` `Residual`
+`Std.Dev.` from the model summary.
 
 ### Predict the Next Round
 
-<details>
-<summary>Click to expand</summary>
-
 Predict the next round’s `Gross Score` according to the model
+
+##### Show Prediction
 
 ``` r
 ## show the model-predicted gross score for the upcoming round, rounded to the nearest stroke
@@ -471,16 +469,11 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   round(., 0)
 ```
 
-    ## [1] 81
+    ## [1] 79
 
-</details>
+#### Plot the Model
 
-### Plots
-
-<details>
-<summary>Click to expand</summary>
-
-#### Model by Course
+##### Model by Course
 
 ![](../figures/LMER_predictions/PlotModelByCourse-1.png)<!-- -->
 
@@ -507,12 +500,7 @@ course has a different slope, starting at a different y-intercept
   `course_rating`, `Handicap Index`, and `days` (date/time) at
   `Dell Urich`
 
-</details>
-
-#### Model Predictions
-
-<details>
-<summary>Click to expand</summary>
+##### Model Predictions
 
 These predictions are **not** historical– they are current:
 
@@ -521,12 +509,7 @@ These predictions are **not** historical– they are current:
 
 ![](../figures/LMER_predictions/PlotModels-1.png)<!-- -->
 
-</details>
-
-#### Actual Gross vs Predicted Gross (performance vs prediction)
-
-<details>
-<summary>Click to expand</summary>
+##### Actual Gross vs Predicted Gross (performance vs prediction)
 
 ![](../figures/LMER_predictions/PlotActualVsPredictedGross-1.png)<!-- -->
 
@@ -575,122 +558,4 @@ annotated by `Handicap Index` at the time of the round.
     - Other latent variables may contribute to this variability, such as
       course/weather/event conditions
 
-</details>
-
-#### Actual Net vs Predicted Gross (skill-adjusted performance vs prediction)
-
-<details>
-<summary>Click to expand</summary>
-
-![](../figures/LMER_predictions/PlotActualNetVsPredictedGross-1.png)<!-- -->
-
-Relative to the previous plot, this plot of residuals:
-
-- shifts the previous plot upward
-
-- inverts it about the x-axis
-
-- rotates it slightly about the origin
-
-It shows the `Actual Net Score` relative to the `Predicted Gross Score`
-over time, color-coded by `course`, and annotated by `Handicap Index` at
-the time of the round.
-
-`Net Score` is roughly `Gross Score` - `Handicap Index`.
-
-- the navy blue line represents the dividing line between over/under
-  performing where:
-
-  - scores **below** the line = I performed **worse** than the model’s
-    prediction
-  - scores **above** the line = I performed **better** than the model’s
-    prediction
-
-- `Randolph North`, `Silverbell`, and `Dell Urich` each have lines
-  representing the trend of actual `Net Score`s compared to
-  `Predicted Gross Score`s at each respective course
-
-  - I more often score better/lower at `Randolph North` than the model
-    predicts, particularly over time, given my handicap; however, on
-    average, these are closest to the model’s predictions than other
-    courses
-
-    - This reveals that these rounds could be giving more weight to the
-      model
-
-    - This could also reveal that I more consistently, if slightly,
-      outscore the model at this course, even given my `Handicap Index`
-
-    - This could also mean that the course is easier than ratings
-      suggest
-
-    - My instinct is that my `Handicap Index` was overestimated early on
-      in this time series; it was high, and I frequently played
-      `Randolph North` around then, and shot lower scores, directing the
-      trend downward
-
-  - The variability at `Dell Urich` is substantial, with one large
-    outlier overperformance (~ **-15**), and one moderate outlier
-    underperformance (~ **+6**) re-shaping the slope in the opposite
-    direction (positive as opposed to a negative slope, like
-    `Silverbell` and `Randolph North`)
-
-    - Even with more subsequent sample, this could reveal that I
-      struggle to shoot low `Gross Score`s at `Dell Urich`, despite its
-      easier course rating
-
-      - See the plot below for more insight
-
-    - Other latent variables may contribute to this variability, such as
-      course/weather/event conditions
-
-</details>
-
-#### Actual Gross vs Course Rating (performance vs course difficulty)
-
-<details>
-<summary>Click to expand</summary>
-
-![](../figures/LMER_predictions/PlotGrossScoreVsCourseRating-1.png)<!-- -->
-
-This definitely shows that I struggle at `Dell Urich`– independent of
-time, my `Gross Score`s at `Dell Urich` are roughly similar to other
-courses despite its easier rating– this would be even more evident
-without the substantial `Gross Score` **72** outlier.
-
-- Interestingly, I have scored better at longer/more difficult tees at
-  multiple courses.
-
-- Removing the effect of time/improved skill, and the wildly underrated
-  `Arizona National` rating, this would otherwise capture the general
-  trend and logic that **higher `course ratings` correlate to higher
-  `Gross Score`s**
-
-</details>
-
-#### Actual Gross vs Handicap Index (performance vs skill-level)
-
-<details>
-<summary>Click to expand</summary>
-
 ![](../figures/LMER_predictions/PlotGrossScoreVsHandicapIndex-1.png)<!-- -->
-
-This also supports the ideas that, independent of time and
-`Handicap Index`, I struggle at `Dell Urich` because of the high
-`Gross Score`s at low `Handicap Index`:
-
-- Removing the outlier at a **`Handicap Index` of 14**, the `Dell Urich`
-  trend still doesn’t reverse, though the overall trend does–
-  independent of time and one outlier/corrective round, I perform worse
-  at a course with a lower `Handicap Index`.
-
-</details>
-
-#### Actual Net vs Course Rating (skill-adjusted performance vs course difficulty)
-
-<details>
-<summary>Click to expand</summary>
-
-![](../figures/LMER_predictions/PlotNetScoreVsCourseDifficulty-1.png)<!-- -->
-
-</details>
