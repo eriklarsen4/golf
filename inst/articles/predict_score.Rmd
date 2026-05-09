@@ -16,7 +16,7 @@ output:
     variant: gfm
 ---
 
-### Overview {.tabset .tabset-pills .tabset-fade}
+### Overview
 
 This markdown is:
 
@@ -30,7 +30,7 @@ The markdown shows:
 
 The model does this by incorporating my skill level and where I've played in the past
 
-#### Introduction {.tabset .tabset-pills .tabset-fade}
+### Introduction {.tabset .tabset-pills .tabset-fade}
 
 Skill level is officially determined by the **USGA** as a `Handicap Index`: how many strokes, on average, a player takes to complete a round at a given course with a given difficulty relative to that course's average:
 

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Erik Larsen" />
 
-<meta name="date" content="2026-04-23" />
+<meta name="date" content="2026-05-09" />
 
 <title>Scorecard Update</title>
 
@@ -440,14 +440,14 @@ display: none;
 
 <h1 class="title toc-ignore">Scorecard Update</h1>
 <h4 class="author">Erik Larsen</h4>
-<h4 class="date">2026-04-23</h4>
+<h4 class="date">2026-05-09</h4>
 
 </div>
 
 <div id="TOC">
 <ul>
 <li><a href="#overview" id="toc-overview">Overview</a></li>
-<li><a href="#set-up-environment" id="toc-set-up-environment">Set-up
+<li><a href="#set-up-environment" id="toc-set-up-environment">Set-Up
 Environment</a>
 <ul>
 <li><a href="#attach-packages" id="toc-attach-packages">Attach
@@ -479,7 +479,8 @@ Metrics</a>
 <ul>
 <li><a href="#gather-and-format" id="toc-gather-and-format">Gather and
 Format</a></li>
-<li><a href="#compute-advanced-metrics" id="toc-compute-advanced-metrics">Compute Advanced Metrics</a></li>
+<li><a href="#compute-metrics" id="toc-compute-metrics">Compute
+Metrics</a></li>
 <li><a href="#view-metrics" id="toc-view-metrics">View Metrics</a></li>
 </ul></li>
 <li><a href="#plot-metric-summaries" id="toc-plot-metric-summaries">Plot
@@ -503,20 +504,14 @@ Metrics</a></li>
 performance trends and metric averages</p>
 </div>
 <div id="set-up-environment" class="section level2 tabset tabset-pills tabset-fade">
-<h2 class="tabset tabset-pills tabset-fade">Set-up Environment</h2>
+<h2 class="tabset tabset-pills tabset-fade">Set-Up Environment</h2>
 <div id="attach-packages" class="section level3">
 <h3>Attach Packages</h3>
 <pre class="r"><code>library(golf)
 library(tidyverse)
 library(lme4)
-library(mgcv)
-library(brms)
 library(DBI)
-library(duckdb)
-# library(blastula)
-# library(keyring)
-# library(mailR)
-library(emayili)</code></pre>
+library(duckdb)</code></pre>
 </div>
 </div>
 <div id="record-new-scorecard" class="section level2 tabset tabset-pills tabset-fade">
@@ -919,9 +914,9 @@ stroke_quality &lt;- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole, stroke) |&gt; 
   dplyr::ungroup()</code></pre>
 </div>
-<div id="compute-advanced-metrics" class="section level3">
-<h3>Compute Advanced Metrics</h3>
-<p>Compute more nuanced metrics</p>
+<div id="compute-metrics" class="section level3">
+<h3>Compute Metrics</h3>
+<p>Compute standard metrics</p>
 <pre class="r"><code># define metrics
 scores_sum &lt;- scores |&gt;
   dplyr::mutate(date_course = paste0(date,
@@ -1004,17 +999,17 @@ scores_sum &lt;- scores_sum |&gt;
     `Iron FIR%` = dplyr::case_when(`Iron FIR%` == NaN ~ 0.0, TRUE ~ `Iron FIR%`))</code></pre>
 <pre class="r"><code>head(scores_sum |&gt; 
        dplyr::arrange(desc(date)))</code></pre>
-<pre><code>## # A tibble: 6 x 26
+<pre><code>## # A tibble: 6 × 26
 ## # Groups:   date, date_course, course_rating [6]
-##   date       date_course             course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties `Gross Score` `Net Score`
-##   &lt;date&gt;     &lt;chr&gt;                           &lt;dbl&gt;            &lt;dbl&gt; &lt;int&gt;       &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;           &lt;dbl&gt; &lt;dbl&gt;         &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt;   &lt;int&gt;  &lt;int&gt;      &lt;int&gt;     &lt;int&gt;         &lt;dbl&gt;       &lt;dbl&gt;
-## 1 2026-04-19 &quot;2026-04-19\nRandolph ~          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56      15.4     6       0      8          4         0            91          83
-## 2 2026-04-05 &quot;2026-04-05\nRandolph ~          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9          3         2            88          80
-## 3 2026-03-29 &quot;2026-03-29\nDell Uric~          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5          4         1            82          74
-## 4 2026-03-08 &quot;2026-03-08\nRandolph ~          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6          3         1            84          75
-## 5 2026-02-22 &quot;2026-02-22\nDell Uric~          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7          6         0            92          82
-## 6 2026-02-08 &quot;2026-02-08\nRandolph ~          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46      22.2     7       1      8          2         0            83          73
-## # i 1 more variable: `UpAndDown%` &lt;dbl&gt;</code></pre>
+##   date       date_course course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts`
+##   &lt;date&gt;     &lt;chr&gt;               &lt;dbl&gt;            &lt;dbl&gt; &lt;int&gt;       &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;           &lt;dbl&gt; &lt;dbl&gt;         &lt;dbl&gt;
+## 1 2026-04-19 &quot;2026-04-1…          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56
+## 2 2026-04-05 &quot;2026-04-0…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52
+## 3 2026-03-29 &quot;2026-03-2…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46
+## 4 2026-03-08 &quot;2026-03-0…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45
+## 5 2026-02-22 &quot;2026-02-2…          68               10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52
+## 6 2026-02-08 &quot;2026-02-0…          70               10.2     2           0         0               2          16.7   14.3     7            3   38.9    35            2.14    11            46
+## # ℹ 9 more variables: `UpDown%` &lt;dbl&gt;, pars &lt;int&gt;, birdies &lt;int&gt;, bogies &lt;int&gt;, `doubles+` &lt;int&gt;, penalties &lt;int&gt;, `Gross Score` &lt;dbl&gt;, `Net Score` &lt;dbl&gt;, `UpAndDown%` &lt;dbl&gt;</code></pre>
 </div>
 <div id="view-metrics" class="section level3 tabset tabset-pills tabset-fade">
 <h3 class="tabset tabset-pills tabset-fade">View Metrics</h3>
@@ -1026,7 +1021,7 @@ scores_sum &lt;- scores_sum |&gt;
   dplyr::select(`Handicap Index`, `Gross Score`, `Net Score`)
 head(scoring_metrics |&gt; 
        dplyr::arrange(desc(date)))</code></pre>
-<pre><code>## # A tibble: 6 x 6
+<pre><code>## # A tibble: 6 × 6
 ## # Groups:   date, date_course, course_rating [6]
 ##   date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
 ##   &lt;date&gt;     &lt;chr&gt;                                      &lt;dbl&gt;            &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;
@@ -1039,12 +1034,32 @@ head(scoring_metrics |&gt;
 </div>
 <div id="stroke-metrics" class="section level4">
 <h4>Stroke Metrics</h4>
-<p>Pars, birdies, bogies, etc.</p>
+<p>In golf, every hole has a <code>par</code>– an average number of
+strokes taken to get the ball in the hole</p>
+<p>There are (almost always), three different <code>par</code>s on every
+course:</p>
+<ul>
+<li><code>par 3</code>s</li>
+<li><code>par 4</code>s</li>
+<li><code>par 5</code>s</li>
+</ul>
+<p>A shorthand to determine how a golfer performed across holes is to
+rate how many strokes <em>relative to par</em> they were (-1, -2, +1,
++2, etc)</p>
+<p>These numbers are given names:</p>
+<ul>
+<li><code>0 = par</code></li>
+<li><code>-2 = eagle</code></li>
+<li><code>-1 = birdie</code></li>
+<li><code>+1 = bogey</code></li>
+<li><code>+2 = double bogey</code></li>
+</ul>
+<p>I quantify these below:</p>
 <pre class="r"><code>stroke_metrics &lt;- scores_sum |&gt; 
   dplyr::select(`doubles+`, bogies, pars, birdies)
 head(stroke_metrics |&gt; 
        dplyr::arrange(desc(date)))</code></pre>
-<pre><code>## # A tibble: 6 x 7
+<pre><code>## # A tibble: 6 × 7
 ## # Groups:   date, date_course, course_rating [6]
 ##   date       date_course                        course_rating `doubles+` bogies  pars birdies
 ##   &lt;date&gt;     &lt;chr&gt;                                      &lt;dbl&gt;      &lt;int&gt;  &lt;int&gt; &lt;int&gt;   &lt;int&gt;
@@ -1057,12 +1072,20 @@ head(stroke_metrics |&gt;
 </div>
 <div id="around-the-green-metrics" class="section level4">
 <h4>Around-the-Green Metrics</h4>
-<p>Chips, putts, etc.</p>
+<p><code>Chips</code>: + strokes around the green taken to get onto the
+green</p>
+<p><code>Putts</code>: + strokes taken with the putter on the green</p>
+<p><code>Avg GIR putts</code>: + Average # of putts on holes where the
+ball was hit on to the green within 2 strokes of par (green in
+regulation, <code>GIR</code>)</p>
+<p><code>UpDown%</code> (aka <code>Scramble%</code>): + # of holes
+without a <code>GIR</code> but par was made / # of holes without a
+<code>GIR</code></p>
 <pre class="r"><code>atg_metrics &lt;- scores_sum |&gt; 
   dplyr::select(chips, `chips+putts`, `UpAndDown%`, putts, `Avg GIR putts`)
 head(atg_metrics |&gt; 
        dplyr::arrange(desc(date)))</code></pre>
-<pre><code>## # A tibble: 6 x 8
+<pre><code>## # A tibble: 6 × 8
 ## # Groups:   date, date_course, course_rating [6]
 ##   date       date_course                        course_rating chips `chips+putts` `UpAndDown%` putts `Avg GIR putts`
 ##   &lt;date&gt;     &lt;chr&gt;                                      &lt;dbl&gt; &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt; &lt;int&gt;           &lt;dbl&gt;
@@ -1076,13 +1099,21 @@ head(atg_metrics |&gt;
 <div id="ball-striking-metrics" class="section level4">
 <h4>Ball Striking Metrics</h4>
 <p>Approach and tee accuracy</p>
+<p><code>GIR (green in regulation)</code>: + hole where the ball was hit
+on to the green within 2 strokes of par</p>
+<p><code>FIR (fairway in regulation)</code>: + hole where the ball was
+hit on to the fairway from the tee box (only on par 4’s and par 5’s)</p>
+<p><code>Iron FIR</code>: + hole where an iron was used off the tee for
+a <code>FIR</code></p>
+<p><code>Driver FIR</code>: + hole where driver was used off the tee for
+a <code>FIR</code></p>
 <pre class="r"><code>ball_striking_metrics &lt;- scores_sum |&gt; 
   dplyr::select(GIRs, `GIR%`, `Par 3 GIRs`,
                 FIRs, `FIR%`, `Iron FIRs`, `Iron FIR%`,
                 `Driver FIRs`, `Driver FIR%`)
 head(ball_striking_metrics |&gt; 
        dplyr::arrange(desc(date)))</code></pre>
-<pre><code>## # A tibble: 6 x 12
+<pre><code>## # A tibble: 6 × 12
 ## # Groups:   date, date_course, course_rating [6]
 ##   date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
 ##   &lt;date&gt;     &lt;chr&gt;                                      &lt;dbl&gt; &lt;int&gt;  &lt;dbl&gt;        &lt;dbl&gt; &lt;int&gt;  &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;
@@ -1096,7 +1127,7 @@ head(ball_striking_metrics |&gt;
 <div id="club-metrics" class="section level4">
 <h4>Club Metrics</h4>
 <p>Yardage and accuracy for each club</p>
-<pre><code>## # A tibble: 6 x 6
+<pre><code>## # A tibble: 6 × 6
 ## # Groups:   date [1]
 ##   date       club      n rd_min_yds_to_target rd_min_yds_traveled rd_min_yd_diff
 ##   &lt;date&gt;     &lt;chr&gt; &lt;int&gt;                &lt;dbl&gt;               &lt;dbl&gt;          &lt;dbl&gt;
@@ -1106,7 +1137,7 @@ head(ball_striking_metrics |&gt;
 ## 4 2026-04-19 6         1                  182                 182              0
 ## 5 2026-04-19 7         7                   30                  18             -5
 ## 6 2026-04-19 8         1                  165                 154             11</code></pre>
-<pre><code>## # A tibble: 6 x 6
+<pre><code>## # A tibble: 6 × 6
 ## # Groups:   date [1]
 ##   date       club      n rd_max_yds_to_target rd_max_yds_traveled rd_max_yd_diff
 ##   &lt;date&gt;     &lt;chr&gt; &lt;int&gt;                &lt;dbl&gt;               &lt;dbl&gt;          &lt;dbl&gt;
@@ -1116,7 +1147,7 @@ head(ball_striking_metrics |&gt;
 ## 4 2026-04-19 6         1                  182                 182              0
 ## 5 2026-04-19 7         7                  185                 186             31
 ## 6 2026-04-19 8         1                  165                 154             11</code></pre>
-<pre><code>## # A tibble: 6 x 10
+<pre><code>## # A tibble: 6 × 10
 ## # Groups:   date [1]
 ##   date       club  `rd club strokes` miss_direction `rd club miss dir` rd_avg_yds_to_target rd_avg_yds_traveled rd_avg_yd_diff rd_avg_accuracy `rd club % miss direction`
 ##   &lt;date&gt;     &lt;chr&gt;             &lt;int&gt; &lt;chr&gt;                       &lt;int&gt;                &lt;dbl&gt;               &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;                      &lt;dbl&gt;

@@ -29,7 +29,7 @@ knitr::opts_chunk$set(
 )
 
 # make sure the connection is to the actual db, not a temp; get to the repo root
-real_db <- fs::path_abs(paste0(getwd(), "../../../inst/extdata/golf.duckdb"))
+real_db <- fs::path_abs("inst/extdata/golf.duckdb")
 con <- golf::get_db_connection(db_path = real_db)
 ```
 
@@ -37,19 +37,7 @@ con <- golf::get_db_connection(db_path = real_db)
 
 This markdown shows the data logging process of each round, and shows performance trends and metric averages
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('## Set-up Environment {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Set-up Environment</strong></summary>\n')
-} else {
-  cat('## Set-up Environment\n')
-}
-```
+## Set-Up Environment {.tabset .tabset-pills .tabset-fade}
 
 ### Attach Packages
 
@@ -57,29 +45,11 @@ if (identical(fmt, "html")) {
 library(golf)
 library(tidyverse)
 library(lme4)
-library(mgcv)
-library(brms)
 library(DBI)
 library(duckdb)
-# library(blastula)
-# library(keyring)
-# library(mailR)
-library(emayili)
 ```
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('## Record New Scorecard {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Record New Scorecard</strong></summary>\n')
-} else {
-  cat('## Record New Scorecard\n')
-}
-```
+## Record New Scorecard {.tabset .tabset-pills .tabset-fade}
 
 ### Input the Scores Data
 
@@ -140,19 +110,7 @@ if ( length(hole_scores) > 0 ) {
 }
 ```
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('## Update the db {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Update the db</strong></summary>\n')
-} else {
-  cat('## Update the db\n')
-}
-```
+## Update the db {.tabset .tabset-pills .tabset-fade}
 
 ### Update the Players Table
 
@@ -467,25 +425,12 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 }
 ```
 
-
 ```{r Clear Environment, include = T, message = F, warning = F, eval = T}
 # clean the global environment
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
 ```
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('## Summarize Metrics {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Summarize Metrics</strong></summary>\n')
-} else {
-  cat('## Summarize Metrics\n')
-}
-```
+## Summarize Metrics {.tabset .tabset-pills .tabset-fade}
 
 ### Gather and Format
 
@@ -542,9 +487,9 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-### Compute Advanced Metrics
+### Compute Metrics
 
-Compute more nuanced metrics
+Compute standard metrics
 
 ```{r Compute Advanced Metrics 1, include = T, warning = F, message = F, eval = T}
 # define metrics
@@ -634,19 +579,7 @@ head(scores_sum |>
        dplyr::arrange(desc(date)))
 ```
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('### View Metrics {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>View Metrics</strong></summary>\n')
-} else {
-  cat('### View Metrics\n')
-}
-```
+### View Metrics {.tabset .tabset-pills .tabset-fade}
 
 Separate and view metrics
 
@@ -663,7 +596,27 @@ head(scoring_metrics |>
 
 #### Stroke Metrics
 
-Pars, birdies, bogies, etc.
+In golf, every hole has a `par`-- an average number of strokes taken to get the 
+ball in the hole
+
+There are (almost always), three different `par`s on every course: 
+
++ `par 3`s
++ `par 4`s
++ `par 5`s
+
+A shorthand to determine how a golfer performed across holes is to rate how many 
+strokes *relative to par* they were (-1, -2, +1, +2, etc)
+
+These numbers are given names:
+
++ `0 = par`
++ `-2 = eagle`
++ `-1 = birdie`
++ `+1 = bogey`
++ `+2 = double bogey`
+
+I quantify these below:
 
 ```{r Separate Stroke Metrics, include = T, warning = F, message = F, eval = T}
 stroke_metrics <- scores_sum |> 
@@ -674,7 +627,18 @@ head(stroke_metrics |>
 
 #### Around-the-Green Metrics
 
-Chips, putts, etc.
+`Chips`: 
+  + strokes around the green taken to get onto the green
+
+`Putts`:
+  + strokes taken with the putter on the green
+  
+`Avg GIR putts`:
+  + Average # of putts on holes where the ball was hit on to the green within 2 strokes of par (green in regulation, `GIR`)
+  
+`UpDown%` (aka `Scramble%`):
+  + # of holes without a `GIR` but par was made / 
+  # of holes without a `GIR`
 
 ```{r Separate Around the Green Metrics, include = T, warning = F, message = F, eval = T}
 atg_metrics <- scores_sum |> 
@@ -686,6 +650,18 @@ head(atg_metrics |>
 #### Ball Striking Metrics
 
 Approach and tee accuracy
+
+`GIR (green in regulation)`:
+  + hole where the ball was hit on to the green within 2 strokes of par
+  
+`FIR (fairway in regulation)`:
+  + hole where the ball was hit on to the fairway from the tee box (only on par 4's and par 5's)
+  
+`Iron FIR`:
+  + hole where an iron was used off the tee for a `FIR`
+  
+`Driver FIR`:
+  + hole where driver was used off the tee for a `FIR`
 
 ```{r Separate Ball Striking Metrics, include = T, warning = F, message = F, eval = T}
 ball_striking_metrics <- scores_sum |> 
@@ -759,20 +735,7 @@ head(full_stroke_quality_avg |>
        dplyr::arrange(desc(date)))
 ```
 
-
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('## Plot Metric Summaries {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Plot Metric Summaries</strong></summary>\n')
-} else {
-  cat('## Plot Metric Summaries\n')
-}
-```
+## Plot Metric Summaries {.tabset .tabset-pills .tabset-fade}
 
 ### Scoring Metrics
 
@@ -947,19 +910,7 @@ ball_striking_metrics |>
                                                 'GIRs', 'Par 3 GIRs', 'GIR%')), scales = 'free')
 ```
 
-```{r, results='asis', echo = F}
-# add snippet for html tab pills for html export; regular .md heading
-
-fmt <- knitr::pandoc_to()
-
-if (identical(fmt, "html")) {
-  cat('### Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}\n')
-} else if (identical(fmt, "markdown")) {
-  cat('<details><summary><strong>Stroke Quality Metrics</strong></summary>\n')
-} else {
-  cat('### Stroke Quality Metrics\n')
-}
-```
+### Stroke Quality Metrics {.tabset .tabset-pills .tabset-fade}
 
 #### Minima
 
