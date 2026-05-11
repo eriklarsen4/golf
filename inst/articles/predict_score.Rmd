@@ -62,6 +62,7 @@ knitr::opts_chunk$set(
 )
 
 real_db <- fs::path_abs("inst/extdata/golf.duckdb")
+# real_db <- fs::path_abs(paste0(getwd(), "../../inst/extdata/golf.duckdb"))
 con <- golf::get_db_connection(db_path = real_db)
 ```
 
@@ -85,20 +86,18 @@ Gather and format from the database
 con <- golf::get_db_connection()
 
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
-  "SELECT DISTINCT sub.* FROM
-  (SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
-  LEFT JOIN courses c
+  "SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
+  INNER JOIN courses c
   ON c.tees = r.tees
   AND c.course_name = r.course_name
   AND c.hole = r.hole
-  AND c.hole_handicap = r.hole_handicap) AS sub
   INNER JOIN players p
-  ON sub.GHIN = p.GHIN
-  AND sub.handicap_index = p.handicap_index
-  AND sub.date = p.date;"
+  ON r.GHIN = p.GHIN
+  AND r.handicap_index = p.handicap_index
+  AND r.date = p.date;"
 )) |> 
-  dplyr::mutate(date = lubridate::as_date(date),
-                hole = stringr::str_extract(hole, pattern = '[0-9]{1,}') |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = gsub(hole, pattern = 'hole_', replacement = '') |> # enforce hole order
                   as.numeric()) |> 
   dplyr::relocate(par, .after = hole) |> 
   dplyr::relocate(course_rating, .after = tees) |>
@@ -370,7 +369,7 @@ My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dpl
 
 ##### Handicap Index
 
-For every additional `Handicap Index` point worse (higher) than my average `Handicap Index`, my expected `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2)`** strokes.
+For every additional `Handicap Index` point worse (higher) than my average `Handicap Index`, my expected `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2) |> abs()`** strokes.
 
 + This makes sense because `Gross Score` is used to directly determine `Handicap Index` and is positively correlated:
 
@@ -434,10 +433,10 @@ Predict the next round's `Gross Score` according to the model
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
 con <- golf::get_db_connection()
 
-round_date <- lubridate::as_date('2026-04-26')
+round_date <- lubridate::as_date('2026-05-17')
 index <- 11.0
-course <- "Dell Urich"
-tees <- 'blue'
+course <- "Randolph North"
+tees <- 'combo'
 
 ## get updated data to predict the next round
 new_df <- DBI::dbGetQuery(
