@@ -17,7 +17,8 @@ Imports:
     duckdb,
     KFAS,
     lme4,
-    tibble
+    tibble,
+    readr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
