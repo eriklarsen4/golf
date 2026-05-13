@@ -4,7 +4,7 @@
 #'
 #' @description
 #' Writes predictions from a round-level mixed-effects model into the 
-#' `predictions_round_lm` table inside the package database.
+#' `predictions_round` table inside the package database.
 #' The function appends a new time-stamped model version on each run,
 #' while removing any predictions associated with the same version to
 #' prevent duplication during re-knits.
@@ -48,7 +48,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
   
   # ensure table exists
   DBI::dbExecute(con, "
-    CREATE TABLE IF NOT EXISTS predictions_round_lm (
+    CREATE TABLE IF NOT EXISTS predictions_round (
       player_date TEXT,
       date TEXT,
       course_name TEXT,
@@ -64,7 +64,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
   # remove predictions from this model_version (protects against re-knits)
   DBI::dbExecute(
     con,
-    "DELETE FROM predictions_round_lm WHERE model_version = ?;",
+    "DELETE FROM predictions_round WHERE model_version = ?;",
     params = list(model_version)
   )
   
@@ -82,8 +82,8 @@ export_lm_round_predictions <- function(model, scores_sum) {
       # extract the course names for model input
       course = .data$course_name,
       
-      course_rating = mean(.data$course_rating) - .data$course_rating, # center the course rating
-      `Handicap Index` = mean(.data$`Handicap Index`) - .data$`Handicap Index`, # center the Handicap Index
+      course_rating = .data$course_rating - mean(.data$course_rating), # center the course rating
+      `Handicap Index` = -.data$`Handicap Index` - mean(-.data$`Handicap Index`), # center the Handicap Index
       
       days = as.numeric(as.Date(.data$date) - min(as.Date(.data$date)) + 1, units = "days") # start days from day = 1
     ) |>
@@ -96,7 +96,7 @@ export_lm_round_predictions <- function(model, scores_sum) {
     dplyr::mutate(
       player_date = paste0(.data$GHIN, "_", format(as.Date(.data$date), "%Y%m%d")),
       date = format(as.Date(.data$date), "%Y%m%d"),
-      predicted_score = round(as.numeric(stats::predict(model, newdata = scores_sum)), 0),
+      predicted_score = round(as.numeric(stats::predict(model, newdata = scores_sum, allow.new.levels = T)), 0),
       model_version   = model_version,
       generated_at    = generated_at,
       features_hash   = NA_character_,

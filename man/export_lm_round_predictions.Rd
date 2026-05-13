@@ -19,7 +19,7 @@ database.
 }
 \description{
 Writes predictions from a round-level mixed-effects model into the
-\code{predictions_round_lm} table inside the package database.
+\code{predictions_round} table inside the package database.
 The function appends a new time-stamped model version on each run,
 while removing any predictions associated with the same version to
 prevent duplication during re-knits.

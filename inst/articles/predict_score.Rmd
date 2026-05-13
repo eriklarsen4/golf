@@ -86,7 +86,7 @@ Gather and format from the database
 con <- golf::get_db_connection()
 
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
-  "SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
+  "SELECT DISTINCT r.*, c.par, c.course_rating, c.slope FROM rounds r
   INNER JOIN courses c
   ON c.tees = r.tees
   AND c.course_name = r.course_name
@@ -332,8 +332,9 @@ gross_lmer <- lme4::lmer(
     `Gross Score` ~
     `Handicap Index`*course_rating +
     days +
-    (1 + `Handicap Index` + days|course) # random intercepts and random slopes for Gross Score at a course given a day in time
-           )
+    (1 + `Handicap Index`|course) #+ # random intercepts and random slopes for Gross Score at a given course, given a certain index
+    # (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a given course difficulty, given a certain index
+           ) # somewhat redundant
 ```
 
 #### LMER Model Summary
@@ -349,7 +350,7 @@ vc_df <- gross_lmer |>
 
 #### Export Model Results to db
 
-```{r Export Model Results to db, include = T, message = F, warning = F, eval = F, echo = T}
+```{r Export Model Results to db, include = T, message = F, warning = F, eval = T, echo = T}
 golf::export_lm_round_predictions(
   model = gross_lmer,
   scores_sum = scores_sum |> 
@@ -369,7 +370,7 @@ My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dpl
 
 ##### Handicap Index
 
-For every additional `Handicap Index` point worse (higher) than my average `Handicap Index`, my expected `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2) |> abs()`** strokes.
+For every additional `Handicap Index` point improvement (lower) than my average `Handicap Index`, my expected `Gross Score` decreases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2) |> abs()`** strokes.
 
 + This makes sense because `Gross Score` is used to directly determine `Handicap Index` and is positively correlated:
 
@@ -381,7 +382,8 @@ For every additional `Handicap Index` point worse (higher) than my average `Hand
   
     + `Handicap Index` corrects for skill-level
 
-  + The effect is significant (**`t value` = `r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1)
+  + The effect is `r if (stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(4) |> as.numeric() |> abs() > 1) { paste0('significant') } else { paste0('not significant') }` 
+  (**`t value` = `r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1)
   
   + Again, `Handicap Index` is a metric *directly derived from* `Gross Score`
   
@@ -407,7 +409,7 @@ For every additional `day` in time, my `Gross Score` drops by **`r nlme::fixed.e
   
 ##### Handicap Index*Course Rating Interaction
 
-For every additional `Handicap Index` point worse (higher) than my average `Handicap Index` **along with** every additional `course_rating` point harder (above) the average course rating, the expected increase in my `Gross Score` is reduced by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::slice_tail() |>  dplyr::select(2) |> unlist() |> as.numeric() %>% abs() %>% round(.,2)`** strokes relative to what the two effects would contribute independently.
+As `course_rating` increases by 1 stroke above average, the effect of `Handicap Index` on my expected `Gross Score` is **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::slice_tail() |>  dplyr::select(2) |> unlist() |> as.numeric() %>% abs() %>% round(.,2)`** strokes less than what the two effects would contribute independently.
 
   + In other words: hard courses already impose a big penalty, so the *extra* penalty by playing worse than average is smaller
   + Related: easier courses impose a larger *extra* penalty by playing worse than average
@@ -479,8 +481,8 @@ new_df <- DBI::dbGetQuery(
       dplyr::mutate(days = as.numeric(date - min(date) + 1, units = 'days')) |> 
       dplyr::slice_tail() |> 
       dplyr::select(days) |> unlist() |> as.numeric()) |> 
-  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating,
-                `Handicap Index` = ((`Handicap Index` + index_mean)/2) - `Handicap Index`) |> 
+  dplyr::mutate(course_rating = course_rating - ((course_rating + course_rating_mean)/2),
+                `Handicap Index` = `Handicap Index` - ((`Handicap Index` + index_mean)/2)) |> 
   dplyr::select(-course_rating_mean, -index_mean) |> 
   dplyr::rename(course = course_name)
 ```

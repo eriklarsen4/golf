@@ -19,3 +19,6 @@ compose_email
 ^golf_data\.db$
 ^\.positai$
 ^\.claude$
+^\\.github$
+^\\.dockerignore$
+^dev$
