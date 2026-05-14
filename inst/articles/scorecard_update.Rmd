@@ -693,7 +693,7 @@ golf::run_skill_pipeline()
 ```
 
 ```{r Overwrite PowerBI CSVs, include = T, eval = T, message = F, warning = F, echo = F}
-source(paste0(getwd(), '../../dev/local/overwrite_csvs.R'))
+source('C:/Users/Erik/Desktop/Programming/R/Sports/golf/dev/local/overwrite_csvs.R')
 ```
 
 

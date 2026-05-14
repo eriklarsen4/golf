@@ -64,6 +64,8 @@ knitr::opts_chunk$set(
 real_db <- fs::path_abs("inst/extdata/golf.duckdb")
 # real_db <- fs::path_abs(paste0(getwd(), "../../inst/extdata/golf.duckdb"))
 con <- golf::get_db_connection(db_path = real_db)
+
+golf::refresh_dev_tables()
 ```
 
 ### Gather Data and Format Scores {.tabset .tabset-pills .tabset-fade}
@@ -81,7 +83,7 @@ library(DBI)
 
 Gather and format from the database
 
-```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
+```{r Summarize Metrics out, include = T, message = F, warning = F, echo = T, eval = F}
 ## connect to the db
 con <- golf::get_db_connection()
 
@@ -105,6 +107,32 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole) |> 
   dplyr::ungroup()
 ```
+
+```{r Summarize Metrics in, include = T, message = F, warning = F, echo = F, eval = T}
+## connect to the db
+con <- golf::get_db_connection()
+
+scores <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT r.*, c.par, c.course_rating, c.slope FROM dev_rounds r
+  INNER JOIN courses c
+  ON c.tees = r.tees
+  AND c.course_name = r.course_name
+  AND c.hole = r.hole
+  INNER JOIN players p
+  ON r.GHIN = p.GHIN
+  AND r.handicap_index = p.handicap_index
+  AND r.date = p.date;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = gsub(hole, pattern = 'hole_', replacement = '') |> # enforce hole order
+                  as.numeric()) |> 
+  dplyr::relocate(par, .after = hole) |> 
+  dplyr::relocate(course_rating, .after = tees) |>
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole) |> 
+  dplyr::ungroup()
+```
+
 
 #### Compute Metrics
 
@@ -271,7 +299,7 @@ head(ball_striking_metrics |>
 
 Yardage and accuracy on tracked shots
 
-```{r Stroke Quality, include = T, warning= F, message = F, echo = T}
+```{r Stroke Quality out, include = T, warning= F, message = F, echo = T, eval = F}
 ## connect to the db
 con <- golf::get_db_connection()
 
@@ -287,6 +315,24 @@ stroke_quality <- DBI::dbGetQuery(conn = con,
 head(stroke_quality |> 
        dplyr::arrange(desc(date)))
 ```
+
+```{r Stroke Quality in, include = T, warning = F, message = F, echo = F, eval = T}
+## connect to the db
+con <- golf::get_db_connection()
+
+stroke_quality <- DBI::dbGetQuery(conn = con,
+                                  statement = paste0("SELECT DISTINCT * FROM dev_club_metrics;")) |>
+  dplyr::mutate(date = lubridate::as_date(date),
+                hole = gsub(hole, pattern = 'hole_', replacement = ''),
+                hole = as.integer(hole)) |> 
+  dplyr::mutate(dplyr::across(dplyr::contains("yds"), ~as.integer(.x))) |> 
+  dplyr::rename(course = course_name) |> 
+  dplyr::group_by(date, hole, stroke) |> 
+  dplyr::arrange(date, hole, stroke)
+head(stroke_quality |> 
+       dplyr::arrange(desc(date)))
+```
+
 
 ```{r Stroke Quality Metrics, include = F, warning = F, message = F, echo = F}
 stroke_quality_min <- stroke_quality |> 
@@ -346,16 +392,6 @@ summary(gross_lmer)
 vc_df <- gross_lmer |> 
   brms::VarCorr() |> 
   as.data.frame()
-```
-
-#### Export Model Results to db
-
-```{r Export Model Results to db, include = T, message = F, warning = F, eval = T, echo = T}
-golf::export_lm_round_predictions(
-  model = gross_lmer,
-  scores_sum = scores_sum |> 
-    dplyr::mutate(date = as.character(date))
-)
 ```
 
 ### Model Interpretations {.tabset .tabset-pills .tabset-fade}
