@@ -300,9 +300,8 @@ gross_lmer <- lme4::lmer(
 
     ## Linear mixed model fit by REML ['lmerMod']
     ## Formula: `Gross Score` ~ `Handicap Index` * course_rating + days + (1 +      `Handicap Index` | course)
-    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
-    ##     replacement = ""), `Handicap Index` = -`Handicap Index` -      mean(-`Handicap Index`), days = as.numeric(as.Date(date) -  
-    ##     min(as.Date(date)) + 1, units = "days")), days, .after = date)
+    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",      replacement = ""), `Handicap Index` = -`Handicap Index` -  
+    ##     mean(-`Handicap Index`), days = as.numeric(as.Date(date) -      min(as.Date(date)) + 1, units = "days")), days, .after = date)
     ## 
     ## REML criterion at convergence: 180
     ## 
@@ -333,16 +332,6 @@ gross_lmer <- lme4::lmer(
     ## `HIndx`:cr_ -0.359  0.315 -0.776  0.300
     ## optimizer (nloptwrap) convergence code: 0 (OK)
     ## boundary (singular) fit: see help('isSingular')
-
-#### Export Model Results to db
-
-``` r
-golf::export_lm_round_predictions(
-  model = gross_lmer,
-  scores_sum = scores_sum |> 
-    dplyr::mutate(date = as.character(date))
-)
-```
 
 ### Model Interpretations
 

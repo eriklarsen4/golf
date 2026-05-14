@@ -521,7 +521,7 @@ club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_sho
 
 ### Update the Club Metrics Table
 
-```{r Update the club metrics table out, include = T, message = F, warning = F, eval = T, echo = F}
+```{r Update the club metrics table out, include = T, message = F, warning = F, eval = F, echo = T}
 con <- golf::get_db_connection()
 
 # if the data is newer than the last round in the 'club_metrics' table, append
@@ -543,7 +543,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 }
 ```
 
-```{r Update the club metrics table in, include = T, message = F, warning = F, echo = F, eval = T}
+```{r Update the club metrics table in, include = T, message = F, warning = F, eval = T, echo = F}
 con <- golf::get_db_connection()
 
 # if the data is newer than the last round in the 'club_metrics' table, append
@@ -680,15 +680,15 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
 ```
 
 
-```{r Validate dev updates, include = T, eval = T, message = F, warning = F, echo = F}
+```{r Validate dev updates, include = T, eval = F, message = F, warning = F, echo = F}
 golf::validate_dev_tables()
 ```
 
-```{r Promote dev to prod, include = T, eval = T, message = F, warning = F, echo = F}
+```{r Promote dev to prod, include = T, eval = F, message = F, warning = F, echo = F}
 golf::promote_dev_to_production()
 ```
 
-```{r Pass Data Through Skill Pipeline, include = T, eval = T, message = F, warning = F, echo = F}
+```{r Pass Data Through Skill Pipeline, include = T, eval = F, message = F, warning = F, echo = F}
 golf::run_skill_pipeline()
 ```
 
