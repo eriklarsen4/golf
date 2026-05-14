@@ -1,6 +1,6 @@
-overwrite_csvs <- function() {
+overwrite_csvs <- function(db_path = NULL) {
   
-  con <- golf::get_db_connection()
+  con <- golf::get_db_connection(db_path)
   
   most_recent_round_date_db <- list()
   most_recent_round_date_pbi <- list()

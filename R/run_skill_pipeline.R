@@ -4,7 +4,11 @@
 #' Reads production base tables, constructs scores_sum, fits LM + KF,
 #' appends to predictions_round, overwrites dev modeling tables,
 #' and logs the run. No dev→prod matriculation. No helper functions.
-#'
+#' 
+#' @param db_path optional path to a DuckDB database file; if supplied, the 
+#' function uses this database instead of the package's default. Designed for
+#' testing with temp writable databases
+#' 
 #' @return Invisibly returns predictions_round tibble on success.
 #' 
 #' @import DBI
@@ -15,9 +19,9 @@
 #' @import KFAS
 #' @importFrom tibble tibble
 #' @export
-run_skill_pipeline <- function() {
+run_skill_pipeline <- function(db_path = NULL) {
   
-  con <- golf::get_db_connection()
+  con <- golf::get_db_connection(db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   
   run_started <- Sys.time()

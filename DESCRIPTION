@@ -18,7 +18,8 @@ Imports:
     KFAS,
     lme4,
     tibble,
-    readr
+    readr,
+    stats
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:

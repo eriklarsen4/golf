@@ -4,7 +4,12 @@
 \alias{run_skill_pipeline}
 \title{Run LM + KF modeling pipeline}
 \usage{
-run_skill_pipeline()
+run_skill_pipeline(db_path = NULL)
+}
+\arguments{
+\item{db_path}{optional path to a DuckDB database file; if supplied, the
+function uses this database instead of the package's default. Designed for
+testing with temp writable databases}
 }
 \value{
 Invisibly returns predictions_round tibble on success.

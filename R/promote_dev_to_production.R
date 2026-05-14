@@ -6,6 +6,10 @@
 #' part of the promotion fails, all changes are rolled back and the
 #' production tables remain unchanged.
 #'
+#' @param db_path optional path to a DuckDB database file; if supplied, the 
+#' function uses this database instead of the package's default. Designed for
+#' testing with temp writable databases
+#'
 #' The following table mappings are promoted:
 #' \itemize{
 #'   \item \code{dev_rounds      -> rounds}
@@ -22,9 +26,9 @@
 #'
 #' @import DBI
 #' @export
-promote_dev_to_production <- function() {
+promote_dev_to_production <- function(db_path = NULL) {
   
-  con <- golf::get_db_connection()
+  con <- golf::get_db_connection(db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   
   # Validate first

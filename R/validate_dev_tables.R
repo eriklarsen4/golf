@@ -5,6 +5,10 @@
 #' versions of the production tables. Each dev table is evaluated
 #' independently, and a per-table validity summary is produced.
 #'
+#' @param db_path optional path to a DuckDB database file; if supplied, the 
+#' function uses this database instead of the package's default. Designed for
+#' testing with temp writable databases
+#'
 #' Validation includes:
 #' \itemize{
 #'   \item All dev tables exist.
@@ -31,10 +35,11 @@
 #'
 #' @import DBI
 #' @import dplyr
+#' @importFrom stats setNames
 #' @export
-validate_dev_tables <- function() {
+validate_dev_tables <- function(db_path = NULL) {
   
-  con <- golf::get_db_connection()
+  con <- golf::get_db_connection(db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   
   dev_tables <- c(
@@ -47,7 +52,7 @@ validate_dev_tables <- function() {
   prod_tables <- sub("^dev_", "", dev_tables)
   
   # initialize validation results -----
-  results  <- setNames(rep(TRUE, length(dev_tables)), dev_tables)
+  results  <- stats::setNames(rep(TRUE, length(dev_tables)), dev_tables)
   messages <- vector("list", length(dev_tables))
   names(messages) <- dev_tables
   
@@ -96,7 +101,7 @@ validate_dev_tables <- function() {
     
     if (all(c("date", "course_name") %in% names(rounds))) {
       dupes <- rounds |>
-        dplyr::count(date, course_name) |>
+        dplyr::count(.data$date, .data$course_name) |>
         dplyr::filter(n > 1)
       
       if (nrow(dupes) > 0) {
@@ -112,7 +117,7 @@ validate_dev_tables <- function() {
     
     if (all(c("GHIN", "date") %in% names(players))) {
       dupes <- players |>
-        dplyr::count(GHIN, date) |>
+        dplyr::count(.data$GHIN, .data$date) |>
         dplyr::filter(n > 1)
       
       if (nrow(dupes) > 0) {
@@ -129,7 +134,7 @@ validate_dev_tables <- function() {
     # Example: if (course_name, tee) exists, enforce uniqueness on that pair.
     if (all(c("course_name", "tee") %in% names(courses))) {
       dupes <- courses |>
-        dplyr::count(course_name, tee) |>
+        dplyr::count(.data$course_name, .data$tee) |>
         dplyr::filter(n > 1)
       
       if (nrow(dupes) > 0) {
@@ -146,7 +151,7 @@ validate_dev_tables <- function() {
     
     if (all(c("hole", "stroke", "date", "club") %in% names(cm))) {
       dupes <- cm |>
-        dplyr::count(hole, stroke, date, club) |>
+        dplyr::count(.data$hole, .data$stroke, .data$date, .data$club) |>
         dplyr::filter(n > 1)
       
       if (nrow(dupes) > 0) {

@@ -5,6 +5,10 @@
 #' corresponding production tables. This ensures that the dev tables
 #' begin in a clean, up-to-date state before new scorecard data is
 #' appended in \code{scorecard_update.Rmd}.
+#' 
+#' @param db_path optional path to a DuckDB database file; if supplied, the 
+#' function uses this database instead of the package's default. Designed for
+#' testing with temp writable databases
 #'
 #' This function performs a simple table-level copy:
 #' \itemize{
@@ -29,9 +33,9 @@
 #'
 #' @import DBI
 #' @export
-refresh_dev_tables <- function() {
+refresh_dev_tables <- function(db_path = NULL) {
   
-  con <- golf::get_db_connection()
+  con <- golf::get_db_connection(db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   
   table_pairs <- list(
