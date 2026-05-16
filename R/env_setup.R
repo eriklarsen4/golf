@@ -26,7 +26,7 @@ get_db_connection <- function(db_path = NULL) {
     }
   }
   
-  db_path <- normalizePath(db_path, mustWork = TRUE)
+  db_path <- normalizePath(db_path, mustWork = FALSE)
   
   # Reuse existing connection if valid and same file
   if (!is.null(pkg_env$con)) {
@@ -40,7 +40,9 @@ get_db_connection <- function(db_path = NULL) {
         return(pkg_env$con)
       }
     }
-    try(DBI::dbDisconnect(pkg_env$con, shutdown = TRUE), silent = TRUE)
+    if (DBI::dbIsValid(pkg_env$con)) {
+      try(DBI::dbDisconnect(pkg_env$con, shutdown = TRUE), silent = TRUE)
+    }
   }
   
   # Open new connection

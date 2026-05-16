@@ -1,6 +1,6 @@
-#' @title upload_club_metrics
+#' @title harmonize_club_metrics
 #' @description
-#' \strong{upload_club_metrics} is a function that harmonizes the Garmin shot tracking data
+#' \strong{harmonize_club_metrics} is a function that harmonizes the Garmin shot tracking data
 #' with round scores data
 #'
 #' @param club_metrics a data frame object containing the results returned from \link[golf]{get_tracked_shots_data_shape}
@@ -102,7 +102,7 @@
 #'
 #' @export
 # ----
-upload_club_metrics <- function(club_metrics, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
+harmonize_club_metrics <- function(club_metrics, club_choice, distance_to_target, distance_traveled, lie_type, target_status, location, type_of_shot){
   assertthat::assert_that(!missing(club_metrics), msg = "'club_metrics', is a required parameter! Please use 'club_metrics_df' as required input!")
   assertthat::assert_that(is.data.frame(club_metrics), msg = "'club_metrics', is a required parameter! Please make sure the passed object is a data frame!")
   assertthat::assert_that(!missing(club_choice), msg = "'club_choice' is a required parameter! Please see help file for valid strings.")

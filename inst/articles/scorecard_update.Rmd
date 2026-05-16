@@ -34,6 +34,12 @@ real_db <- fs::path_abs("inst/extdata/golf.duckdb")
 con <- golf::get_db_connection(db_path = real_db)
 ```
 
+```{r Refresh dev tables, include = T, eval = T, message =F, warning = F, echo = F}
+# refresh the dev tables from current production tables
+golf::refresh_dev_tables()
+```
+
+
 ## Overview
 
 This markdown shows the data logging process of each round, and shows performance trends and metric averages
@@ -45,7 +51,6 @@ This markdown shows the data logging process of each round, and shows performanc
 ```{r Attach Packages, include = T, message = F, warning = F, eval = T}
 library(golf)
 library(tidyverse)
-library(lme4)
 library(DBI)
 library(duckdb)
 ```
@@ -114,7 +119,7 @@ if ( length(hole_scores) > 0 ) {
 
 ### Update the Players Table
 
-```{r Update the players table of the db, include = T, message = F, warning = F, echo = T, eval = T}
+```{r Update the players table out, include = T, message = F, warning = F, echo = T, eval = F}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -141,9 +146,37 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
+```{r Update the players table in, include = T, message = F, warning = F, echo = F, eval = T}
+con <- golf::get_db_connection()
+
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'players' table
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+     ) {
+
+  DBI::dbAppendTable(conn = con,
+                   name = 'dev_players',
+                   value = players <- Card |> 
+                     dplyr::select(GHIN, index, date) |> 
+                     dplyr::distinct() |> 
+                     dplyr::rename(handicap_index = index) |> 
+                     dplyr::mutate(date = as.character(date))
+                   )
+  
+}
+```
+
+
 ### Update the Courses Table
 
-```{r Update the courses table of the db, include = T, message = F, warning= F, eval = T}
+```{r Update the courses table out, include = T, message = F, warning= F, eval = F, echo = T}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -167,9 +200,34 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
+```{r Update the courses table in, include = T, message = F, warning = F, eval = T, echo = F}
+con <- golf::get_db_connection()
+
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'courses' table
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+     ) {
+  DBI::dbAppendTable(conn = con,
+                   name = 'dev_courses',
+                   value = course <- Card |> 
+                     dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
+                     dplyr::distinct() |> 
+                     dplyr::rename(course_name = course)
+                   )
+}
+```
+
+
 ### Update the Rounds Table
 
-```{r Update the rounds table of the db, include= T, message = F, warning = F, eval = T}
+```{r Update the rounds table out, include= T, message = F, warning = F, eval = F, echo = T}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -194,6 +252,33 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
                    )
 }
 ```
+
+```{r Update the rounds table in, include = T, message = F, warning = F, eval = T, echo = F}
+con <- golf::get_db_connection()
+
+# if the logged data is newer than the last logged round in the 'rounds' table, 
+# update the 'rounds' table
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM rounds ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+     ) {
+  DBI::dbAppendTable(conn = con,
+                   name = 'dev_rounds',
+                   value = Card |> 
+                     dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
+                     dplyr::distinct() |>
+                     dplyr::rename(handicap_index = index) |> 
+                     dplyr::rename(course_name = course) |> 
+                     dplyr::mutate(date = as.character(date))
+                   )
+}
+```
+
 
 ### Get Club Metrics df
 
@@ -367,7 +452,7 @@ type_of_shot <- c(
 
 ### Get Shot Metrics
 
-```{r Gather shot metrics data, include = T, message = F, warning = F, echo = F, eval = T}
+```{r Gather shot metrics data, include = T, message = F, warning = F, echo = T, eval = F}
 con <- golf::get_db_connection()
 
 # if the data is newer than the last round in the 'club_metrics' table, append
@@ -383,15 +468,15 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      length(hole_scores) > 0
 ) {
   length(club_choice)
-  club_metrics <- golf::upload_club_metrics(club_metrics = club_metrics_df,
-                                          club_choice = club_choice,
-                                          distance_to_target = dist_to_target,
-                                          distance_traveled = yds,
-                                          lie_type = lie_type,
-                                          target_status = target_status,
-                                          location = location,
-                                          type_of_shot = type_of_shot
-                                          )
+  club_metrics <- golf::harmonize_club_metrics(club_metrics = club_metrics_df,
+                                               club_choice = club_choice,
+                                               distance_to_target = dist_to_target,
+                                               distance_traveled = yds,
+                                               lie_type = lie_type,
+                                               target_status = target_status,
+                                               location = location,
+                                               type_of_shot = type_of_shot
+                                               )
   club_metrics <- club_metrics |> 
     dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x)))
   head(club_metrics)
@@ -400,9 +485,43 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_shots))
 ```
 
+```{r Gather shot metrics data quiet, include = T, message = F, warning = F, echo = F, eval = T}
+con <- golf::get_db_connection()
+
+# if the data is newer than the last round in the 'club_metrics' table, append
+  # the new annotations (expands from 18 rows by the number determined from the 
+  # get_tracked_shots_data_shape function)
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+) {
+  length(club_choice)
+  club_metrics <- golf::harmonize_club_metrics(club_metrics = club_metrics_df,
+                                               club_choice = club_choice,
+                                               distance_to_target = dist_to_target,
+                                               distance_traveled = yds,
+                                               lie_type = lie_type,
+                                               target_status = target_status,
+                                               location = location,
+                                               type_of_shot = type_of_shot
+                                               )
+  club_metrics <- club_metrics |> 
+    dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x)))
+  head(club_metrics)
+}
+
+club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_shots))
+```
+
+
 ### Update the Club Metrics Table
 
-```{r Update the club metrics table of the db, include = T, message = F, warning = F, eval = T}
+```{r Update the club metrics table out, include = T, message = F, warning = F, eval = F, echo = T}
 con <- golf::get_db_connection()
 
 # if the data is newer than the last round in the 'club_metrics' table, append
@@ -424,6 +543,30 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 }
 ```
 
+```{r Update the club metrics table in, include = T, message = F, warning = F, eval = T, echo = F}
+con <- golf::get_db_connection()
+
+# if the data is newer than the last round in the 'club_metrics' table, append
+  # the new data to the table
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &&
+     
+     length(hole_scores) > 0
+     ) {
+  
+  DBI::dbAppendTable(conn = con,
+                   name = 'dev_club_metrics',
+                   value = club_metrics |> 
+                     dplyr::mutate(date = as.character(date))
+                   )
+}
+```
+
+
 ```{r Clear Environment, include = T, message = F, warning = F, eval = T}
 # clean the global environment
 rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==F)])
@@ -435,7 +578,7 @@ rm(list = ls()[which(grepl(ls(), pattern= 'con|round_course|round_date|index')==
 
 Gather and format from the database
 
-```{r Summarize Stroke Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+```{r Summarize Stroke Metrics out, include = T, message = F, warning = F, echo = T, eval = F}
 con <- golf::get_db_connection()
 
 # get the hole-by-hole scores from each round in the database
@@ -468,7 +611,41 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::ungroup()
 ```
 
-```{r Summarize Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
+```{r Summarize Stroke Metrics in, include = T, message = F, warning = F, echo = F, eval = T}
+con <- golf::get_db_connection()
+
+# get the hole-by-hole scores from each round in the database
+
+  # join the hole-by-hole scores from the 'rounds' table to the 'courses' table
+    # need each hole's par rating 
+    # need each course's course_rating from the 'courses' table
+  
+  # join the 'rounds' and 'courses' tables to the 'players' table
+    # need handicap_index from the 'players' table
+
+scores <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT r.*, c.par, c.course_rating FROM dev_rounds r
+  INNER JOIN dev_courses c
+  ON c.tees = r.tees
+  AND c.course_name = r.course_name
+  AND c.hole = r.hole
+  INNER JOIN dev_players p
+  ON r.GHIN = p.GHIN
+  AND r.handicap_index = p.handicap_index
+  AND r.date = p.date;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = gsub(hole, pattern = 'hole_', replacement = '') |> # enforce hole order
+                  as.numeric()) |> 
+  dplyr::relocate(par, .after = hole) |> 
+  dplyr::relocate(course_rating, .after = tees) |>
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole) |> 
+  dplyr::ungroup()
+```
+
+
+```{r Summarize Club Metrics out, include = T, message = F, warning = F, echo = T, eval = F}
 con <- golf::get_db_connection()
 
 # get stroke metrics from the 'club_metrics' table
@@ -483,6 +660,42 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole, stroke) |> 
   dplyr::ungroup()
 ```
+
+
+
+```{r Summarize Club Metrics in, include = T, eval = T, message = F, warning = F, echo = F}
+con <- golf::get_db_connection()
+
+# get stroke metrics from the 'club_metrics' table
+
+stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT * FROM dev_club_metrics;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = gsub(hole, pattern = 'hole_', replacement = '') |> # enforce hole order
+                  as.numeric()) |> 
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole, stroke) |> 
+  dplyr::ungroup()
+```
+
+
+```{r Validate dev updates, include = T, eval = F, message = F, warning = F, echo = F}
+golf::validate_dev_tables()
+```
+
+```{r Promote dev to prod, include = T, eval = F, message = F, warning = F, echo = F}
+golf::promote_dev_to_production()
+```
+
+```{r Pass Data Through Skill Pipeline, include = T, eval = F, message = F, warning = F, echo = F}
+golf::run_skill_pipeline()
+```
+
+```{r Overwrite PowerBI CSVs, include = T, eval = T, message = F, warning = F, echo = F}
+source('C:/Users/Erik/Desktop/Programming/R/Sports/golf/dev/local/overwrite_csvs.R')
+```
+
 
 ### Compute Metrics
 

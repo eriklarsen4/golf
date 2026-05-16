@@ -10,7 +10,6 @@ performance trends and metric averages
 ``` r
 library(golf)
 library(tidyverse)
-library(lme4)
 library(DBI)
 library(duckdb)
 ```
@@ -332,6 +331,39 @@ type_of_shot <- c(
 
 ### Get Shot Metrics
 
+``` r
+con <- golf::get_db_connection()
+
+# if the data is newer than the last round in the 'club_metrics' table, append
+  # the new annotations (expands from 18 rows by the number determined from the 
+  # get_tracked_shots_data_shape function)
+
+if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM club_metrics ORDER BY date DESC LIMIT 1;")) |> 
+     dplyr::distinct(date) |> 
+     unlist() %>% 
+     lubridate::as_date(.) |> 
+     as.character() < round_date &
+     
+     length(hole_scores) > 0
+) {
+  length(club_choice)
+  club_metrics <- golf::harmonize_club_metrics(club_metrics = club_metrics_df,
+                                               club_choice = club_choice,
+                                               distance_to_target = dist_to_target,
+                                               distance_traveled = yds,
+                                               lie_type = lie_type,
+                                               target_status = target_status,
+                                               location = location,
+                                               type_of_shot = type_of_shot
+                                               )
+  club_metrics <- club_metrics |> 
+    dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x)))
+  head(club_metrics)
+}
+
+club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_shots))
+```
+
     ##    tracked_shots sum(tracked_shots)
     ## 1              3                 54
     ## 2              2                 54
@@ -530,15 +562,15 @@ head(scores_sum |>
 
     ## # A tibble: 6 × 26
     ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course  course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts`
-    ##   <date>     <chr>                <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>
-    ## 1 2026-04-26 "2026-04-26…          68.5             11       5           0       NaN               5          38.5   38.5     3            0   16.7    36            1.67    19            55
-    ## 2 2026-04-19 "2026-04-19…          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56
-    ## 3 2026-04-05 "2026-04-05…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52
-    ## 4 2026-03-29 "2026-03-29…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46
-    ## 5 2026-03-08 "2026-03-08…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45
-    ## 6 2026-02-22 "2026-02-22…          68.5             10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52
-    ## # ℹ 9 more variables: `UpDown%` <dbl>, pars <int>, birdies <int>, bogies <int>, `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>, `UpAndDown%` <dbl>
+    ##   date       date_course course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties `Gross Score`
+    ##   <date>     <chr>               <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>      <int>     <int>         <dbl>
+    ## 1 2026-04-26 "2026-04-2…          68.5             11       5           0       NaN               5          38.5   38.5     3            0   16.7    36            1.67    19            55      15.4     4       1      7          6         2            92
+    ## 2 2026-04-19 "2026-04-1…          71.7             11       3           0       NaN               3          21.4   21.4     4            1   22.2    36            2       20            56      15.4     6       0      8          4         0            91
+    ## 3 2026-04-05 "2026-04-0…          71.7             11       6           0         0               6          46.2   42.9     3            1   16.7    31            2       21            52      20       6       0      9          3         2            88
+    ## 4 2026-03-29 "2026-03-2…          70.3             10       5           2        66.7             3          30     38.5     7            1   38.9    31            1.71    15            46      20       7       2      5          4         1            82
+    ## 5 2026-03-08 "2026-03-0…          71.7             10       2           0         0               2          16.7   14.3     7            2   38.9    33            2.14    12            45      30       9       0      6          3         1            84
+    ## 6 2026-02-22 "2026-02-2…          68.5             10.1     7           1        33.3             6          60     53.8     3            1   16.7    34            2       18            52      16.7     5       0      7          6         0            92
+    ## # ℹ 2 more variables: `Net Score` <dbl>, `UpAndDown%` <dbl>
 
 ### View Metrics
 

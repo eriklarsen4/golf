@@ -66,7 +66,7 @@ Gather and format from the database
 con <- golf::get_db_connection()
 
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
-  "SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
+  "SELECT DISTINCT r.*, c.par, c.course_rating, c.slope FROM rounds r
   INNER JOIN courses c
   ON c.tees = r.tees
   AND c.course_name = r.course_name
@@ -291,58 +291,47 @@ gross_lmer <- lme4::lmer(
     `Gross Score` ~
     `Handicap Index`*course_rating +
     days +
-    (1 + `Handicap Index` + days|course) # random intercepts and random slopes for Gross Score at a course given a day in time
-           )
+    (1 + `Handicap Index`|course) #+ # random intercepts and random slopes for Gross Score at a given course, given a certain index
+    # (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a given course difficulty, given a certain index
+           ) # somewhat redundant
 ```
 
 #### LMER Model Summary
 
     ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: `Gross Score` ~ `Handicap Index` * course_rating + days + (1 +      `Handicap Index` + days | course)
-    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
-    ##     replacement = ""), `Handicap Index` = -`Handicap Index` -      mean(-`Handicap Index`), days = as.numeric(as.Date(date) -  
-    ##     min(as.Date(date)) + 1, units = "days")), days, .after = date)
+    ## Formula: `Gross Score` ~ `Handicap Index` * course_rating + days + (1 +      `Handicap Index` | course)
+    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",      replacement = ""), `Handicap Index` = -`Handicap Index` -  
+    ##     mean(-`Handicap Index`), days = as.numeric(as.Date(date) -      min(as.Date(date)) + 1, units = "days")), days, .after = date)
     ## 
     ## REML criterion at convergence: 180
     ## 
     ## Scaled residuals: 
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.55724 -0.73198 -0.02026  0.55039  1.53239 
+    ## -1.58890 -0.71861 -0.01928  0.60278  1.62038 
     ## 
     ## Random effects:
-    ##  Groups   Name             Variance  Std.Dev. Corr       
-    ##  course   (Intercept)      7.648e+01 8.74513             
-    ##           `Handicap Index` 9.974e+00 3.15821  -0.97      
-    ##           days             1.012e-04 0.01006  -0.09 -0.17
-    ##  Residual                  1.048e+01 3.23794             
+    ##  Groups   Name             Variance Std.Dev. Corr 
+    ##  course   (Intercept)      84.954   9.217         
+    ##           `Handicap Index`  7.923   2.815    -1.00
+    ##  Residual                  10.752   3.279         
     ## Number of obs: 32, groups:  course, 5
     ## 
     ## Fixed effects:
     ##                                Estimate Std. Error t value
-    ## (Intercept)                    97.05331    4.87876  19.893
-    ## `Handicap Index`               -1.16090    1.73575  -0.669
-    ## course_rating                   4.62819    1.34584   3.439
-    ## days                           -0.02728    0.01177  -2.318
-    ## `Handicap Index`:course_rating -3.73634    0.79785  -4.683
+    ## (Intercept)                    97.12733    5.03273  19.299
+    ## `Handicap Index`               -1.03732    1.58027  -0.656
+    ## course_rating                   4.79617    1.31356   3.651
+    ## days                           -0.02654    0.01028  -2.582
+    ## `Handicap Index`:course_rating -3.60930    0.75566  -4.776
     ## 
     ## Correlation of Fixed Effects:
     ##             (Intr) `HInd` crs_rt days  
-    ## `HndcpIndx` -0.703                     
-    ## course_rtng  0.478 -0.347              
-    ## days        -0.496 -0.155 -0.467       
-    ## `HIndx`:cr_ -0.374  0.326 -0.783  0.252
+    ## `HndcpIndx` -0.715                     
+    ## course_rtng  0.469 -0.334              
+    ## days        -0.496 -0.107 -0.576       
+    ## `HIndx`:cr_ -0.359  0.315 -0.776  0.300
     ## optimizer (nloptwrap) convergence code: 0 (OK)
     ## boundary (singular) fit: see help('isSingular')
-
-#### Export Model Results to db
-
-``` r
-golf::export_lm_round_predictions(
-  model = gross_lmer,
-  scores_sum = scores_sum |> 
-    dplyr::mutate(date = as.character(date))
-)
-```
 
 ### Model Interpretations
 
@@ -353,15 +342,15 @@ golf::export_lm_round_predictions(
 The model’s estimated average *first* `Gross Score` (**`(Intercept)`
 `Estimate` of `Fixed effects`**) at my average `Handicap Index` and
 average `course_rating` at `Arizona National` (default reference course)
-is **97.05**.
+is **97.13**.
 
 My average `Gross Score`, however, is **85.59**.
 
 ##### Handicap Index
 
-For every additional `Handicap Index` point worse (higher) than my
-average `Handicap Index`, my expected `Gross Score` increases by
-**1.16** strokes.
+For every additional `Handicap Index` point improvement (lower) than my
+average `Handicap Index`, my expected `Gross Score` decreases by
+**1.04** strokes.
 
 - This makes sense because `Gross Score` is used to directly determine
   `Handicap Index` and is positively correlated:
@@ -378,7 +367,7 @@ average `Handicap Index`, my expected `Gross Score` increases by
 
     - `Handicap Index` corrects for skill-level
 
-  - The effect is significant (**`t value` = -0.67**; significance :
+  - The effect is not significant (**`t value` = -0.66**; significance :
     abs(**t value**) \> 1)
 
   - Again, `Handicap Index` is a metric *directly derived from*
@@ -393,7 +382,7 @@ average `Handicap Index`, my expected `Gross Score` increases by
 
 For every additional `course_rating` point (aka, a stroke) greater than
 the average `course_rating` (~69-70 strokes in this dataset),
-`Gross Score` increases by **4.63** strokes (it decreases).
+`Gross Score` increases by **4.8** strokes (it decreases).
 
 - This also makes sense: harder courses should yield higher
   `Gross Score`s
@@ -411,16 +400,14 @@ strokes
   limit to lowering `Gross Score` and there will also be variation in
   the process
 
-- But this effect is strongly significant (**t value =** **-2.32**) and
+- But this effect is strongly significant (**t value =** **-2.58**) and
   appears to be the primary driver of the trend
 
 ##### Handicap Index\*Course Rating Interaction
 
-For every additional `Handicap Index` point worse (higher) than my
-average `Handicap Index` **along with** every additional `course_rating`
-point harder (above) the average course rating, the expected increase in
-my `Gross Score` is reduced by **3.74** strokes relative to what the two
-effects would contribute independently.
+As `course_rating` increases by 1 stroke above average, the effect of
+`Handicap Index` on my expected `Gross Score` is **3.61** strokes less
+than what the two effects would contribute independently.
 
 - In other words: hard courses already impose a big penalty, so the
   *extra* penalty by playing worse than average is smaller
@@ -436,7 +423,7 @@ effects would contribute independently.
 ##### Course, Handicap Index, and Time
 
 These `courses` vary in their difficulty, independent of player skill
-(`Handicap Index`), by ~ **+/- 8.75** strokes. This value is the
+(`Handicap Index`), by ~ **+/- 9.22** strokes. This value is the
 **`Random effects` `Std. Dev.` (`Intercept`) from the model summary**–
 the `Std.Dev.` of the course-level random intercepts, representing how
 much each course shifts my baseline expected `Gross Score` up or down
@@ -447,11 +434,11 @@ relative to the overall average, *even after accounting for
 
 Interestingly, `courses` also differ slightly in how sensitive they are
 to my `Handicap Index`, with a random-slope standard deviation of **+/-
-3.16** strokes per index point.
+2.81** strokes per index point.
 
 While there is a fair amount of variability in `Gross Score` driven by
 the `course`, there is also just a large amount of variability in
-`Gross Score`, overall: **3.24**. This is the `Random effects`
+`Gross Score`, overall: **3.28**. This is the `Random effects`
 `Residual` `Std.Dev.` from the model summary.
 
 ### Predict the Next Round
@@ -467,7 +454,7 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   round(., 0)
 ```
 
-    ## [1] 76
+    ## [1] 81
 
 #### Plot the Model
 

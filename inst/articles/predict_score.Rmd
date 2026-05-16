@@ -64,6 +64,8 @@ knitr::opts_chunk$set(
 real_db <- fs::path_abs("inst/extdata/golf.duckdb")
 # real_db <- fs::path_abs(paste0(getwd(), "../../inst/extdata/golf.duckdb"))
 con <- golf::get_db_connection(db_path = real_db)
+
+golf::refresh_dev_tables()
 ```
 
 ### Gather Data and Format Scores {.tabset .tabset-pills .tabset-fade}
@@ -81,12 +83,12 @@ library(DBI)
 
 Gather and format from the database
 
-```{r Summarize Metrics, include = T, message = F, warning = F, echo = T, echo = T}
+```{r Summarize Metrics out, include = T, message = F, warning = F, echo = T, eval = F}
 ## connect to the db
 con <- golf::get_db_connection()
 
 scores <- DBI::dbGetQuery(conn = con, statement = paste0(
-  "SELECT DISTINCT r.*, c.par, c.course_rating FROM rounds r
+  "SELECT DISTINCT r.*, c.par, c.course_rating, c.slope FROM rounds r
   INNER JOIN courses c
   ON c.tees = r.tees
   AND c.course_name = r.course_name
@@ -105,6 +107,32 @@ scores <- DBI::dbGetQuery(conn = con, statement = paste0(
   dplyr::arrange(desc(date), hole) |> 
   dplyr::ungroup()
 ```
+
+```{r Summarize Metrics in, include = T, message = F, warning = F, echo = F, eval = T}
+## connect to the db
+con <- golf::get_db_connection()
+
+scores <- DBI::dbGetQuery(conn = con, statement = paste0(
+  "SELECT DISTINCT r.*, c.par, c.course_rating, c.slope FROM dev_rounds r
+  INNER JOIN courses c
+  ON c.tees = r.tees
+  AND c.course_name = r.course_name
+  AND c.hole = r.hole
+  INNER JOIN players p
+  ON r.GHIN = p.GHIN
+  AND r.handicap_index = p.handicap_index
+  AND r.date = p.date;"
+)) |> 
+  dplyr::mutate(date = lubridate::as_date(date), # convert strings to date's
+                hole = gsub(hole, pattern = 'hole_', replacement = '') |> # enforce hole order
+                  as.numeric()) |> 
+  dplyr::relocate(par, .after = hole) |> 
+  dplyr::relocate(course_rating, .after = tees) |>
+  dplyr::group_by(date) |> 
+  dplyr::arrange(desc(date), hole) |> 
+  dplyr::ungroup()
+```
+
 
 #### Compute Metrics
 
@@ -271,7 +299,7 @@ head(ball_striking_metrics |>
 
 Yardage and accuracy on tracked shots
 
-```{r Stroke Quality, include = T, warning= F, message = F, echo = T}
+```{r Stroke Quality out, include = T, warning= F, message = F, echo = T, eval = F}
 ## connect to the db
 con <- golf::get_db_connection()
 
@@ -287,6 +315,24 @@ stroke_quality <- DBI::dbGetQuery(conn = con,
 head(stroke_quality |> 
        dplyr::arrange(desc(date)))
 ```
+
+```{r Stroke Quality in, include = T, warning = F, message = F, echo = F, eval = T}
+## connect to the db
+con <- golf::get_db_connection()
+
+stroke_quality <- DBI::dbGetQuery(conn = con,
+                                  statement = paste0("SELECT DISTINCT * FROM dev_club_metrics;")) |>
+  dplyr::mutate(date = lubridate::as_date(date),
+                hole = gsub(hole, pattern = 'hole_', replacement = ''),
+                hole = as.integer(hole)) |> 
+  dplyr::mutate(dplyr::across(dplyr::contains("yds"), ~as.integer(.x))) |> 
+  dplyr::rename(course = course_name) |> 
+  dplyr::group_by(date, hole, stroke) |> 
+  dplyr::arrange(date, hole, stroke)
+head(stroke_quality |> 
+       dplyr::arrange(desc(date)))
+```
+
 
 ```{r Stroke Quality Metrics, include = F, warning = F, message = F, echo = F}
 stroke_quality_min <- stroke_quality |> 
@@ -332,8 +378,9 @@ gross_lmer <- lme4::lmer(
     `Gross Score` ~
     `Handicap Index`*course_rating +
     days +
-    (1 + `Handicap Index` + days|course) # random intercepts and random slopes for Gross Score at a course given a day in time
-           )
+    (1 + `Handicap Index`|course) #+ # random intercepts and random slopes for Gross Score at a given course, given a certain index
+    # (1 + `Handicap Index`|course_rating) # random intercepts and random slopes for Gross Score at a given course difficulty, given a certain index
+           ) # somewhat redundant
 ```
 
 #### LMER Model Summary
@@ -345,16 +392,6 @@ summary(gross_lmer)
 vc_df <- gross_lmer |> 
   brms::VarCorr() |> 
   as.data.frame()
-```
-
-#### Export Model Results to db
-
-```{r Export Model Results to db, include = T, message = F, warning = F, eval = F, echo = T}
-golf::export_lm_round_predictions(
-  model = gross_lmer,
-  scores_sum = scores_sum |> 
-    dplyr::mutate(date = as.character(date))
-)
 ```
 
 ### Model Interpretations {.tabset .tabset-pills .tabset-fade}
@@ -369,7 +406,7 @@ My average `Gross Score`, however, is **`r scores_sum |> dplyr::ungroup() |> dpl
 
 ##### Handicap Index
 
-For every additional `Handicap Index` point worse (higher) than my average `Handicap Index`, my expected `Gross Score` increases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2) |> abs()`** strokes.
+For every additional `Handicap Index` point improvement (lower) than my average `Handicap Index`, my expected `Gross Score` decreases by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(2) |> unlist() |> as.numeric() %>% round(., 2) |> abs()`** strokes.
 
 + This makes sense because `Gross Score` is used to directly determine `Handicap Index` and is positively correlated:
 
@@ -381,7 +418,8 @@ For every additional `Handicap Index` point worse (higher) than my average `Hand
   
     + `Handicap Index` corrects for skill-level
 
-  + The effect is significant (**`t value` = `r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1)
+  + The effect is `r if (stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(4) |> as.numeric() |> abs() > 1) { paste0('significant') } else { paste0('not significant') }` 
+  (**`t value` = `r stats::coef(summary(gross_lmer)) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::filter(grepl(coef, pattern = 'Index.$')) |> dplyr::select(dplyr::contains("value")) |> unlist() |> as.numeric() %>% round(., 2)`**; significance : abs(**t value**) > 1)
   
   + Again, `Handicap Index` is a metric *directly derived from* `Gross Score`
   
@@ -407,7 +445,7 @@ For every additional `day` in time, my `Gross Score` drops by **`r nlme::fixed.e
   
 ##### Handicap Index*Course Rating Interaction
 
-For every additional `Handicap Index` point worse (higher) than my average `Handicap Index` **along with** every additional `course_rating` point harder (above) the average course rating, the expected increase in my `Gross Score` is reduced by **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::slice_tail() |>  dplyr::select(2) |> unlist() |> as.numeric() %>% abs() %>% round(.,2)`** strokes relative to what the two effects would contribute independently.
+As `course_rating` increases by 1 stroke above average, the effect of `Handicap Index` on my expected `Gross Score` is **`r nlme::fixed.effects(gross_lmer) |> as.data.frame() |> tibble::rownames_to_column('coef') |> dplyr::slice_tail() |>  dplyr::select(2) |> unlist() |> as.numeric() %>% abs() %>% round(.,2)`** strokes less than what the two effects would contribute independently.
 
   + In other words: hard courses already impose a big penalty, so the *extra* penalty by playing worse than average is smaller
   + Related: easier courses impose a larger *extra* penalty by playing worse than average
@@ -479,8 +517,8 @@ new_df <- DBI::dbGetQuery(
       dplyr::mutate(days = as.numeric(date - min(date) + 1, units = 'days')) |> 
       dplyr::slice_tail() |> 
       dplyr::select(days) |> unlist() |> as.numeric()) |> 
-  dplyr::mutate(course_rating = ((course_rating + course_rating_mean)/2) - course_rating,
-                `Handicap Index` = ((`Handicap Index` + index_mean)/2) - `Handicap Index`) |> 
+  dplyr::mutate(course_rating = course_rating - ((course_rating + course_rating_mean)/2),
+                `Handicap Index` = `Handicap Index` - ((`Handicap Index` + index_mean)/2)) |> 
   dplyr::select(-course_rating_mean, -index_mean) |> 
   dplyr::rename(course = course_name)
 ```
