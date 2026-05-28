@@ -28,13 +28,13 @@ get_tracked_shots_data_shape <- function(round_date){
   
   con <- golf::get_db_connection() 
   
-  club_metrics_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM rounds;")) |>
+  club_metrics_df <- DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM dev_rounds;")) |>
     dplyr::mutate(date = as.character(.data$date)) |>
     dplyr::filter(grepl(.data$date, pattern = round_date)) |> 
     dplyr::mutate(tracked_shots = .data$gross - .data$putts - .data$penalties ) |> 
     dplyr::full_join(
-      DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT r.*, c.par FROM rounds r
-                                                   INNER JOIN courses c
+      DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT r.*, c.par FROM dev_rounds r
+                                                   INNER JOIN dev_courses c
                                                    ON r.course_name = c.course_name
                                                    AND r.tees = c.tees
                                                    AND r.hole = c.hole;")) |> 

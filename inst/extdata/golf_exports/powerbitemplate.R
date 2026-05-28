@@ -1040,12 +1040,12 @@ full_stroke_quality_w_lie <- stroke_quality |>
   dplyr::filter(grepl(shot_type, pattern = 'full|tee')) |>
   dplyr::group_by(club, lie) |>
   dplyr::summarize(
-    avg_yds_to_target = round(mean(yds_to_target), 1),
-    avg_yds_traveled  = round(mean(yds_traveled), 1),
-    sd_yds_traveled   = round(sd(yds_traveled), 1),
-    avg_yd_diff       = round(mean(yd_diff), 1),
-    avg_accuracy      = round((sum(on_target) / dplyr::n()) * 100, 2),
-    sd_accuracy       = round((sd(on_target) / dplyr::n()) * 100, 2),
+    avg_yds_to_target = round(mean(yds_to_target, na.rm = T), 1),
+    avg_yds_traveled  = round(mean(yds_traveled, na.rm = T), 1),
+    sd_yds_traveled   = round(sd(yds_traveled, na.rm = T), 1),
+    avg_yd_diff       = round(mean(yd_diff, na.rm = T), 1),
+    avg_accuracy      = round((sum(on_target, na.rm = T) / dplyr::n()) * 100, 2),
+    sd_accuracy       = round((sd(on_target, na.rm = T) / dplyr::n()) * 100, 2),
     n                 = dplyr::n()
   ) |>
   dplyr::rename(`club strokes` = n)

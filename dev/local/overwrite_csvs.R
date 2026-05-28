@@ -1,3 +1,7 @@
+# print(getwd())
+export_dir <- "C:/Users/Erik/Desktop/Programming/R/Sports/golf/inst/extdata/golf_exports"
+# print(export_dir)
+
 overwrite_csvs <- function(db_path = NULL) {
   
   con <- golf::get_db_connection(db_path)
@@ -40,7 +44,7 @@ overwrite_csvs <- function(db_path = NULL) {
     dplyr::pull()
   
   
-  pbi <- dir(file.path("inst", "extdata", "golf_exports"), pattern = paste0(tables, '\\.csv', collapse = "|"), full.names = T) # all tables used by power bi
+  pbi <- dir(export_dir, pattern = paste0(tbls_to_check, "\\.csv", collapse = "|"), full.names = TRUE) # all tables used by power bi
   
   most_recent_round_date_pbi <- lapply(pbi, function(x){
     readr::read_csv(x, col_names = T, show_col_types = F) |> 
@@ -65,23 +69,27 @@ overwrite_csvs <- function(db_path = NULL) {
   # conditional overwrite
   for (t in tbls_to_check) {
     
-    # skip unmatched .csv / db tables
-    if ( !(t %in% names(most_recent_round_date_pbi)) ) {
-      next
-    }
+    # skip if no matching CSV
+    if (!(t %in% names(most_recent_round_date_pbi))) next
     
-    if ( most_recent_round_date_pbi[[t]]  < most_recent_round_date_db[[t]]
-    ) {
+    if (TRUE) {
       
-      out_file <- pbi[basename(pbi) == paste0(t,".csv")]
+      # print(paste("Checking table:", t))
+      # print(paste("DB date:", most_recent_round_date_db[[t]]))
+      # print(paste("CSV date:", most_recent_round_date_pbi[[t]]))
       
-      utils::write.csv(x = DBI::dbGetQuery(conn = con,
-                                           statement = paste0("SELECT DISTINCT * FROM ", t, ";")),
-                       file = out_file,
-                       append = F,
-                       row.names = F, 
-                       col.names = T)
+      out_file <- file.path(export_dir, paste0(t, ".csv"))
+      
+      utils::write.csv(
+        DBI::dbGetQuery(con, paste0("SELECT * FROM ", t)),
+        file = out_file,
+        row.names = FALSE
+      )
     }
   }
   
+}
+
+if (identical(environment(), globalenv())) {
+  overwrite_csvs()
 }

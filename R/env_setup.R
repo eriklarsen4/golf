@@ -26,14 +26,14 @@ get_db_connection <- function(db_path = NULL) {
     }
   }
   
-  db_path <- normalizePath(db_path, mustWork = FALSE)
+  db_path <- normalizePath(db_path, mustWork = F)
   
   # Reuse existing connection if valid and same file
   if (!is.null(pkg_env$con)) {
-    valid <- tryCatch(DBI::dbIsValid(pkg_env$con), error = function(e) FALSE)
+    valid <- tryCatch(DBI::dbIsValid(pkg_env$con), error = function(e) F)
     if (valid) {
       current <- tryCatch(
-        normalizePath(DBI::dbGetInfo(pkg_env$con)$dbname, mustWork = FALSE),
+        normalizePath(DBI::dbGetInfo(pkg_env$con)$dbname, mustWork = F),
         error = function(e) NA_character_
       )
       if (identical(current, db_path)) {
@@ -41,11 +41,11 @@ get_db_connection <- function(db_path = NULL) {
       }
     }
     if (DBI::dbIsValid(pkg_env$con)) {
-      try(DBI::dbDisconnect(pkg_env$con, shutdown = TRUE), silent = TRUE)
+      try(DBI::dbDisconnect(pkg_env$con, shutdown = T), silent = T)
     }
   }
   
   # Open new connection
-  pkg_env$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+  pkg_env$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = F)
   pkg_env$con
 }

@@ -99,14 +99,14 @@ validate_dev_tables <- function(db_path = NULL) {
       messages[["dev_rounds"]] <- "Contains impossible gross scores (<40 or >200)."
     }
     
-    if (all(c("date", "course_name") %in% names(rounds))) {
+    if (all(c("GHIN", "date", "course_name", "hole") %in% names(rounds))) {
       dupes <- rounds |>
-        dplyr::count(.data$date, .data$course_name) |>
+        dplyr::count(.data$GHIN, .data$date, .data$course_name, .data$hole) |>
         dplyr::filter(n > 1)
       
       if (nrow(dupes) > 0) {
         results[["dev_rounds"]]  <- FALSE
-        messages[["dev_rounds"]] <- "Duplicate rounds detected (date, course_name)."
+        messages[["dev_rounds"]] <- "Duplicate rounds detected (GHIN, date, course_name, hole)."
       }
     }
   }

@@ -25,14 +25,24 @@
 #' Returns \code{TRUE} invisibly if promotion succeeds.
 #'
 #' @import DBI
+#' @import duckdb
 #' @export
 promote_dev_to_production <- function(db_path = NULL) {
+  if (is.null(db_path)) {
+    stop("promote_dev_to_production() requires an explicit db_path")
+  }
   
-  con <- golf::get_db_connection(db_path)
-  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  con <- DBI::dbConnect(
+    duckdb::duckdb(dbdir = db_path, read_only = F)
+  )
   
-  # Validate first
-  validate_dev_tables()
+  # Validate before setting on.exit
+  golf::validate_dev_tables(db_path = db_path)
+  
+  # ensure connection closes only when function fully exits
+  on.exit({
+    try(DBI::dbDisconnect(con, shutdown = T), silent = T)
+  }, add = T)
   
   table_pairs <- list(
     dev_rounds       = "rounds",
@@ -58,8 +68,8 @@ promote_dev_to_production <- function(db_path = NULL) {
         con,
         prod_tbl,
         data,
-        append = TRUE,
-        row.names = FALSE
+        append = T,
+        row.names = F
       )
     }
     
@@ -70,5 +80,5 @@ promote_dev_to_production <- function(db_path = NULL) {
     stop("Promotion failed: ", e$message)
   })
   
-  invisible(TRUE)
+  invisible(T)
 }
