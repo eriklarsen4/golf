@@ -2,16 +2,24 @@ FROM rocker/shiny:4.3.2
 
 WORKDIR /srv/shiny-server/app
 
-# copy the Shiny app
+# 1. Copy your Shiny app into the image
 COPY . .
 
-# copy the repo-root renv.lock into the image
-COPY ../renv.lock ./renv.lock
+# 2. Install the R packages
+RUN R -e "install.packages(c(
+  'shiny',
+  'shinyWidgets',
+  'dplyr',
+  'ggplot2',
+  'data.table',
+  'plotly',
+  'bslib',
+  'tibble',
+  'utils',
+  'apexcharter',
+  'ggridges',
+), repos='https://cloud.r-project.org')"
 
-# install renv + restore
-RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
-RUN R -e "renv::restore()"
-
+# 3. Expose port + run shiny-server
 EXPOSE 3838
-
 CMD ["/usr/bin/shiny-server"]

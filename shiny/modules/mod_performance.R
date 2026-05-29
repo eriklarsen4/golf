@@ -91,7 +91,7 @@ mod_performance_server <- function(id, data) {
       
       df <- data()
       
-      p <- base::switch(
+      p <- switch(
         input$metric_choice,
         
         "FIR %" = make_scatter(
