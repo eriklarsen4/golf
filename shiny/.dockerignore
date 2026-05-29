@@ -1,0 +1,15 @@
+# Ignore everything outside this directory
+../*
+
+# Allow this directory
+!./*
+
+# Allow the repo-root renv.lock (explicit COPY in Dockerfile)
+!../renv.lock
+
+# Local junk
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store

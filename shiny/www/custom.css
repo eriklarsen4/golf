@@ -1,0 +1,18 @@
+.kpi-card {
+  background-color: #f8f9fa;
+    border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.kpi-card h2 {
+  color: #003f87;
+    font-weight: 700;
+  margin: 0;
+}
+
+.kpi-card h4 {
+  margin: 0;
+  font-weight: 600;
+}
