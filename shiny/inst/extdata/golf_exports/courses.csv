@@ -1,0 +1,505 @@
+"course_name","tees","to_par","slope","course_rating","hole","yds","par","hole_handicap"
+"El Rio","blue",70,124,69,"hole_1",394,4,12
+"El Rio","blue",70,124,69,"hole_2",406,4,6
+"El Rio","blue",70,124,69,"hole_3",427,4,4
+"El Rio","blue",70,124,69,"hole_4",117,3,18
+"El Rio","blue",70,124,69,"hole_5",442,4,2
+"El Rio","blue",70,124,69,"hole_6",189,3,16
+"El Rio","blue",70,124,69,"hole_7",376,4,8
+"El Rio","blue",70,124,69,"hole_8",343,4,14
+"El Rio","blue",70,124,69,"hole_9",511,5,10
+"El Rio","blue",70,124,69,"hole_10",353,4,13
+"El Rio","blue",70,124,69,"hole_11",446,4,1
+"El Rio","blue",70,124,69,"hole_12",344,4,17
+"El Rio","blue",70,124,69,"hole_13",203,3,7
+"El Rio","blue",70,124,69,"hole_14",322,4,11
+"El Rio","blue",70,124,69,"hole_15",366,4,15
+"El Rio","blue",70,124,69,"hole_16",417,4,5
+"El Rio","blue",70,124,69,"hole_17",219,3,3
+"El Rio","blue",70,124,69,"hole_18",561,5,9
+"Silverbell","blue",72,124,71,"hole_1",470,4,5
+"Silverbell","blue",72,124,71,"hole_2",559,5,3
+"Silverbell","blue",72,124,71,"hole_3",152,3,17
+"Silverbell","blue",72,124,71,"hole_4",497,4,9
+"Silverbell","blue",72,124,71,"hole_5",370,4,13
+"Silverbell","blue",72,124,71,"hole_6",220,3,11
+"Silverbell","blue",72,124,71,"hole_7",595,5,1
+"Silverbell","blue",72,124,71,"hole_8",450,4,7
+"Silverbell","blue",72,124,71,"hole_9",195,3,15
+"Silverbell","blue",72,124,71,"hole_10",383,4,14
+"Silverbell","blue",72,124,71,"hole_11",395,4,10
+"Silverbell","blue",72,124,71,"hole_12",200,3,18
+"Silverbell","blue",72,124,71,"hole_13",440,4,8
+"Silverbell","blue",72,124,71,"hole_14",465,4,4
+"Silverbell","blue",72,124,71,"hole_15",343,4,16
+"Silverbell","blue",72,124,71,"hole_16",237,3,12
+"Silverbell","blue",72,124,71,"hole_17",410,4,6
+"Silverbell","blue",72,124,71,"hole_18",555,5,2
+"Fred Enke","blue",72,130,71,"hole_1",401,4,12
+"Fred Enke","blue",72,130,71,"hole_2",547,5,6
+"Fred Enke","blue",72,130,71,"hole_3",211,3,8
+"Fred Enke","blue",72,130,71,"hole_4",321,4,16
+"Fred Enke","blue",72,130,71,"hole_5",402,4,4
+"Fred Enke","blue",72,130,71,"hole_6",151,3,18
+"Fred Enke","blue",72,130,71,"hole_7",345,4,14
+"Fred Enke","blue",72,130,71,"hole_8",393,4,2
+"Fred Enke","blue",72,130,71,"hole_9",495,5,10
+"Fred Enke","blue",72,130,71,"hole_10",368,4,13
+"Fred Enke","blue",72,130,71,"hole_11",223,3,9
+"Fred Enke","blue",72,130,71,"hole_12",507,5,5
+"Fred Enke","blue",72,130,71,"hole_13",340,4,15
+"Fred Enke","blue",72,130,71,"hole_14",553,5,3
+"Fred Enke","blue",72,130,71,"hole_15",157,3,17
+"Fred Enke","blue",72,130,71,"hole_16",388,4,11
+"Fred Enke","blue",72,130,71,"hole_17",375,4,7
+"Fred Enke","blue",72,130,71,"hole_18",452,4,1
+"Arizona National","blue",71,132,68,"hole_1",344,4,10
+"Arizona National","blue",71,132,68,"hole_2",518,5,2
+"Arizona National","blue",71,132,68,"hole_3",302,4,18
+"Arizona National","blue",71,132,68,"hole_4",168,3,8
+"Arizona National","blue",71,132,68,"hole_5",489,5,4
+"Arizona National","blue",71,132,68,"hole_6",138,3,16
+"Arizona National","blue",71,132,68,"hole_7",359,4,12
+"Arizona National","blue",71,132,68,"hole_8",292,4,14
+"Arizona National","blue",71,132,68,"hole_9",192,3,6
+"Arizona National","blue",71,132,68,"hole_10",412,4,3
+"Arizona National","blue",71,132,68,"hole_11",547,5,1
+"Arizona National","blue",71,132,68,"hole_12",169,3,17
+"Arizona National","blue",71,132,68,"hole_13",435,4,9
+"Arizona National","blue",71,132,68,"hole_14",387,4,7
+"Arizona National","blue",71,132,68,"hole_15",376,4,5
+"Arizona National","blue",71,132,68,"hole_16",335,4,13
+"Arizona National","blue",71,132,68,"hole_17",172,3,11
+"Arizona National","blue",71,132,68,"hole_18",497,5,15
+"Quarry Pines","blue",71,135,71,"hole_1",524,5,5
+"Quarry Pines","blue",71,135,71,"hole_2",332,4,11
+"Quarry Pines","blue",71,135,71,"hole_3",417,4,3
+"Quarry Pines","blue",71,135,71,"hole_4",320,4,9
+"Quarry Pines","blue",71,135,71,"hole_5",490,4,7
+"Quarry Pines","blue",71,135,71,"hole_6",200,3,15
+"Quarry Pines","blue",71,135,71,"hole_7",501,5,1
+"Quarry Pines","blue",71,135,71,"hole_8",202,3,13
+"Quarry Pines","blue",71,135,71,"hole_9",302,4,17
+"Quarry Pines","blue",71,135,71,"hole_10",334,4,8
+"Quarry Pines","blue",71,135,71,"hole_11",256,3,10
+"Quarry Pines","blue",71,135,71,"hole_12",574,5,2
+"Quarry Pines","blue",71,135,71,"hole_13",368,4,16
+"Quarry Pines","blue",71,135,71,"hole_14",405,4,6
+"Quarry Pines","blue",71,135,71,"hole_15",134,3,18
+"Quarry Pines","blue",71,135,71,"hole_16",561,5,4
+"Quarry Pines","blue",71,135,71,"hole_17",197,3,14
+"Quarry Pines","blue",71,135,71,"hole_18",365,4,12
+"Crooked Tree","blue",72,133,72,"hole_1",370,4,4
+"Crooked Tree","blue",72,133,72,"hole_2",170,3,18
+"Crooked Tree","blue",72,133,72,"hole_3",373,4,10
+"Crooked Tree","blue",72,133,72,"hole_4",575,5,8
+"Crooked Tree","blue",72,133,72,"hole_5",375,4,14
+"Crooked Tree","blue",72,133,72,"hole_6",485,4,12
+"Crooked Tree","blue",72,133,72,"hole_7",134,3,16
+"Crooked Tree","blue",72,133,72,"hole_8",550,5,2
+"Crooked Tree","blue",72,133,72,"hole_9",396,4,6
+"Crooked Tree","blue",72,133,72,"hole_10",381,4,9
+"Crooked Tree","blue",72,133,72,"hole_11",527,5,7
+"Crooked Tree","blue",72,133,72,"hole_12",360,4,11
+"Crooked Tree","blue",72,133,72,"hole_13",175,3,15
+"Crooked Tree","blue",72,133,72,"hole_14",429,4,5
+"Crooked Tree","blue",72,133,72,"hole_15",590,5,1
+"Crooked Tree","blue",72,133,72,"hole_16",252,3,17
+"Crooked Tree","blue",72,133,72,"hole_17",375,4,3
+"Crooked Tree","blue",72,133,72,"hole_18",443,4,13
+"El Rio","combo",70,121,68,"hole_1",394,4,12
+"El Rio","combo",70,121,68,"hole_2",373,4,6
+"El Rio","combo",70,121,68,"hole_3",400,4,4
+"El Rio","combo",70,121,68,"hole_4",117,3,18
+"El Rio","combo",70,121,68,"hole_5",418,4,2
+"El Rio","combo",70,121,68,"hole_6",158,3,16
+"El Rio","combo",70,121,68,"hole_7",376,4,8
+"El Rio","combo",70,121,68,"hole_8",343,4,14
+"El Rio","combo",70,121,68,"hole_9",492,5,10
+"El Rio","combo",70,121,68,"hole_10",323,4,13
+"El Rio","combo",70,121,68,"hole_11",425,4,1
+"El Rio","combo",70,121,68,"hole_12",344,4,17
+"El Rio","combo",70,121,68,"hole_13",176,3,7
+"El Rio","combo",70,121,68,"hole_14",322,4,11
+"El Rio","combo",70,121,68,"hole_15",366,4,15
+"El Rio","combo",70,121,68,"hole_16",388,4,5
+"El Rio","combo",70,121,68,"hole_17",193,3,3
+"El Rio","combo",70,121,68,"hole_18",534,5,9
+"Silverbell","combo",72,120,70,"hole_1",440,4,5
+"Silverbell","combo",72,120,70,"hole_2",559,5,3
+"Silverbell","combo",72,120,70,"hole_3",152,3,17
+"Silverbell","combo",72,120,70,"hole_4",455,4,9
+"Silverbell","combo",72,120,70,"hole_5",370,4,13
+"Silverbell","combo",72,120,70,"hole_6",186,3,11
+"Silverbell","combo",72,120,70,"hole_7",595,5,1
+"Silverbell","combo",72,120,70,"hole_8",395,4,7
+"Silverbell","combo",72,120,70,"hole_9",177,3,15
+"Silverbell","combo",72,120,70,"hole_10",383,4,14
+"Silverbell","combo",72,120,70,"hole_11",395,4,10
+"Silverbell","combo",72,120,70,"hole_12",178,3,18
+"Silverbell","combo",72,120,70,"hole_13",420,4,8
+"Silverbell","combo",72,120,70,"hole_14",430,4,4
+"Silverbell","combo",72,120,70,"hole_15",343,4,16
+"Silverbell","combo",72,120,70,"hole_16",214,3,12
+"Silverbell","combo",72,120,70,"hole_17",410,4,6
+"Silverbell","combo",72,120,70,"hole_18",555,5,2
+"Randolph North","combo",72,123,70,"hole_1",365,4,7
+"Randolph North","combo",72,123,70,"hole_2",337,4,9
+"Randolph North","combo",72,123,70,"hole_3",550,5,11
+"Randolph North","combo",72,123,70,"hole_4",412,4,1
+"Randolph North","combo",72,123,70,"hole_5",411,4,3
+"Randolph North","combo",72,123,70,"hole_6",136,3,13
+"Randolph North","combo",72,123,70,"hole_7",373,4,15
+"Randolph North","combo",72,123,70,"hole_8",181,3,5
+"Randolph North","combo",72,123,70,"hole_9",469,5,17
+"Randolph North","combo",72,123,70,"hole_10",411,4,2
+"Randolph North","combo",72,123,70,"hole_11",187,3,14
+"Randolph North","combo",72,123,70,"hole_12",388,4,10
+"Randolph North","combo",72,123,70,"hole_13",480,5,16
+"Randolph North","combo",72,123,70,"hole_14",432,4,8
+"Randolph North","combo",72,123,70,"hole_15",172,3,6
+"Randolph North","combo",72,123,70,"hole_16",560,5,18
+"Randolph North","combo",72,123,70,"hole_17",368,4,12
+"Randolph North","combo",72,123,70,"hole_18",407,4,4
+"Dell Urich","combo",70,120,68,"hole_1",373,4,9
+"Dell Urich","combo",70,120,68,"hole_2",170,3,5
+"Dell Urich","combo",70,120,68,"hole_3",557,5,13
+"Dell Urich","combo",70,120,68,"hole_4",299,4,17
+"Dell Urich","combo",70,120,68,"hole_5",156,3,11
+"Dell Urich","combo",70,120,68,"hole_6",540,5,15
+"Dell Urich","combo",70,120,68,"hole_7",402,4,1
+"Dell Urich","combo",70,120,68,"hole_8",437,4,3
+"Dell Urich","combo",70,120,68,"hole_9",170,3,7
+"Dell Urich","combo",70,120,68,"hole_10",390,4,10
+"Dell Urich","combo",70,120,68,"hole_11",173,3,16
+"Dell Urich","combo",70,120,68,"hole_12",411,4,6
+"Dell Urich","combo",70,120,68,"hole_13",515,5,18
+"Dell Urich","combo",70,120,68,"hole_14",427,4,4
+"Dell Urich","combo",70,120,68,"hole_15",360,4,14
+"Dell Urich","combo",70,120,68,"hole_16",380,4,8
+"Dell Urich","combo",70,120,68,"hole_17",137,3,12
+"Dell Urich","combo",70,120,68,"hole_18",439,4,2
+"Fred Enke","combo",72,NA,70,"hole_1",368,4,12
+"Fred Enke","combo",72,NA,70,"hole_2",176,5,6
+"Fred Enke","combo",72,NA,70,"hole_3",466,3,8
+"Fred Enke","combo",72,NA,70,"hole_4",340,4,16
+"Fred Enke","combo",72,NA,70,"hole_5",553,4,4
+"Fred Enke","combo",72,NA,70,"hole_6",122,3,18
+"Fred Enke","combo",72,NA,70,"hole_7",388,4,14
+"Fred Enke","combo",72,NA,70,"hole_8",375,4,2
+"Fred Enke","combo",72,NA,70,"hole_9",412,5,10
+"Fred Enke","combo",72,NA,70,"hole_10",401,4,13
+"Fred Enke","combo",72,NA,70,"hole_11",508,3,9
+"Fred Enke","combo",72,NA,70,"hole_12",211,5,5
+"Fred Enke","combo",72,NA,70,"hole_13",300,4,15
+"Fred Enke","combo",72,NA,70,"hole_14",342,5,3
+"Fred Enke","combo",72,NA,70,"hole_15",151,3,17
+"Fred Enke","combo",72,NA,70,"hole_16",333,4,11
+"Fred Enke","combo",72,NA,70,"hole_17",393,4,7
+"Fred Enke","combo",72,NA,70,"hole_18",466,4,1
+"Arizona National","combo",71,127,67,"hole_1",344,4,10
+"Arizona National","combo",71,127,67,"hole_2",518,5,2
+"Arizona National","combo",71,127,67,"hole_3",302,4,18
+"Arizona National","combo",71,127,67,"hole_4",168,3,8
+"Arizona National","combo",71,127,67,"hole_5",489,5,4
+"Arizona National","combo",71,127,67,"hole_6",138,3,16
+"Arizona National","combo",71,127,67,"hole_7",359,4,12
+"Arizona National","combo",71,127,67,"hole_8",292,4,14
+"Arizona National","combo",71,127,67,"hole_9",192,3,6
+"Arizona National","combo",71,127,67,"hole_10",372,4,3
+"Arizona National","combo",71,127,67,"hole_11",477,5,1
+"Arizona National","combo",71,127,67,"hole_12",161,3,17
+"Arizona National","combo",71,127,67,"hole_13",377,4,9
+"Arizona National","combo",71,127,67,"hole_14",343,4,7
+"Arizona National","combo",71,127,67,"hole_15",346,4,5
+"Arizona National","combo",71,127,67,"hole_16",273,4,13
+"Arizona National","combo",71,127,67,"hole_17",131,3,11
+"Arizona National","combo",71,127,67,"hole_18",433,5,15
+"Quarry Pines","combo",71,127,68,"hole_1",485,5,5
+"Quarry Pines","combo",71,127,68,"hole_2",296,4,11
+"Quarry Pines","combo",71,127,68,"hole_3",388,4,3
+"Quarry Pines","combo",71,127,68,"hole_4",296,4,9
+"Quarry Pines","combo",71,127,68,"hole_5",411,4,7
+"Quarry Pines","combo",71,127,68,"hole_6",172,3,15
+"Quarry Pines","combo",71,127,68,"hole_7",467,5,1
+"Quarry Pines","combo",71,127,68,"hole_8",176,3,13
+"Quarry Pines","combo",71,127,68,"hole_9",276,4,17
+"Quarry Pines","combo",71,127,68,"hole_10",308,4,8
+"Quarry Pines","combo",71,127,68,"hole_11",183,3,10
+"Quarry Pines","combo",71,127,68,"hole_12",546,5,2
+"Quarry Pines","combo",71,127,68,"hole_13",340,4,16
+"Quarry Pines","combo",71,127,68,"hole_14",334,4,6
+"Quarry Pines","combo",71,127,68,"hole_15",115,3,18
+"Quarry Pines","combo",71,127,68,"hole_16",529,5,4
+"Quarry Pines","combo",71,127,68,"hole_17",177,3,14
+"Quarry Pines","combo",71,127,68,"hole_18",350,4,12
+"Crooked Tree","combo",72,129,70,"hole_1",370,4,4
+"Crooked Tree","combo",72,129,70,"hole_2",170,3,18
+"Crooked Tree","combo",72,129,70,"hole_3",373,4,10
+"Crooked Tree","combo",72,129,70,"hole_4",575,5,8
+"Crooked Tree","combo",72,129,70,"hole_5",375,4,14
+"Crooked Tree","combo",72,129,70,"hole_6",364,4,12
+"Crooked Tree","combo",72,129,70,"hole_7",134,3,16
+"Crooked Tree","combo",72,129,70,"hole_8",512,5,2
+"Crooked Tree","combo",72,129,70,"hole_9",396,4,6
+"Crooked Tree","combo",72,129,70,"hole_10",381,4,9
+"Crooked Tree","combo",72,129,70,"hole_11",527,5,7
+"Crooked Tree","combo",72,129,70,"hole_12",360,4,11
+"Crooked Tree","combo",72,129,70,"hole_13",175,3,15
+"Crooked Tree","combo",72,129,70,"hole_14",397,4,5
+"Crooked Tree","combo",72,129,70,"hole_15",521,5,1
+"Crooked Tree","combo",72,129,70,"hole_16",252,3,17
+"Crooked Tree","combo",72,129,70,"hole_17",375,4,3
+"Crooked Tree","combo",72,129,70,"hole_18",352,4,13
+"El Rio","white",70,119,67,"hole_1",368,4,12
+"El Rio","white",70,119,67,"hole_2",373,4,6
+"El Rio","white",70,119,67,"hole_3",400,4,4
+"El Rio","white",70,119,67,"hole_4",103,3,18
+"El Rio","white",70,119,67,"hole_5",418,4,2
+"El Rio","white",70,119,67,"hole_6",158,3,16
+"El Rio","white",70,119,67,"hole_7",356,4,8
+"El Rio","white",70,119,67,"hole_8",320,4,14
+"El Rio","white",70,119,67,"hole_9",492,5,10
+"El Rio","white",70,119,67,"hole_10",323,4,13
+"El Rio","white",70,119,67,"hole_11",425,4,1
+"El Rio","white",70,119,67,"hole_12",322,4,17
+"El Rio","white",70,119,67,"hole_13",176,3,7
+"El Rio","white",70,119,67,"hole_14",306,4,11
+"El Rio","white",70,119,67,"hole_15",356,4,15
+"El Rio","white",70,119,67,"hole_16",388,4,5
+"El Rio","white",70,119,67,"hole_17",193,3,3
+"El Rio","white",70,119,67,"hole_18",534,5,9
+"Silverbell","white",72,121,68,"hole_1",440,4,5
+"Silverbell","white",72,121,68,"hole_2",522,5,3
+"Silverbell","white",72,121,68,"hole_3",143,3,17
+"Silverbell","white",72,121,68,"hole_4",455,4,9
+"Silverbell","white",72,121,68,"hole_5",336,4,13
+"Silverbell","white",72,121,68,"hole_6",186,3,11
+"Silverbell","white",72,121,68,"hole_7",548,5,1
+"Silverbell","white",72,121,68,"hole_8",395,4,7
+"Silverbell","white",72,121,68,"hole_9",177,3,15
+"Silverbell","white",72,121,68,"hole_10",335,4,14
+"Silverbell","white",72,121,68,"hole_11",378,4,10
+"Silverbell","white",72,121,68,"hole_12",178,3,18
+"Silverbell","white",72,121,68,"hole_13",420,4,8
+"Silverbell","white",72,121,68,"hole_14",430,4,4
+"Silverbell","white",72,121,68,"hole_15",316,4,16
+"Silverbell","white",72,121,68,"hole_16",214,3,12
+"Silverbell","white",72,121,68,"hole_17",380,4,6
+"Silverbell","white",72,121,68,"hole_18",538,5,2
+"Randolph North","white",72,120,69,"hole_1",354,4,7
+"Randolph North","white",72,120,69,"hole_2",337,4,9
+"Randolph North","white",72,120,69,"hole_3",550,5,11
+"Randolph North","white",72,120,69,"hole_4",412,4,1
+"Randolph North","white",72,120,69,"hole_5",411,4,3
+"Randolph North","white",72,120,69,"hole_6",126,3,13
+"Randolph North","white",72,120,69,"hole_7",342,4,15
+"Randolph North","white",72,120,69,"hole_8",181,3,5
+"Randolph North","white",72,120,69,"hole_9",441,5,17
+"Randolph North","white",72,120,69,"hole_10",411,4,2
+"Randolph North","white",72,120,69,"hole_11",187,3,14
+"Randolph North","white",72,120,69,"hole_12",369,4,10
+"Randolph North","white",72,120,69,"hole_13",471,5,16
+"Randolph North","white",72,120,69,"hole_14",405,4,8
+"Randolph North","white",72,120,69,"hole_15",172,3,6
+"Randolph North","white",72,120,69,"hole_16",560,5,18
+"Randolph North","white",72,120,69,"hole_17",360,4,12
+"Randolph North","white",72,120,69,"hole_18",407,4,4
+"Dell Urich","white",70,116,67,"hole_1",347,4,9
+"Dell Urich","white",70,116,67,"hole_2",170,3,5
+"Dell Urich","white",70,116,67,"hole_3",534,5,13
+"Dell Urich","white",70,116,67,"hole_4",277,4,17
+"Dell Urich","white",70,116,67,"hole_5",143,3,11
+"Dell Urich","white",70,116,67,"hole_6",527,5,15
+"Dell Urich","white",70,116,67,"hole_7",402,4,1
+"Dell Urich","white",70,116,67,"hole_8",437,4,3
+"Dell Urich","white",70,116,67,"hole_9",170,3,7
+"Dell Urich","white",70,116,67,"hole_10",364,4,10
+"Dell Urich","white",70,116,67,"hole_11",173,3,16
+"Dell Urich","white",70,116,67,"hole_12",411,4,6
+"Dell Urich","white",70,116,67,"hole_13",502,5,18
+"Dell Urich","white",70,116,67,"hole_14",427,4,4
+"Dell Urich","white",70,116,67,"hole_15",360,4,14
+"Dell Urich","white",70,116,67,"hole_16",350,4,8
+"Dell Urich","white",70,116,67,"hole_17",126,3,12
+"Dell Urich","white",70,116,67,"hole_18",401,4,2
+"Fred Enke","white",72,120,68,"hole_1",379,4,12
+"Fred Enke","white",72,120,68,"hole_2",508,5,6
+"Fred Enke","white",72,120,68,"hole_3",185,3,8
+"Fred Enke","white",72,120,68,"hole_4",300,4,16
+"Fred Enke","white",72,120,68,"hole_5",342,4,4
+"Fred Enke","white",72,120,68,"hole_6",130,3,18
+"Fred Enke","white",72,120,68,"hole_7",333,4,14
+"Fred Enke","white",72,120,68,"hole_8",349,4,2
+"Fred Enke","white",72,120,68,"hole_9",466,5,10
+"Fred Enke","white",72,120,68,"hole_10",338,4,13
+"Fred Enke","white",72,120,68,"hole_11",176,3,9
+"Fred Enke","white",72,120,68,"hole_12",466,5,5
+"Fred Enke","white",72,120,68,"hole_13",318,4,15
+"Fred Enke","white",72,120,68,"hole_14",533,5,3
+"Fred Enke","white",72,120,68,"hole_15",122,3,17
+"Fred Enke","white",72,120,68,"hole_16",369,4,11
+"Fred Enke","white",72,120,68,"hole_17",328,4,7
+"Fred Enke","white",72,120,68,"hole_18",412,4,1
+"Arizona National","white",71,124,65,"hole_1",319,4,10
+"Arizona National","white",71,124,65,"hole_2",508,5,2
+"Arizona National","white",71,124,65,"hole_3",272,4,18
+"Arizona National","white",71,124,65,"hole_4",137,3,8
+"Arizona National","white",71,124,65,"hole_5",468,5,4
+"Arizona National","white",71,124,65,"hole_6",129,3,16
+"Arizona National","white",71,124,65,"hole_7",328,4,12
+"Arizona National","white",71,124,65,"hole_8",266,4,14
+"Arizona National","white",71,124,65,"hole_9",165,3,6
+"Arizona National","white",71,124,65,"hole_10",372,4,3
+"Arizona National","white",71,124,65,"hole_11",477,5,1
+"Arizona National","white",71,124,65,"hole_12",161,3,17
+"Arizona National","white",71,124,65,"hole_13",377,4,9
+"Arizona National","white",71,124,65,"hole_14",343,4,7
+"Arizona National","white",71,124,65,"hole_15",346,4,5
+"Arizona National","white",71,124,65,"hole_16",273,4,13
+"Arizona National","white",71,124,65,"hole_17",131,3,11
+"Arizona National","white",71,124,65,"hole_18",433,5,15
+"Quarry Pines","white",71,117,66,"hole_1",477,5,5
+"Quarry Pines","white",71,117,66,"hole_2",276,4,11
+"Quarry Pines","white",71,117,66,"hole_3",359,4,3
+"Quarry Pines","white",71,117,66,"hole_4",272,4,9
+"Quarry Pines","white",71,117,66,"hole_5",355,4,7
+"Quarry Pines","white",71,117,66,"hole_6",165,3,15
+"Quarry Pines","white",71,117,66,"hole_7",452,5,1
+"Quarry Pines","white",71,117,66,"hole_8",146,3,13
+"Quarry Pines","white",71,117,66,"hole_9",249,4,17
+"Quarry Pines","white",71,117,66,"hole_10",289,4,8
+"Quarry Pines","white",71,117,66,"hole_11",171,3,10
+"Quarry Pines","white",71,117,66,"hole_12",521,5,2
+"Quarry Pines","white",71,117,66,"hole_13",299,4,16
+"Quarry Pines","white",71,117,66,"hole_14",299,4,6
+"Quarry Pines","white",71,117,66,"hole_15",106,3,18
+"Quarry Pines","white",71,117,66,"hole_16",497,5,4
+"Quarry Pines","white",71,117,66,"hole_17",134,3,14
+"Quarry Pines","white",71,117,66,"hole_18",304,4,12
+"Crooked Tree","white",72,123,68,"hole_1",336,4,4
+"Crooked Tree","white",72,123,68,"hole_2",153,3,18
+"Crooked Tree","white",72,123,68,"hole_3",349,4,10
+"Crooked Tree","white",72,123,68,"hole_4",490,5,8
+"Crooked Tree","white",72,123,68,"hole_5",347,4,14
+"Crooked Tree","white",72,123,68,"hole_6",364,4,12
+"Crooked Tree","white",72,123,68,"hole_7",130,3,16
+"Crooked Tree","white",72,123,68,"hole_8",512,5,2
+"Crooked Tree","white",72,123,68,"hole_9",353,4,6
+"Crooked Tree","white",72,123,68,"hole_10",363,4,9
+"Crooked Tree","white",72,123,68,"hole_11",482,5,7
+"Crooked Tree","white",72,123,68,"hole_12",341,4,11
+"Crooked Tree","white",72,123,68,"hole_13",147,3,15
+"Crooked Tree","white",72,123,68,"hole_14",397,4,5
+"Crooked Tree","white",72,123,68,"hole_15",521,5,1
+"Crooked Tree","white",72,123,68,"hole_16",191,3,17
+"Crooked Tree","white",72,123,68,"hole_17",356,4,3
+"Crooked Tree","white",72,123,68,"hole_18",352,4,13
+"Sewailo","blue",72,132,71,"hole_1",332,4,8
+"Sewailo","blue",72,132,71,"hole_2",334,4,16
+"Sewailo","blue",72,132,71,"hole_3",138,3,10
+"Sewailo","blue",72,132,71,"hole_4",384,4,2
+"Sewailo","blue",72,132,71,"hole_5",445,4,4
+"Sewailo","blue",72,132,71,"hole_6",527,5,18
+"Sewailo","blue",72,132,71,"hole_7",180,3,12
+"Sewailo","blue",72,132,71,"hole_8",547,5,14
+"Sewailo","blue",72,132,71,"hole_9",390,4,6
+"Sewailo","blue",72,132,71,"hole_10",618,5,1
+"Sewailo","blue",72,132,71,"hole_11",456,4,3
+"Sewailo","blue",72,132,71,"hole_12",404,4,9
+"Sewailo","blue",72,132,71,"hole_13",203,3,13
+"Sewailo","blue",72,132,71,"hole_14",555,5,7
+"Sewailo","blue",72,132,71,"hole_15",153,3,17
+"Sewailo","blue",72,132,71,"hole_16",310,4,15
+"Sewailo","blue",72,132,71,"hole_17",421,4,5
+"Sewailo","blue",72,132,71,"hole_18",390,4,11
+"Sewailo","combo",72,126,69,"hole_1",328,4,8
+"Sewailo","combo",72,126,69,"hole_2",334,4,16
+"Sewailo","combo",72,126,69,"hole_3",138,3,10
+"Sewailo","combo",72,126,69,"hole_4",345,4,2
+"Sewailo","combo",72,126,69,"hole_5",445,4,4
+"Sewailo","combo",72,126,69,"hole_6",488,5,18
+"Sewailo","combo",72,126,69,"hole_7",157,3,12
+"Sewailo","combo",72,126,69,"hole_8",547,5,14
+"Sewailo","combo",72,126,69,"hole_9",390,4,6
+"Sewailo","combo",72,126,69,"hole_10",581,5,1
+"Sewailo","combo",72,126,69,"hole_11",428,4,3
+"Sewailo","combo",72,126,69,"hole_12",376,4,9
+"Sewailo","combo",72,126,69,"hole_13",176,3,13
+"Sewailo","combo",72,126,69,"hole_14",555,5,7
+"Sewailo","combo",72,126,69,"hole_15",153,3,17
+"Sewailo","combo",72,126,69,"hole_16",289,4,15
+"Sewailo","combo",72,126,69,"hole_17",421,4,5
+"Sewailo","combo",72,126,69,"hole_18",306,4,11
+"Sewailo","white",72,124,68,"hole_1",328,4,8
+"Sewailo","white",72,124,68,"hole_2",311,4,16
+"Sewailo","white",72,124,68,"hole_3",131,3,10
+"Sewailo","white",72,124,68,"hole_4",345,4,2
+"Sewailo","white",72,124,68,"hole_5",431,4,4
+"Sewailo","white",72,124,68,"hole_6",488,5,18
+"Sewailo","white",72,124,68,"hole_7",157,3,12
+"Sewailo","white",72,124,68,"hole_8",544,5,14
+"Sewailo","white",72,124,68,"hole_9",354,4,6
+"Sewailo","white",72,124,68,"hole_10",581,5,1
+"Sewailo","white",72,124,68,"hole_11",428,4,3
+"Sewailo","white",72,124,68,"hole_12",376,4,9
+"Sewailo","white",72,124,68,"hole_13",176,3,13
+"Sewailo","white",72,124,68,"hole_14",528,5,7
+"Sewailo","white",72,124,68,"hole_15",134,3,17
+"Sewailo","white",72,124,68,"hole_16",289,4,15
+"Sewailo","white",72,124,68,"hole_17",383,4,5
+"Sewailo","white",72,124,68,"hole_18",306,4,11
+"Randolph North","blue",72,126,71.7,"hole_1",365,4,7
+"Randolph North","blue",72,126,71.7,"hole_2",415,4,9
+"Randolph North","blue",72,126,71.7,"hole_3",569,5,11
+"Randolph North","blue",72,126,71.7,"hole_4",429,4,1
+"Randolph North","blue",72,126,71.7,"hole_5",440,4,3
+"Randolph North","blue",72,126,71.7,"hole_6",136,3,13
+"Randolph North","blue",72,126,71.7,"hole_7",373,4,15
+"Randolph North","blue",72,126,71.7,"hole_8",198,3,5
+"Randolph North","blue",72,126,71.7,"hole_9",469,5,17
+"Randolph North","blue",72,126,71.7,"hole_10",423,4,2
+"Randolph North","blue",72,126,71.7,"hole_11",197,3,14
+"Randolph North","blue",72,126,71.7,"hole_12",388,4,10
+"Randolph North","blue",72,126,71.7,"hole_13",480,5,16
+"Randolph North","blue",72,126,71.7,"hole_14",432,4,8
+"Randolph North","blue",72,126,71.7,"hole_15",193,3,6
+"Randolph North","blue",72,126,71.7,"hole_16",574,5,18
+"Randolph North","blue",72,126,71.7,"hole_17",368,4,12
+"Randolph North","blue",72,126,71.7,"hole_18",434,4,4
+"Dell Urich","blue",70,124,70.3,"hole_1",373,4,9
+"Dell Urich","blue",70,124,70.3,"hole_2",213,3,5
+"Dell Urich","blue",70,124,70.3,"hole_3",557,5,13
+"Dell Urich","blue",70,124,70.3,"hole_4",299,4,17
+"Dell Urich","blue",70,124,70.3,"hole_5",156,3,11
+"Dell Urich","blue",70,124,70.3,"hole_6",540,5,15
+"Dell Urich","blue",70,124,70.3,"hole_7",445,4,1
+"Dell Urich","blue",70,124,70.3,"hole_8",457,4,3
+"Dell Urich","blue",70,124,70.3,"hole_9",187,3,7
+"Dell Urich","blue",70,124,70.3,"hole_10",390,4,10
+"Dell Urich","blue",70,124,70.3,"hole_11",193,3,16
+"Dell Urich","blue",70,124,70.3,"hole_12",451,4,6
+"Dell Urich","blue",70,124,70.3,"hole_13",515,5,18
+"Dell Urich","blue",70,124,70.3,"hole_14",468,4,4
+"Dell Urich","blue",70,124,70.3,"hole_15",429,4,14
+"Dell Urich","blue",70,124,70.3,"hole_16",380,4,8
+"Dell Urich","blue",70,124,70.3,"hole_17",137,3,12
+"Dell Urich","blue",70,124,70.3,"hole_18",439,4,2
+"Randolph North","blue",72,126,71.7,"hole_1",365,4,7
+"Randolph North","blue",72,126,71.7,"hole_2",415,4,9
+"Randolph North","blue",72,126,71.7,"hole_3",569,5,11
+"Randolph North","blue",72,126,71.7,"hole_4",429,4,1
+"Randolph North","blue",72,126,71.7,"hole_5",440,4,3
+"Randolph North","blue",72,126,71.7,"hole_6",136,3,13
+"Randolph North","blue",72,126,71.7,"hole_7",373,4,15
+"Randolph North","blue",72,126,71.7,"hole_8",198,3,5
+"Randolph North","blue",72,126,71.7,"hole_9",469,5,17
+"Randolph North","blue",72,126,71.7,"hole_10",423,4,2
+"Randolph North","blue",72,126,71.7,"hole_11",197,3,14
+"Randolph North","blue",72,126,71.7,"hole_12",388,4,10
+"Randolph North","blue",72,126,71.7,"hole_13",480,5,16
+"Randolph North","blue",72,126,71.7,"hole_14",432,4,8
+"Randolph North","blue",72,126,71.7,"hole_15",193,3,6
+"Randolph North","blue",72,126,71.7,"hole_16",574,5,18
+"Randolph North","blue",72,126,71.7,"hole_17",368,4,12
+"Randolph North","blue",72,126,71.7,"hole_18",434,4,4

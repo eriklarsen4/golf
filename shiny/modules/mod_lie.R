@@ -1,4 +1,4 @@
-lie_ui <- function(id) {
+mod_lie_ui <- function(id) {
   ns <- shiny::NS(id)
   
   bslib::layout_sidebar(
@@ -39,7 +39,7 @@ lie_ui <- function(id) {
 }
 
 
-lie_server <- function(id, stroke_quality) {
+mod_lie_server <- function(id, stroke_quality) {
   shiny::moduleServer(id, function(input, output, session) {
     
     # distance loss summary

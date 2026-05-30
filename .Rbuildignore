@@ -22,3 +22,5 @@ compose_email
 ^\\.github$
 ^\\.dockerignore$
 ^dev$
+^rsconnect/
+^packrat/

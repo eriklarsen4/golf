@@ -1,0 +1,32 @@
+# R/load_data.R
+
+load_data <- function(data_dir = "inst/extdata/golf_exports") {
+  
+  rounds <- utils::read.csv(file.path(data_dir, "rounds.csv")) |>
+    dplyr::mutate(
+      date = lubridate::parse_date_time(
+        date,
+        orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
+        exact = FALSE
+      ) |> as.Date(),
+      date_js = as.numeric(date) * 86400000,
+      course = course_name
+    )
+  
+  courses <- utils::read.csv(file.path(data_dir, "courses.csv"))
+  
+  club_metrics <- utils::read.csv(file.path(data_dir, "club_metrics.csv")) |>
+    dplyr::mutate(
+      date = lubridate::parse_date_time(
+        date,
+        orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
+        exact = FALSE
+      ) |> as.Date()
+    )
+  
+  list(
+    rounds = rounds,
+    courses = courses,
+    club_metrics = club_metrics
+  )
+}
