@@ -6,19 +6,7 @@ WORKDIR /srv/shiny-server/app
 COPY . .
 
 # 2. Install the R packages
-RUN R -e "install.packages(c(
-  'shiny',
-  'shinyWidgets',
-  'dplyr',
-  'ggplot2',
-  'data.table',
-  'plotly',
-  'bslib',
-  'tibble',
-  'utils',
-  'apexcharter',
-  'ggridges',
-), repos='https://cloud.r-project.org')"
+RUN R -e "install.packages(c('shiny','shinyWidgets','dplyr','ggplot2','data.table','plotly','bslib','tibble','apexcharter','ggridges'), repos='https://cloud.r-project.org')"
 
 # 3. Expose port + run shiny-server
 EXPOSE 3838
