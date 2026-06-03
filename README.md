@@ -37,3 +37,5 @@ The data is ideal for numerous types of modeling, including linear mixed models,
 It will likely expand, depending on additional data
 
 Please see the [articles](https://github.com/eriklarsen4/golf/tree/main/inst/articles) for details
+
+OR check out the [debut version of the Shiny app](https://eriklarsen.shinyapps.io/GolfScores/) i built on this
