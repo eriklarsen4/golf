@@ -1,31 +1,43 @@
 mod_club_ui <- function(id) {
   ns <- shiny::NS(id)
   
-  bslib::layout_sidebar(
+  shiny::tabPanel(
+    title = "Club Diagnostics",
     
-    sidebar = shiny::tagList(
-      shiny::selectInput(
-        ns("club_view"),
-        "View:",
-        choices = c(
-          "Shot Distance Window",
-          "Full-Stroke Accuracy",
-          "Miss Direction Composition",
-          "Distance Control (Actual - Calibrated)",
-          "Approach Distance Distribution"
-        ),
-        selected = "Shot Distance Window"
+    shiny::sidebarLayout(
+      
+      shiny::sidebarPanel(
+        width = 3,
+        
+        shiny::selectInput(
+          inputId = ns("club_view"),
+          label   = "View:",
+          choices = c(
+            "Shot Distance Window",
+            "Full-Stroke Accuracy",
+            "Miss Direction Composition",
+            "Distance Control (Actual - Calibrated)",
+            "Usage Distance Distribution"
+          ),
+          selected = "Shot Distance Window",
+          multiple = FALSE
+        )
+      ),
+      
+      shiny::mainPanel(
+        width = 9,
+        class = 'main-panel',
+        
+        plotly::plotlyOutput(
+          outputId = ns("club_plot"),
+          height   = "500px"
+        )
       )
-    ),
-    
-    main = shiny::tagList(
-      plotly::plotlyOutput(ns("club_plot"), height = "500px")
     )
   )
 }
 
-
-mod_club_server <- function(id, data_full, data_stroke) {
+mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -49,7 +61,7 @@ mod_club_server <- function(id, data_full, data_stroke) {
     
     # ---- 1. Shot Distance Window ----
     plot_calibration <- shiny::reactive({
-      df <- data_full() |>
+      df <- full_stroke_quality_avg() |>
         dplyr::ungroup() |>
         dplyr::mutate(
           club = factor(club, levels = club_levels),
@@ -70,7 +82,7 @@ mod_club_server <- function(id, data_full, data_stroke) {
           ),
           fill = "black",
           alpha = 0.30,
-          inherit.aes = FALSE
+          inherit.aes = F
         ) +
         ggplot2::geom_point(size = 3) +
         ggplot2::geom_errorbar(
@@ -87,8 +99,8 @@ mod_club_server <- function(id, data_full, data_stroke) {
           minor_breaks = NULL
         ) +
         ggplot2::labs(
-          title = "Actual Shot Distance by Club",
-          subtitle = "Shaded bands show calibrated full-swing distance windows",
+          title = "Actual Shot Distance & Calibration by Club",
+          # subtitle = "Shaded bands show calibrated full-swing distance windows",
           x = "Club",
           y = "Mean Distance (yd)"
         )
@@ -98,12 +110,12 @@ mod_club_server <- function(id, data_full, data_stroke) {
     
     # ---- 2. Full-Stroke Accuracy ----
     plot_accuracy <- shiny::reactive({
-      df <- data_stroke() |>
+      df <- stroke_quality() |>
         dplyr::filter(shot_type %in% c("full","tee")) |>
         dplyr::group_by(club) |>
         dplyr::summarize(
-          accuracy = round((sum(on_target) / dplyr::n()) * 100, 2),
-          avg_yds_traveled = round(mean(yds_traveled, na.rm = TRUE), 1),
+          accuracy = round((sum(on_target, na.rm = T) / dplyr::n()) * 100, 2),
+          avg_yds_traveled = round(mean(yds_traveled, na.rm = T), 1),
           n = dplyr::n()
         ) |>
         dplyr::mutate(club = factor(club, levels = club_levels))
@@ -120,7 +132,7 @@ mod_club_server <- function(id, data_full, data_stroke) {
           size = 4
         ) +
         ggplot2::geom_text(
-          ggplot2::aes(label = paste0("n = ", n)),
+          ggplot2::aes(label = paste0("\nn = ", n)),
           vjust = 1.5,
           size = 3,
           color = "black"
@@ -136,13 +148,13 @@ mod_club_server <- function(id, data_full, data_stroke) {
     
     # ---- 3. Miss Direction Composition ----
     plot_miss_direction <- shiny::reactive({
-      df <- data_stroke() |>
+      df <- stroke_quality() |>
         dplyr::filter(shot_type %in% c("full","tee")) |>
         dplyr::count(club, miss_direction) |>
         dplyr::group_by(club) |>
         dplyr::mutate(
           club = factor(club, levels = club_levels),
-          pct = round((n / sum(n)) * 100, 1)
+          pct = round((n / sum(n, na.rm = T)) * 100, 1)
         ) |>
         dplyr::ungroup()
       
@@ -156,14 +168,15 @@ mod_club_server <- function(id, data_full, data_stroke) {
           x = "Club",
           y = "Proportion of Miss Types (%)",
           fill = "Miss Direction"
-        )
+        ) +
+        ggplot2::theme(legend.position = 'bottom')
       
       plotly::ggplotly(p)
     })
     
     # ---- 4. Distance Control (Actual - Calibrated) ----
     plot_distance_control <- shiny::reactive({
-      df <- data_full() |>
+      df <- full_stroke_quality_avg() |>
         dplyr::ungroup() |>
         dplyr::mutate(
           club = factor(club, levels = club_levels),
@@ -209,9 +222,13 @@ mod_club_server <- function(id, data_full, data_stroke) {
       plotly::ggplotly(p)
     })
     
-    # ---- 5. Ridgeline Approach Distance Distribution ----
+    # ---- 5. Ridgeline Usage Distance Distribution ----
     plot_ridgeline <- shiny::reactive({
-      df <- data_stroke() |>
+      df <- stroke_quality() |>
+        dplyr::filter(
+          !is.na(club),
+          club != '',
+          club %in% club_levels) |> 
         dplyr::mutate(
           club = factor(club, levels = club_levels)
         )
@@ -231,7 +248,7 @@ mod_club_server <- function(id, data_full, data_stroke) {
           size = 0.3
         ) +
         ggplot2::labs(
-          title = "Approach Distance Distribution by Club",
+          title = "Usage Distance Distribution by Club",
           subtitle = "Shows how often each club is used from different distances",
           x = "Target Distance (yds)",
           y = "Club"
@@ -248,7 +265,7 @@ mod_club_server <- function(id, data_full, data_stroke) {
         "Full-Stroke Accuracy" = plot_accuracy(),
         "Miss Direction Composition" = plot_miss_direction(),
         "Distance Control (Actual - Calibrated)" = plot_distance_control(),
-        "Approach Distance Distribution" = plot_ridgeline()
+        "Usage Distance Distribution" = plot_ridgeline()
       )
     })
   })

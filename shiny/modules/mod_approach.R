@@ -1,106 +1,181 @@
 mod_approach_ui <- function(id) {
   ns <- shiny::NS(id)
   
-  bslib::layout_sidebar(
+  shiny::tabPanel(
+    title = "Approach Analysis",
     
-    sidebar = shiny::tagList(
+    shiny::sidebarLayout(
       
-      shiny::selectInput(
-        ns("approach_view"),
-        "View:",
-        choices = c(
-          "GIR Probability Curves",
-          "Par-3 GIR % Over Time"
+      shiny::sidebarPanel(
+        width = 3,
+        
+        shiny::selectInput(
+          inputId = ns("approach_view"),
+          label   = "Approach Plot Type\n(Choose One):",
+          choices = c(
+            "Overall GIR Curve",
+            "GIR Curve by Lie",
+            "Par-3 GIR Curve by Tee",
+            "Par-3 GIR Curve by Course",
+            "Custom GIR Analysis"
+          ),
+          selected = "Overall GIR Curve",
+          multiple = F
         ),
-        selected = "GIR Probability Curves"
+        
+        shiny::conditionalPanel(
+          condition = sprintf("input['%s'] == 'Custom GIR Analysis'", ns("approach_view")),
+          shiny::selectInput(
+            inputId = ns("group_var"),
+            label   = "Group by (Choose One):",
+            choices = c("", "par", "lie", "club", "course_name", "tees"),
+            selected = "",
+            multiple = F
+          ),
+          shiny::selectInput(
+            inputId = ns("facet_var"),
+            label   = "Split by (Choose One):",
+            choices = c("", "par", "lie", "club", "course_name", "tees"),
+            selected = "",
+            multiple = F
+          ),
+          shiny::selectInput(
+            inputId = ns("filter_par"),
+            label   = "Filter Par (Choose Any):",
+            choices = c(3, 4, 5),
+            selected = NULL,
+            multiple = T
+          ),
+          shiny::selectInput(
+            inputId = ns("filter_lie"),
+            label   = "Filter by Lie Type (Choose Any):",
+            choices = c("fairway", "rough", "tee"),
+            selected = NULL,
+            multiple = T
+          ),
+          shiny::selectInput(
+            inputId = ns("filter_club"),
+            label   = "Filter by Club (Choose Any):",
+            choices = character(0),
+            selected = NULL,
+            multiple = T
+          ),
+          shiny::selectInput(
+            inputId = ns("filter_course"),
+            label   = "Filter by Course (Choose Any):",
+            choices = character(0),
+            selected = NULL,
+            multiple = T
+          ),
+          shiny::selectInput(
+            inputId = ns("filter_tee"),
+            label   = "Filter by Tees (Choose Any):",
+            choices = character(0),
+            selected = NULL,
+            multiple = T
+          )
+        )
       ),
       
-      shiny::selectInput(
-        ns("lie_filter"),
-        "Lie:",
-        choices = c("All", "Fairway", "Rough", "Sand", "Tee"),
-        selected = "All"
+      shiny::mainPanel(
+        width = 9,
+        class = 'main-panel',
+        
+        plotly::plotlyOutput(
+          outputId = ns("approach_plot"),
+          height   = "500px"
+        )
       )
-    ),
-    
-    main = shiny::tagList(
-      plotly::plotlyOutput(ns("approach_plot"), height = "450px")
     )
   )
 }
 
-
-mod_approach_server <- function(id, data) {
+mod_approach_server <- function(id, data_r) {
   shiny::moduleServer(id, function(input, output, session) {
-    ns <- session$ns
     
-    # Filter by lie if needed
-    filtered_data <- shiny::reactive({
-      if (input$lie_filter == "All") {
-        data()
-      } else {
-        dplyr::filter(data(), lie == input$lie_filter)
+    approach_df <- shiny::reactive({
+      stroke_level_df <- data_r()
+      
+      stroke_level_df |>
+        dplyr::mutate(
+          approach_shots = dplyr::case_when(
+            par == 3 & stroke == 1 ~ 1,
+            par > 3 &
+              shot_type == "full" &
+              yds_to_target > 75 &
+              club != "D" &
+              !grepl(lie, pattern = "sand|tee") ~ 1,
+            TRUE ~ 0
+          )
+        ) |>
+        dplyr::filter(approach_shots == 1) |>
+        dplyr::mutate(approach_gir = GIR)
+    })
+    
+    # update dynamic filter choices
+    shiny::observe({
+      df <- approach_df()
+      shiny::updateSelectInput(session, "filter_club",
+                               choices = sort(unique(df$club))
+      )
+      shiny::updateSelectInput(session, "filter_course",
+                               choices = sort(unique(df$course_name))
+      )
+      shiny::updateSelectInput(session, "filter_tee",
+                               choices = sort(unique(df$tees))
+      )
+    })
+    
+    # filtered data for custom mode
+    filtered_custom <- shiny::reactive({
+      df <- approach_df()
+      
+      if (length(input$filter_par) > 0) {
+        df <- df |> dplyr::filter(par %in% input$filter_par)
       }
+      if (length(input$filter_lie) > 0) {
+        df <- df |> dplyr::filter(lie %in% input$filter_lie)
+      }
+      if (!is.null(input$filter_club) && length(input$filter_club) > 0) {
+        vals <- setdiff(input$filter_club, "")
+        if (length(vals) > 0) {
+          df <- df |> dplyr::filter(club %in% vals)
+        }
+      }
+      if (!is.null(input$filter_course) && length(input$filter_course) > 0) {
+        vals <- setdiff(input$filter_course, "")
+        if (length(vals) > 0) {
+          df <- df |> dplyr::filter(course_name %in% vals)
+        }
+      }
+      if (!is.null(input$filter_tee) && length(input$filter_tee) > 0) {
+        vals <- setdiff(input$filter_tee, "")
+        if (length(vals) > 0) {
+          df <- df |> dplyr::filter(tees %in% vals)
+        }
+      }
+      
+      df
     })
     
-    # GIR probability curves (LOESS)
-    gir_curve_plot <- shiny::reactive({
-      df <- filtered_data()
-      
-      p <- ggplot2::ggplot(
-        df,
-        ggplot2::aes(x = approach_distance, y = gir)
-      ) +
-        ggplot2::geom_point(alpha = 0.4, size = 2) +
-        ggplot2::geom_smooth(
-          method = "loess",
-          linewidth = 1.2,
-          color = "#003f87"
-        ) +
-        ggplot2::facet_wrap(ggplot2::vars(lie)) +
-        ggplot2::labs(
-          x = "Approach Distance (yards)",
-          y = "GIR Probability"
-        )
-      
-      plotly::ggplotly(
-        p,
-        tooltip = c("approach_distance", "gir", "lie")
-      )
-    })
-    
-    # Par-3 GIR% over time (LOESS)
-    par3_plot <- shiny::reactive({
-      df <- dplyr::filter(data(), par == 3)
-      
-      p <- ggplot2::ggplot(
-        df,
-        ggplot2::aes(x = date, y = gir)
-      ) +
-        ggplot2::geom_point(size = 3, alpha = 0.8) +
-        ggplot2::geom_smooth(
-          method = "loess",
-          linewidth = 1.2
-        ) +
-        ggplot2::facet_wrap(ggplot2::vars(course_name)) +
-        ggplot2::labs(
-          x = "Date",
-          y = "GIR % (Par 3)"
-        )
-      
-      plotly::ggplotly(
-        p,
-        tooltip = c("date", "gir", "course_name")
-      )
-    })
-    
-    # Render selected view
     output$approach_plot <- plotly::renderPlotly({
-      switch(
-        input$approach_view,
-        "GIR Probability Curves" = gir_curve_plot(),
-        "Par-3 GIR % Over Time"  = par3_plot()
-      )
+      view <- input$approach_view
+      
+      if (view == "Custom GIR Analysis") {
+        make_approach_plot(
+          df        = filtered_custom(),
+          view      = view,
+          group_var = input$group_var,
+          facet_var = input$facet_var
+        )
+      } else {
+        make_approach_plot(
+          df        = approach_df(),
+          view      = view,
+          group_var = NULL,
+          facet_var = NULL
+        )
+      }
     })
   })
 }

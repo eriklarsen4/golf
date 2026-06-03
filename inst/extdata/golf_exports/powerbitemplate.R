@@ -1055,7 +1055,7 @@ full_stroke_quality_w_lie |>
   dplyr::mutate(
     lie = factor(
       lie,
-      levels = c('tee', 'fairway', 'rough', 'fwbunker')
+      levels = c('tee', 'fairway', 'rough')
     ),
     distance_loss = avg_yds_to_target - avg_yds_traveled
   ) |>

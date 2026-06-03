@@ -16,3 +16,56 @@
   margin: 0;
   font-weight: 600;
 }
+
+/* NAVBAR BACKGROUND (cobalt/navy) */
+.navbar.navbar-default {
+  background-color: #002147 !important; /* deep navy/cobalt */
+  border-color: #00152d !important;
+}
+
+/* NAVBAR TEXT */
+.navbar-default .navbar-nav > li > a {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .active > a:hover {
+  background-color: #001a33 !important;
+  color: #ffffff !important;
+}
+
+/* APP TITLE */
+.navbar-default .navbar-brand {
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* no horizontal scroll */
+.main-panel, .tab-content {
+  overflow-x: hidden !important;
+}
+
+/* narrower sidebar panel */
+.sidebar {
+  width: 260px !important;
+}
+
+/* respect FontAwesome icons in the navbar */
+.fa {
+  font-family: "FontAwesome" !important;
+}
+
+/* make main panels longer than default */
+.main-panel {
+  min-height: 2000px;
+}
+
+/* table horizontal scroll */
+.table_scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
