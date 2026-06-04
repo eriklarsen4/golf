@@ -16,3 +16,6 @@ skill_model.R
 .positai
 rsconnect/
 packrat/
+.Rproj.user
+.positai
+run_etl.R

@@ -92,14 +92,17 @@ server <- function(input, output, session) {
     stroke_level_df
   })
   
-  data_full <- shiny::reactive({
-    full_stroke_quality_avg
-  })
-  
+  # stroke quality is by club
   data_stroke <- shiny::reactive({
     stroke_quality 
   })
   
+  # club accuracy is by club for full strokes (subset) and in aggregate (per round)
+  data_full <- shiny::reactive({
+    full_stroke_quality_avg
+  })
+  
+  # round-level Kalman-filtered skill estimates (relative to avg handicap index)
   data_skill <- shiny::reactive({
     skill_df
   })
