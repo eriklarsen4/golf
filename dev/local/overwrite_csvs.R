@@ -1,5 +1,5 @@
 # print(getwd())
-export_dir <- "C:/Users/Erik/Desktop/Programming/R/Sports/golf/inst/extdata/golf_exports"
+export_dir <- "C:/Users/Erik/Desktop/Programming/R/Sports/golf/shinyanalytics/inst/extdata/golf_exports"
 # print(export_dir)
 
 overwrite_csvs <- function(db_path = NULL) {
