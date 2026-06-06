@@ -52,8 +52,8 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
       "7", 170, 180,
       "8", 160, 170,
       "9", 150, 160,
-      "PW", 140, 150,
-      "GW", 110, 130,
+      "PW", 135, 150,
+      "GW", 110, 125,
       "SW", 50, 100
     )
     
@@ -103,7 +103,15 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           # subtitle = "Shaded bands show calibrated full-swing distance windows",
           x = "Club",
           y = "Mean Distance (yd)"
+        ) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(
+            angle = 45,
+            hjust = 1,
+            vjust = 1
+          )
         )
+      
       
       plotly::ggplotly(p)
     })
@@ -141,6 +149,13 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           title = "Full Stroke Accuracy by Club",
           x = "Club",
           y = "Accuracy %"
+        ) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(
+            angle = 45,
+            hjust = 1,
+            vjust = 1
+          )
         )
       
       plotly::ggplotly(p)
@@ -169,7 +184,14 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           y = "Proportion of Miss Types (%)",
           fill = "Miss Direction"
         ) +
-        ggplot2::theme(legend.position = 'bottom')
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(
+            angle = 45,
+            hjust = 1,
+            vjust = 1
+          ),
+          legend.position = 'bottom'
+        )
       
       plotly::ggplotly(p)
     })
@@ -217,6 +239,13 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           subtitle = "Difference between actual shot distance and stock distance",
           x = "Club",
           y = "Distance Error (yd)"
+        ) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(
+            angle = 45,
+            hjust = 1,
+            vjust = 1
+          )
         )
       
       plotly::ggplotly(p)

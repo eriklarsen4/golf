@@ -20,3 +20,5 @@ packrat/
 .positai
 run_etl.R
 overwrite_csvs.R
+.Rproj.user
+.positai
