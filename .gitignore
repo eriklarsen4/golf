@@ -22,3 +22,8 @@ run_etl.R
 overwrite_csvs.R
 .Rproj.user
 .positai
+inst/extdata/golf.duckdb
+inst/extdata/golf.duckdb.wal
+inst/extdata/*.duckdb
+.Rproj.user
+.positai
