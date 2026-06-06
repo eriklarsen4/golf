@@ -1,51 +1,52 @@
 testthat::test_that("validate_dev_tables() detects schema mismatches, duplicates, and impossible values", {
   
-  # Use a temporary writable DuckDB for testing
+  # Build a minimal production-like DB from backups
   test_db <- tempfile(fileext = ".duckdb")
+  con <- DBI::dbConnect(duckdb::duckdb(), test_db)
   
-  # Copy the real DB into the temp file so schema + data exist
-  file.copy(
-    system.file("extdata", "golf.duckdb", package = "golf"),
-    test_db,
-    overwrite = TRUE
-  )
+  # Load backups as stand-ins for production tables
+  prod_rounds  <- read.csv(system.file("extdata/csv_backup/rounds.csv",  package = "golf"))
+  prod_courses <- read.csv(system.file("extdata/csv_backup/courses.csv", package = "golf"))
+  prod_club_metrics   <- read.csv(system.file("extdata/csv_backup/club_metrics.csv",   package = "golf"))
+  prod_players <- read.csv(system.file("extdata/csv_backup/players.csv", package = "golf"))
   
-  # Connect to the temporary DB
-  con <- golf::get_db_connection(db_path = test_db)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+  DBI::dbWriteTable(con, "rounds",  prod_rounds,  overwrite = T)
+  DBI::dbWriteTable(con, "courses", prod_courses, overwrite = T)
+  DBI::dbWriteTable(con, "club_metrics",   prod_club_metrics,   overwrite = T)
+  DBI::dbWriteTable(con, "players", prod_players, overwrite = T)
   
   # Setup: refresh dev tables to ensure clean baseline
   golf::refresh_dev_tables(db_path = test_db)
   
   # 1. Baseline: dev tables should validate cleanly
-  expect_silent({
+  testthat::expect_silent({
     res <- golf::validate_dev_tables(db_path = test_db)
   })
-  expect_true(all(res))
+  testthat::expect_true(all(res))
   
   # 2. Inject duplicate rounds
   rounds <- DBI::dbReadTable(con, "dev_rounds")
   if (nrow(rounds) > 0) {
     DBI::dbWriteTable(
       con, "dev_rounds",
-      rounds[1, , drop = FALSE],
-      append = TRUE,
-      row.names = FALSE
+      rounds[1, , drop = F],
+      append = T,
+      row.names = F
     )
   }
   
-  expect_error(
+  testthat::expect_error(
     golf::validate_dev_tables(db_path = test_db),
     regexp = "Duplicate rounds"
   )
   
   # 3. Inject impossible score
   DBI::dbExecute(con, "DELETE FROM dev_rounds")
-  bad <- rounds[1, , drop = FALSE]
+  bad <- rounds[1, , drop = F]
   bad$gross_score <- 999
-  DBI::dbWriteTable(con, "dev_rounds", bad, append = TRUE, row.names = FALSE)
+  DBI::dbWriteTable(con, "dev_rounds", bad, append = T, row.names = F)
   
-  expect_error(
+  testthat::expect_error(
     golf::validate_dev_tables(),
     regexp = "impossible gross scores"
   )
@@ -53,7 +54,7 @@ testthat::test_that("validate_dev_tables() detects schema mismatches, duplicates
   # 4. Inject schema mismatch
   DBI::dbExecute(con, "ALTER TABLE dev_courses ADD COLUMN bogus_col INTEGER")
   
-  expect_error(
+  testthat::expect_error(
     golf::validate_dev_tables(),
     regexp = "Schema mismatch"
   )
