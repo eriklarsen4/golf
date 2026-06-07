@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     libtiff5-dev \
     libjpeg-dev \
     libuv1-dev \
-    libv8-dev \
+    libnode-dev \
     g++ \
     make \
     && rm -rf /var/lib/apt/lists/*
