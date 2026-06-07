@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
+    libuv-dev \
+    libv8-dev \
+    g++ \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy your Shiny app into the image
