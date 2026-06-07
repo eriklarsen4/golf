@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
-    libuv-dev \
+    libuv1-dev \
     libv8-dev \
     g++ \
     make \
