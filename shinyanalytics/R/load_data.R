@@ -8,7 +8,7 @@ load_data <- function(data_dir = "inst/extdata/golf_exports") {
       date = lubridate::parse_date_time(
         date,
         orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
-        exact = FALSE
+        exact = F
       ) |> as.Date(),
       date_js = as.numeric(date) * 86400000,
       course = course_name
@@ -23,7 +23,7 @@ load_data <- function(data_dir = "inst/extdata/golf_exports") {
       date = lubridate::parse_date_time(
         date,
         orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
-        exact = FALSE
+        exact = F
       ) |> as.Date()
     )
   
@@ -32,7 +32,7 @@ load_data <- function(data_dir = "inst/extdata/golf_exports") {
       date = lubridate::parse_date_time(
         date,
         orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
-        exact = FALSE
+        exact = F
       ) |> as.Date()
     )
   

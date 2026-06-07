@@ -36,7 +36,7 @@
 refresh_dev_tables <- function(db_path = NULL) {
   
   con <- golf::get_db_connection(db_path)
-  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  on.exit(DBI::dbDisconnect(con), add = T)
   
   table_pairs <- list(
     rounds       = "dev_rounds",
@@ -62,8 +62,8 @@ refresh_dev_tables <- function(db_path = NULL) {
         con,
         dev_tbl,
         data,
-        append = TRUE,
-        row.names = FALSE
+        append = T,
+        row.names = F
       )
     }
     
@@ -74,5 +74,5 @@ refresh_dev_tables <- function(db_path = NULL) {
     stop("Dev table refresh failed: ", e$message)
   })
   
-  invisible(TRUE)
+  invisible(T)
 }
