@@ -79,10 +79,12 @@ mod_performance_ui <- function(id) {
         
         shiny::hr(),
         
-        shiny::plotOutput(
-          outputId = ns("metric_plot"),
-          height = "auto",
-          style = "height: 40vh; min-height: 250px;"
+        div(
+          style = "height: 40vh; min-height: 250px;",
+          shiny::plotOutput(
+            outputId = ns("metric_plot"),
+            height = "auto"
+          )
         )
       )
     )
