@@ -12,10 +12,12 @@ mod_lie_ui <- function(id) {
           
           shiny::tabPanel(
             title = "Distance Loss by Lie on Full Strokes",
-            plotly::plotlyOutput(
-              outputId = ns("distance_loss"),
-              height = "auto",
-              style = "height: 40vh; min-height: 250px;"
+            
+            shiny::div(
+              style = "height: 40vh; min-height: 250px;",
+              plotly::plotlyOutput(
+                outputId = ns("distance_loss"),
+                height = "auto")
             )
           ),
           
