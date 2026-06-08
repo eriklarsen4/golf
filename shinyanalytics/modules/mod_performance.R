@@ -163,8 +163,17 @@ mod_performance_server <- function(id, data_r) {
     })
     
     output$metric_plot <- shiny::renderPlot({
+      req(input$metric_choice)
+      req(input$facet_choice)
+      req(input$smooth)
+      req(input$flip_axes)
+      req(input$x_choice)
+      
       df_round <- performance_round_df()
       df_club <- performance_club_df()
+      
+      req(df_round)
+      req(df_club)
       
       make_metric_plot(
         df_round = df_round,
