@@ -1,6 +1,6 @@
 # fly.toml — Shiny app deployment using GHCR image
 
-app = "dark-island-263"
+app = "golf-analytics"
 primary_region = "lax"
 
 [build]
