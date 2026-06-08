@@ -1,20 +1,23 @@
-# fly.toml — Shiny app deployment using GHCR image
+# fly.toml app configuration file generated for golf-analytics-rmc on 2026-06-07T19:58:09-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "golf-analytics"
-primary_region = "lax"
+app = 'golf-analytics-rmc'
+primary_region = 'lax'
 
 [build]
-  image = "ghcr.io/eriklarsen4/golf:analytics-latest"
+  image = 'ghcr.io/eriklarsen4/golf:analytics-latest'
 
 [http_service]
   internal_port = 3838
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["app"]
+  processes = ['app']
 
 [[vm]]
-  cpu_kind = "shared"
+  memory = '1gb'
   cpus = 1
   memory_mb = 1024

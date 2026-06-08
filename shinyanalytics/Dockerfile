@@ -1,7 +1,5 @@
 FROM ghcr.io/rocker-org/shiny:4.3.2
 
-WORKDIR /srv/shiny-server/
-
 # System dependencies required by ggplot2, ggridges, apexcharter
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
@@ -20,12 +18,14 @@ RUN apt-get update && apt-get install -y \
     make \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
 # Copy only the Shiny app folder
-COPY shinyanalytics/ .
+COPY . /app
+
 
 # Install the R packages
-RUN R -e "install.packages(c('shiny','shinyWidgets','dplyr','ggplot2','data.table','plotly','bslib','tibble','apexcharter','ggridges'), repos='https://cloud.r-project.org')"
+RUN R -e "install.packages(c('shiny','shinyWidgets','dplyr','ggplot2','data.table','plotly','bslib','tibble','apexcharter','ggridges', 'lubridate'), repos='https://cloud.r-project.org')"
 
 EXPOSE 3838
-CMD ["/usr/bin/shiny-server"]
 
+CMD ["R", "-e", "setwd('/app'); shiny::runApp('.', host='0.0.0.0', port=3838)"]
