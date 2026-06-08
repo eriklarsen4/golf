@@ -24,14 +24,14 @@ source("modules/mod_rounds.R")
 source("modules/mod_glossary_ui.R")
 
 # Load raw CSVs
-# raw <- load_data("inst/extdata/golf_exports")
-# 
-# metrics <- compute_all_metrics(raw)
-# 
-# stroke_level_df <- metrics$stroke_level_df
-# stroke_quality <- metrics$stroke_quality
-# full_stroke_quality_avg <- metrics$full_stroke_quality_avg
-# skill_df <- raw$skill_df
+raw <- load_data("inst/extdata/golf_exports")
+
+metrics <- compute_all_metrics(raw)
+
+stroke_level_df <- metrics$stroke_level_df
+stroke_quality <- metrics$stroke_quality
+full_stroke_quality_avg <- metrics$full_stroke_quality_avg
+skill_df <- raw$skill_df
 
 # App ui ----
 ui <- shiny::navbarPage(
@@ -86,15 +86,6 @@ ui <- shiny::navbarPage(
 
 # App Server ----
 server <- function(input, output, session) {
-  
-  raw <- load_data("inst/extdata/golf_exports")
-  
-  metrics <- compute_all_metrics(raw)
-  
-  stroke_level_df <- metrics$stroke_level_df
-  stroke_quality <- metrics$stroke_quality
-  full_stroke_quality_avg <- metrics$full_stroke_quality_avg
-  skill_df <- raw$skill_df
   
   # Make the dataset reactive for modules
   data_r <- shiny::reactive({

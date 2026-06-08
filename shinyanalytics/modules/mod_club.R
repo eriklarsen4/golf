@@ -30,7 +30,8 @@ mod_club_ui <- function(id) {
         
         plotly::plotlyOutput(
           outputId = ns("club_plot"),
-          height   = "500px"
+          height = "auto",
+          style = "height: 42vh; min-height: 240px;"
         )
       )
     )
@@ -288,6 +289,9 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
     
     # ---- Switch ----
     output$club_plot <- plotly::renderPlotly({
+      req(input$club_view)
+      req(stroke_quality())
+      req(full_stroke_quality_avg())
       switch(
         input$club_view,
         "Shot Distance Window" = plot_calibration(),

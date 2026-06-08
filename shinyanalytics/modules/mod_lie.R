@@ -14,7 +14,8 @@ mod_lie_ui <- function(id) {
             title = "Distance Loss by Lie on Full Strokes",
             plotly::plotlyOutput(
               outputId = ns("distance_loss"),
-              height   = "450px"
+              height = "auto",
+              style = "height: 40vh; min-height: 250px;"
             )
           ),
           
@@ -31,7 +32,8 @@ mod_lie_ui <- function(id) {
             
             plotly::plotlyOutput(
               outputId = ns("miss_by_lie"),
-              height   = "450px"
+              height = "auto",
+              style = "height: 40vh; min-height: 250px;"
             )
           ),
           
@@ -48,7 +50,8 @@ mod_lie_ui <- function(id) {
             
             plotly::plotlyOutput(
               outputId = ns("miss_by_lie_club"),
-              height   = "450px"
+              height = "auto",
+              style = "height: 42vh; min-height: 240px;"
             )
           )
         )
@@ -65,6 +68,7 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
     
     # Distance Loss by Lie
     output$distance_loss <- plotly::renderPlotly({
+      req(stroke_quality())
       
       df <- stroke_quality() |>
         dplyr::ungroup() |>
@@ -119,6 +123,7 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
     
     # Miss Direction by Lie
     output$miss_by_lie <- plotly::renderPlotly({
+      req(stroke_level_df())
       
       df <- stroke_level_df() |>
         dplyr::filter(
@@ -202,6 +207,7 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
     
     # Miss Direction by Lie & Club
     output$miss_by_lie_club <- plotly::renderPlotly({
+      req(stroke_level_df())
       
       df <- stroke_level_df() |>
         dplyr::filter(

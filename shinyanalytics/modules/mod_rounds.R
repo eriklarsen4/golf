@@ -93,7 +93,6 @@ mod_rounds_ui <- function(id) {
   )
 }
 
-
 mod_rounds_server <- function(id, data_r) {
   shiny::moduleServer(id, function(input, output, session) {
     
@@ -287,19 +286,51 @@ mod_rounds_server <- function(id, data_r) {
     })
     
     # Outputs ----
-    output$round_summary      <- shiny::renderTable(summarize_round(round_data()))
-    output$round_metrics      <- shiny::renderTable(summarize_metrics(round_data()))
-    output$hole_summary       <- shiny::renderTable(summarize_hole(hole_data()))
-    output$hole_metrics       <- shiny::renderTable(summarize_hole_metrics(hole_data()))
-    output$club_metrics       <- shiny::renderTable(summarize_club(round_data()))
-    output$lie_metrics        <- shiny::renderTable(summarize_lie(round_data()))
-    output$shottype_metrics   <- shiny::renderTable(summarize_shottype(round_data()))
-    output$shot_table         <- shiny::renderTable(round_data())
+    output$round_summary <- shiny::renderTable({
+      df <- round_data() 
+      req(nrow(df)> 0) 
+      summarize_round(df)
+      })
+    output$round_metrics <- shiny::renderTable({
+      df <- round_data()
+      req(nrow(df)>0)
+      summarize_metrics(df)
+    })
+    output$hole_summary <- shiny::renderTable({
+      df <- hole_data()
+      req(nrow(df)>0)
+      summarize_hole(df)
+      })
+    output$hole_metrics <- shiny::renderTable({
+      df <- hole_data()
+      req(nrow(df)>0)
+      summarize_hole_metrics(df)
+      })
+    output$club_metrics <- shiny::renderTable({
+      df <- round_data()
+      req(nrow(df)>0)
+      summarize_club(df)
+      })
+    output$lie_metrics <- shiny::renderTable({
+      df <- round_data()
+      req(nrow(df)>0)
+      summarize_lie(df)
+      })
+    output$shottype_metrics <- shiny::renderTable({
+      df <- round_data()
+      req(nrow(df)>0)
+      summarize_shottype(df)
+      })
+    output$shot_table <- shiny::renderTable({
+      df <- round_data()
+      req(nrow(df)>0)
+      df
+    })
     
     # Download handler ----
     output$download_scorecard <- shiny::downloadHandler(
       filename = function() {
-        paste0("scorecard_", input$round_id, ".csv")
+        paste0("scorecard_", input$date, ".csv")
       },
       content = function(file) {
         readr::write_csv(round_data(), file)

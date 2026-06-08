@@ -1,29 +1,47 @@
+/* KPI card styling */
 .kpi-card {
   background-color: #f8f9fa;
-    border-radius: 8px;
+  border-radius: 8px;
   padding: 12px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin: 4px;
 }
 
 .kpi-card h2 {
   color: #003f87;
-    font-weight: 700;
+  font-weight: 700;
   margin: 0;
+  font-size: 1.4rem;
 }
 
 .kpi-card h4 {
   margin: 0;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
-/* NAVBAR BACKGROUND (cobalt/navy) */
+/* KPI mobile scaling */
+@media (max-width: 600px) {
+  .kpi-card {
+    padding: 6px 8px;
+    margin: 2px;
+  }
+  .kpi-card h2 {
+    font-size: 1.1rem;
+  }
+  .kpi-card h4 {
+    font-size: 0.75rem;
+  }
+}
+
+/* Navbar formatting */
+/* Navbar colors */
 .navbar.navbar-default {
-  background-color: #002147 !important; /* deep navy/cobalt */
+  background-color: #002147 !important;
   border-color: #00152d !important;
 }
 
-/* NAVBAR TEXT */
 .navbar-default .navbar-nav > li > a {
   color: #ffffff !important;
   font-weight: 500;
@@ -36,42 +54,29 @@
   color: #ffffff !important;
 }
 
-/* APP TITLE */
 .navbar-default .navbar-brand {
   color: #ffffff !important;
   font-weight: 600;
   font-size: 18px;
 }
 
-/* no horizontal scroll */
-.main-panel, .tab-content {
+/* Prevent horizontal scroll globally */
+body, .main-panel, .tab-content {
   overflow-x: hidden !important;
 }
 
-/* table horizontal scroll */
-.table_scroll {
-  overflow-x: auto;
-  width: 100%;
-}
-
-/* narrower sidebar panel */
-.sidebar {
-  width: 260px !important;
-}
-
-/* respect FontAwesome icons in the navbar */
-.fa {
-  font-family: "FontAwesome" !important;
-}
-
-/* make main panels longer than default */
+/* Main panel height */
 .main-panel {
   min-height: 2000px;
 }
 
-/* Shiny Mobile Compatibility */
-/* Sidebar width + collapse behavior */
-@media (max-width: 768px) { /* media = unique to mobile */
+/* Sidebar width */
+.sidebar {
+  width: 260px !important;
+}
+
+/* Sidebar mobile behavior */
+@media (max-width: 768px) {
   .sidebar {
     width: 100% !important;
     float: none !important;
@@ -81,27 +86,37 @@
   }
 }
 
-/* Shiny plots fully responsive */
-.plot-container, .shiny-plot-output { /* patches classic Shiny renderPlot to scale to screen width without horz scrolling, overflow */
+/* Responsive Shiny plots */
+.plot-container,
+.shiny-plot-output { /* patches classic Shiny renderPlot to scale to screen width without horz scrolling, overflow */
   width: 100% !important;
   height: auto !important;
   overflow: hidden;
 }
 
-/* Prevent horizontal scrolling on tables/text (wrapping) */
-table {
+/* Image scaling */
+img { /* Ensure images (if any) scale properly */
+  max-width: 100%;
+  height: auto;
+}
+
+/* Scrollable tables for mobile */
+.table_scroll {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table layout + mobile font scaling */
+table { /* Prevent horizontal scrolling on tables/text (wrapping) */
   width: 100% !important;
   table-layout: auto !important;
   word-wrap: break-word;
+  font-size: 0.9rem;
 }
 
-/* Global overflow protection for mobile */
-body, .main-panel, .tab-content {
-  overflow-x: hidden !important;
-}
-
-/* Ensure images (if any) scale properly */
-img {
-  max-width: 100%;
-  height: auto;
+@media (max-width: 600px) {
+  table {
+    font-size: 0.75rem;
+  }
 }

@@ -83,7 +83,8 @@ mod_approach_ui <- function(id) {
         
         plotly::plotlyOutput(
           outputId = ns("approach_plot"),
-          height   = "500px"
+          height = "auto",
+          style = "height: 42vh; min-height: 240px;"
         )
       )
     )
@@ -159,9 +160,12 @@ mod_approach_server <- function(id, data_r) {
     })
     
     output$approach_plot <- plotly::renderPlotly({
+      req(approach_df())
+      
       view <- input$approach_view
       
       if (view == "Custom GIR Analysis") {
+        req(filtered_custom())
         make_approach_plot(
           df        = filtered_custom(),
           view      = view,

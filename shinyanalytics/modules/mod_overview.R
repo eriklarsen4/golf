@@ -52,15 +52,10 @@ mod_overview_ui <- function(id) {
         
         shiny::hr(),
         
-        # apexcharter::apexchartOutput(
-        #   outputId = ns("ts_plot"),
-        #   height   = "400px"
-        # )
-        shiny::uiOutput(ns("ts_plot_container"))
-        
-        # apexcharter::apexchartOutput(
-        #   ns("ts_plot_debug"), height = "400px"
-        # )
+        shiny::uiOutput(ns("ts_plot_container"), 
+                        height = "auto",
+                        style = "height: 40vh; min-height: 250px;"
+                        )
       )
     )
   )
@@ -163,11 +158,12 @@ mod_overview_server <- function(id, data_r, data_skill) {
     # force ts rebuild
     output$ts_plot_container <- shiny::renderUI({
       input$ts_choice
-      apexcharter::apexchartOutput(session$ns("ts_plot"), height = "400px")
+      apexcharter::apexchartOutput(session$ns("ts_plot"), height = "auto",
+                                   style  = "height: 40vh; min-height: 250px;")
     })
     
     # Time series plot
-    output$ts_plot <- apexcharter::renderApexchart({
+    output$ts_plot <- apexcharter::renderApexchart(height = function() 300, {
       shiny::req(input$ts_choice)
       spec <- ts_map[[input$ts_choice]]
       # message("metric = ", spec$col, " | label = ", spec$label)

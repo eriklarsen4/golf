@@ -92,6 +92,10 @@
 
 make_metric_plot <- function(df_round, df_club, metric, facet, smooth, flip, x_choice) {
   
+  req(metric)
+  req(facet)
+  req(x_choice)
+  
   if (facet == "Tee Club" &&
       !(metric %in% c("FIR % by Tee Club", "GIR % by Tee Club"))) {
     validate("Tee Club faceting is only available for tee‑club metrics.")
