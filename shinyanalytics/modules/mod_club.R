@@ -28,10 +28,12 @@ mod_club_ui <- function(id) {
         width = 9,
         class = 'main-panel',
         
-        plotly::plotlyOutput(
-          outputId = ns("club_plot"),
-          height = "auto",
-          style = "height: 42vh; min-height: 240px;"
+        shiny::div(
+          style = "height: 42vh; min-height: 240px;",
+          plotly::plotlyOutput(
+            outputId = ns("club_plot"),
+            height = "auto"
+          )
         )
       )
     )

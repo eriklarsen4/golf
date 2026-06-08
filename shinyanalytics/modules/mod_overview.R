@@ -52,10 +52,11 @@ mod_overview_ui <- function(id) {
         
         shiny::hr(),
         
-        shiny::uiOutput(ns("ts_plot_container"), 
-                        height = "auto",
-                        style = "height: 40vh; min-height: 250px;"
-                        )
+        shiny::div(
+          style = "height: 40vh; min-height: 250px;",
+          shiny::uiOutput(ns("ts_plot_container"), 
+                          height = "auto")
+        )
       )
     )
   )

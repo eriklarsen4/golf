@@ -81,11 +81,14 @@ mod_approach_ui <- function(id) {
         width = 9,
         class = 'main-panel',
         
-        plotly::plotlyOutput(
-          outputId = ns("approach_plot"),
-          height = "auto",
-          style = "height: 42vh; min-height: 240px;"
+        shiny::div(
+          style = "height: 42vh; min-height: 240px;",
+          plotly::plotlyOutput(
+            outputId = ns("approach_plot"),
+            height = "auto"
+          )
         )
+        
       )
     )
   )

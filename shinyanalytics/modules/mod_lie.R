@@ -30,10 +30,11 @@ mod_lie_ui <- function(id) {
               multiple = F
             ),
             
-            plotly::plotlyOutput(
-              outputId = ns("miss_by_lie"),
-              height = "auto",
-              style = "height: 40vh; min-height: 250px;"
+            shiny::div(
+              style = "height: 40vh; min-height: 250px;",
+              plotly::plotlyOutput(
+                outputId = ns("miss_by_lie"),
+                height = "auto")
             )
           ),
           
@@ -48,11 +49,13 @@ mod_lie_ui <- function(id) {
               multiple = F
             ),
             
-            plotly::plotlyOutput(
-              outputId = ns("miss_by_lie_club"),
-              height = "auto",
-              style = "height: 42vh; min-height: 240px;"
+            shiny::div(
+              style = "height: 42vh; min-height: 240px;",
+              plotly::plotlyOutput(
+                outputId = ns("miss_by_lie_club"),
+                height = "auto")
             )
+            
           )
         )
       )
