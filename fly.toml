@@ -1,0 +1,20 @@
+# fly.toml — Shiny app deployment using GHCR image
+
+app = "dark-island-263"
+primary_region = "lax"
+
+[build]
+  image = "ghcr.io/eriklarsen4/golf:analytics-latest"
+
+[http_service]
+  internal_port = 3838
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
