@@ -5,15 +5,6 @@ library(dplyr)
 library(lubridate)
 
 # data prep ----
-# Load module files
-source("modules/mod_overview.R")
-source("modules/mod_performance.R")
-source("modules/mod_approach.R")
-source("modules/mod_club.R")
-source("modules/mod_lie.R")
-source("modules/mod_rounds.R")
-source("modules/mod_glossary_ui.R")
-
 # Load analytics functions
 source("R/load_data.R") # loads 'courses', 'rounds', and 'club_metrics'
 source("R/compute_metrics.R") # computes round-level aggregate metrics
@@ -22,6 +13,15 @@ source("R/make_ts_plot.R") # for making the time series plots for the overview t
 source("R/make_metric_plot.R") # for making the performance (metric) plots for the performance tab
 source("R/make_approach_plot.R") # for making complex approach plots
 source("R/plot_theme.R")
+
+# Load module files
+source("modules/mod_overview.R")
+source("modules/mod_performance.R")
+source("modules/mod_approach.R")
+source("modules/mod_club.R")
+source("modules/mod_lie.R")
+source("modules/mod_rounds.R")
+source("modules/mod_glossary_ui.R")
 
 # Load raw CSVs
 # raw <- load_data("inst/extdata/golf_exports")
