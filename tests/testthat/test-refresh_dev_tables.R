@@ -8,12 +8,27 @@ testthat::test_that("refresh_dev_tables() produces exact copies of production ta
   prod_rounds  <- read.csv(system.file("extdata/csv_backup/rounds.csv",  package = "golf"))
   prod_courses <- read.csv(system.file("extdata/csv_backup/courses.csv", package = "golf"))
   prod_club_metrics   <- read.csv(system.file("extdata/csv_backup/club_metrics.csv",   package = "golf"))
-  prod_players <- read.csv(system.file("extdata/csv_backup/club_metrics.csv", package = "golf"))
+  prod_players <- read.csv(system.file("extdata/csv_backup/players.csv", package = "golf"))
+  
+  dev_rounds <- read.csv(system.file("extdata/csv_backup/dev_rounds.csv", package = 'golf'))
+  dev_courses <- read.csv(system.file("extdata/csv_backup/dev_courses.csv", package = 'golf'))
+  dev_players <- read.csv(system.file("extdata/csv_backup/dev_players.csv", package = 'golf'))
+  dev_club_metrics <- read.csv(system.file("extdata/csv_backup/dev_club_metrics.csv", package = 'golf'))
   
   DBI::dbWriteTable(con, "rounds",  prod_rounds,  overwrite = T)
   DBI::dbWriteTable(con, "courses", prod_courses, overwrite = T)
   DBI::dbWriteTable(con, "club_metrics",   prod_club_metrics,   overwrite = T)
   DBI::dbWriteTable(con, "players", prod_players, overwrite = T)
+  
+  DBI::dbWriteTable(con, "dev_rounds",        dev_rounds,      overwrite = T)
+  DBI::dbWriteTable(con, "dev_courses",       dev_courses,     overwrite = T)
+  DBI::dbWriteTable(con, "dev_players",       dev_players,     overwrite = T)
+  DBI::dbWriteTable(con, "dev_club_metrics",  dev_club_metrics, overwrite = T)
+  
+  DBI::dbDisconnect(con, shutdown = T)
+  
+  # 0. ensure dev tables exist
+  golf::refresh_dev_tables(db_path = test_db)
   
   # Connect to the temporary DB
   con <- golf::get_db_connection(db_path = test_db)
@@ -29,8 +44,10 @@ testthat::test_that("refresh_dev_tables() produces exact copies of production ta
     )
   )
   
-  # 2. Refresh dev tables
+  # 2. RE-Refresh dev tables
   testthat::expect_silent(golf::refresh_dev_tables(db_path = test_db))
+  DBI::dbDisconnect(con, shutdown = T)
+  con <- golf::get_db_connection(db_path = test_db)
   
   # 3. Now they should be identical
   testthat::expect_identical(
