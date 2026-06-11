@@ -147,7 +147,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-```{r Update the players table in, include = T, message = F, warning = F, echo = F, eval = F}
+```{r Update the players table in, include = T, message = F, warning = F, echo = F, eval = T}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -204,7 +204,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-```{r Update the courses table in, include = T, message = F, warning = F, eval = F, echo = F}
+```{r Update the courses table in, include = T, message = F, warning = F, eval = T, echo = F}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -263,7 +263,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
 }
 ```
 
-```{r Update the rounds table in, include = T, message = F, warning = F, eval = F, echo = F}
+```{r Update the rounds table in, include = T, message = F, warning = F, eval = T, echo = F}
 con <- golf::get_db_connection()
 
 # if the logged data is newer than the last logged round in the 'rounds' table, 
@@ -554,7 +554,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
 }
 ```
 
-```{r Update the club metrics table in, include = T, message = F, warning = F, eval = F, echo = F}
+```{r Update the club metrics table in, include = T, message = F, warning = F, eval = T, echo = F}
 con <- golf::get_db_connection()
 
 # if the data is newer than the last round in the 'club_metrics' table, append
@@ -683,22 +683,22 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
 ```
 
 
-```{r Validate dev updates, include = T, eval = F, message = F, warning = F, echo = F}
+```{r Validate dev updates, include = T, eval = T, message = F, warning = F, echo = F}
 con <- golf::get_db_connection(db_path = real_db)
 golf::validate_dev_tables(db_path = real_db)
 ```
 
-```{r Promote dev to prod, include = T, eval = F, message = F, warning = F, echo = F}
+```{r Promote dev to prod, include = T, eval = T, message = F, warning = F, echo = F}
 con <- golf::get_db_connection(db_path = real_db)
 golf::promote_dev_to_production(db_path = real_db)
 ```
 
-```{r Pass Data Through Skill Pipeline, include = T, eval = F, message = F, warning = F, echo = F}
+```{r Pass Data Through Skill Pipeline, include = T, eval = T, message = F, warning = F, echo = F}
 con <- golf::get_db_connection(db_path = real_db)
 golf::run_skill_pipeline(db_path = real_db)
 ```
 
-```{r Overwrite PowerBI CSVs, include = T, eval = T, message = F, warning = F, echo = F}
+```{r Overwrite PowerBI CSVs, include = T, eval = F, message = F, warning = F, echo = F}
 # source('C:/Users/Erik/Desktop/Programming/R/Sports/golf/dev/local/overwrite_csvs.R')
 ```
 
