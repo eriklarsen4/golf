@@ -1,71 +1,72 @@
 "run_timestamp","status","message","lm_rows","kf_rows","prod_pred_before","prod_pred_after"
-2026-05-13 16:10:15.969543,"error","[38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
+"2026-05-13 16:10:15.969543","error","[38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
 [1mCaused by error in `.data$.`:[22m
 [38;5;255m[33m![38;5;255m Column `.` not found in `.data`.[39m",NA,NA,NA,NA
-2026-05-13 16:13:35.418963,"error","[38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
+"2026-05-13 16:13:35.418963","error","[38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
 [1mCaused by error in `.data$.`:[22m
 [38;5;255m[33m![38;5;255m Column `.` not found in `.data`.[39m",NA,NA,NA,NA
-2026-05-13 16:43:47.796963,"error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
+"2026-05-13 16:43:47.796963","error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
   [38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
 [1mCaused by error in `.data$.`:[22m
 [38;5;255m[33m![38;5;255m Column `.` not found in `.data`.[39m
 ",NA,NA,NA,NA
-2026-05-13 16:44:04.860465,"error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
+"2026-05-13 16:44:04.860465","error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
   [38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
 [1mCaused by error in `.data$.`:[22m
 [38;5;255m[33m![38;5;255m Column `.` not found in `.data`.[39m
 ",NA,NA,NA,NA
-2026-05-13 16:44:38.634058,"error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
+"2026-05-13 16:44:38.634058","error","Error in dplyr::mutate(scores_sum, expected_gross = as.numeric(stats::predict(gross_lmer)) %>%  : 
   [38;5;255m[36mℹ[38;5;255m In argument: `expected_gross = as.numeric(stats::predict(gross_lmer)) %>% round(.data$., 2)`.[39m
 [1mCaused by error in `.data$.`:[22m
 [38;5;255m[33m![38;5;255m Column `.` not found in `.data`.[39m
 ",NA,NA,NA,NA
-2026-05-13 16:56:29.185878,"error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
+"2026-05-13 16:56:29.185878","error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
 ",NA,NA,NA,NA
-2026-05-13 17:42:41.019853,"error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
+"2026-05-13 17:42:41.019853","error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
 ",NA,NA,NA,NA
-2026-05-13 18:23:21.611078,"error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
+"2026-05-13 18:23:21.611078","error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
 ",NA,NA,NA,NA
-2026-05-13 18:31:35.576332,"error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
+"2026-05-13 18:31:35.576332","error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
 ",NA,NA,NA,NA
-2026-05-13 18:53:37.820456,"error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
+"2026-05-13 18:53:37.820456","error","Error : unable to find an inherited method for function ‘dbWriteTable’ for signature ‘conn = ""duckdb_connection"", name = ""character"", value = ""NULL""’
 ",NA,NA,NA,NA
-2026-05-13 19:04:28.666941,"error","Error in dbAppendTable(conn, name, value) : 
+"2026-05-13 19:04:28.666941","error","Error in dbAppendTable(conn, name, value) : 
   Column `tees` does not exist in target table.
 ",NA,NA,NA,NA
-2026-05-13 19:11:03.543998,"error","Error in dbAppendTable(conn, name, value) : 
+"2026-05-13 19:11:03.543998","error","Error in dbAppendTable(conn, name, value) : 
   Column `tees` does not exist in target table.
 ",NA,NA,NA,NA
-2026-05-13 19:15:56.703574,"error","Error in dbAppendTable(conn, name, value) : 
+"2026-05-13 19:15:56.703574","error","Error in dbAppendTable(conn, name, value) : 
   Column `tees` does not exist in target table.
 ",NA,NA,NA,NA
-2026-05-13 19:22:15.165461,"error","Error in dbAppendTable(conn, name, value) : 
+"2026-05-13 19:22:15.165461","error","Error in dbAppendTable(conn, name, value) : 
   Column `tees` does not exist in target table.
 ",NA,NA,NA,NA
-2026-05-13 19:26:22.459708,"error","Error in dbAppendTable(conn, name, value) : 
+"2026-05-13 19:26:22.459708","error","Error in dbAppendTable(conn, name, value) : 
   Column `tees` does not exist in target table.
 ",NA,NA,NA,NA
-2026-05-13 19:32:03.897604,"error","Error in duckdb_result(connection = conn, stmt_lst = stmt_lst, arrow = arrow) : 
+"2026-05-13 19:32:03.897604","error","Error in duckdb_result(connection = conn, stmt_lst = stmt_lst, arrow = arrow) : 
   Invalid Error: TransactionContext Error: cannot commit - no transaction is active
 [34mℹ[39m Context: rapi_execute
 [34mℹ[39m Error type: INVALID
 ",NA,NA,NA,NA
-2026-05-13 19:37:49.052297,"error","Error in duckdb_result(connection = conn, stmt_lst = stmt_lst, arrow = arrow) : 
+"2026-05-13 19:37:49.052297","error","Error in duckdb_result(connection = conn, stmt_lst = stmt_lst, arrow = arrow) : 
   Invalid Error: TransactionContext Error: cannot commit - no transaction is active
 [34mℹ[39m Context: rapi_execute
 [34mℹ[39m Error type: INVALID
 ",NA,NA,NA,NA
-2026-05-13 20:01:46.547761,"success",NA,NA,NA,NA,NA
-2026-05-13 20:54:12.109666,"success",NA,NA,NA,NA,NA
-2026-05-26 20:03:48.224592,"success",NA,NA,NA,NA,NA
-2026-05-26 21:25:33.066437,"success",NA,NA,NA,NA,NA
-2026-05-26 22:47:26.482964,"success",NA,NA,NA,NA,NA
-2026-05-28 20:40:08.444926,"success",NA,NA,NA,NA,NA
-2026-05-28 20:40:28.695331,"success",NA,NA,NA,NA,NA
-2026-05-28 20:40:53.26795,"success",NA,NA,NA,NA,NA
-2026-06-06 18:50:51.140265,"success",NA,NA,NA,NA,NA
-2026-06-06 18:51:42.040701,"success",NA,NA,NA,NA,NA
-2026-06-06 20:22:03.157378,"success",NA,NA,NA,NA,NA
-2026-06-06 20:23:50.066018,"success",NA,NA,NA,NA,NA
-2026-06-06 20:24:05.662488,"success",NA,NA,NA,NA,NA
-2026-06-06 20:24:25.400588,"success",NA,NA,NA,NA,NA
+"2026-05-13 20:01:46.547761","success",NA,NA,NA,NA,NA
+"2026-05-13 20:54:12.109666","success",NA,NA,NA,NA,NA
+"2026-05-26 20:03:48.224592","success",NA,NA,NA,NA,NA
+"2026-05-26 21:25:33.066437","success",NA,NA,NA,NA,NA
+"2026-05-26 22:47:26.482964","success",NA,NA,NA,NA,NA
+"2026-05-28 20:40:08.444926","success",NA,NA,NA,NA,NA
+"2026-05-28 20:40:28.695331","success",NA,NA,NA,NA,NA
+"2026-05-28 20:40:53.26795","success",NA,NA,NA,NA,NA
+"2026-06-06 18:50:51.140265","success",NA,NA,NA,NA,NA
+"2026-06-06 18:51:42.040701","success",NA,NA,NA,NA,NA
+"2026-06-06 20:22:03.157378","success",NA,NA,NA,NA,NA
+"2026-06-06 20:23:50.066018","success",NA,NA,NA,NA,NA
+"2026-06-06 20:24:05.662488","success",NA,NA,NA,NA,NA
+"2026-06-06 20:24:25.400588","success",NA,NA,NA,NA,NA
+"2026-06-11 00:19:37.271031","success",NA,NA,NA,NA,NA

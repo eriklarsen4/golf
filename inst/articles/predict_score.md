@@ -105,12 +105,12 @@ head(scoring_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                      course_rating `Handicap Index` `Gross Score` `Net Score`
     ##      <int> <date>     <chr>                                    <dbl>            <dbl>         <dbl>       <dbl>
-    ## 1 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6               11            90          79
-    ## 2 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8               11            86          76
-    ## 3 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4               11            85          76
-    ## 4 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5               11            92          83
-    ## 5 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"          71.7               11            91          83
-    ## 6 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"          71.7               11            88          80
+    ## 1 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69                 11            77          67
+    ## 2 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69.8               11            77          67
+    ## 3 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6               11            90          79
+    ## 4 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8               11            86          76
+    ## 5 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4               11            85          76
+    ## 6 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5               11            92          83
 
 #### Stroke Metrics
 
@@ -147,12 +147,12 @@ head(stroke_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                      course_rating `doubles+` bogies  pars birdies
     ##      <int> <date>     <chr>                                    <dbl>      <int>  <int> <int>   <int>
-    ## 1 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6          5      7     5       1
-    ## 2 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8          4      6     8       0
-    ## 3 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4          3      8     6       1
-    ## 4 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5          6      7     4       1
-    ## 5 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"          71.7          4      8     6       0
-    ## 6 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"          71.7          3      9     6       0
+    ## 1 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69            1      8     5       3
+    ## 2 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69.8          1      8     5       3
+    ## 3 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6          5      7     5       1
+    ## 4 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8          4      6     8       0
+    ## 5 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4          3      8     6       1
+    ## 6 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5          6      7     4       1
 
 #### Around-the-Green Metrics
 
@@ -177,12 +177,12 @@ head(atg_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                      course_rating chips `chips+putts` `UpDown%` putts `Avg GIR putts`
     ##      <int> <date>     <chr>                                    <dbl> <dbl>         <dbl>     <dbl> <int>           <dbl>
-    ## 1 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6    13            47      20      34            2.2 
-    ## 2 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8    17            53       0      36            2.2 
-    ## 3 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4    17            46      31.2    29            1.5 
-    ## 4 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5    19            55      15.4    36            1.67
-    ## 5 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"          71.7    20            56      15.4    36            2   
-    ## 6 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"          71.7    21            52      20      31            2
+    ## 1 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69      15            42      25      27            1.33
+    ## 2 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69.8    15            42      25      27            1.33
+    ## 3 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6    13            47      20      34            2.2 
+    ## 4 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8    17            53       0      36            2.2 
+    ## 5 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4    17            46      31.2    29            1.5 
+    ## 6 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5    19            55      15.4    36            1.67
 
 #### Ball Striking
 
@@ -211,12 +211,12 @@ head(ball_striking_metrics |>
     ## # Groups:   GHIN, date, date_course, course_rating [6]
     ##       GHIN date       date_course                      course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
     ##      <int> <date>     <chr>                                    <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
-    ## 1 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6     5   27.8            2     3   21.4           1        12.5             2          33.3
-    ## 2 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8    10   55.6            2     9   69.2           7        77.8             2          50  
-    ## 3 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4     2   11.1            1     2   14.3           0       NaN               2          14.3
-    ## 4 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5     3   16.7            0     5   38.5           0       NaN               5          38.5
-    ## 5 10526424 2026-04-19 "2026-04-19\nRandolph North\n11"          71.7     4   22.2            1     3   21.4           0       NaN               3          21.4
-    ## 6 10526424 2026-04-05 "2026-04-05\nRandolph North\n11"          71.7     3   16.7            1     6   42.9           0         0               6          46.2
+    ## 1 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69       6   33.3            1     4   28.6           1       100               3          23.1
+    ## 2 10526424 2026-06-07 "2026-06-07\nRandolph North\n11"          69.8     6   33.3            1     4   28.6           1       100               3          23.1
+    ## 3 10526424 2026-05-31 "2026-05-31\nFred Enke\n11"               68.6     5   27.8            2     3   21.4           1        12.5             2          33.3
+    ## 4 10526424 2026-05-24 "2026-05-24\nQuarry Pines\n11"            68.8    10   55.6            2     9   69.2           7        77.8             2          50  
+    ## 5 10526424 2026-05-17 "2026-05-17\nRandolph North\n11"          70.4     2   11.1            1     2   14.3           0       NaN               2          14.3
+    ## 6 10526424 2026-04-26 "2026-04-26\nDell Urich\n11"              68.5     3   16.7            0     5   38.5           0       NaN               5          38.5
 
 #### Shot Quality
 
@@ -241,14 +241,14 @@ head(stroke_quality |>
 
     ## # A tibble: 6 × 14
     ## # Groups:   date, hole, stroke [6]
-    ##   course    date       tees   hole   par gross stroke lie     club  yds_to_target yds_traveled on_target miss_direction shot_type
-    ##   <chr>     <date>     <chr> <int> <int> <int>  <int> <chr>   <chr>         <int>        <int> <chr>     <chr>          <chr>    
-    ## 1 Fred Enke 2026-05-31 white     1     4     5      1 tee     4               220          231 no        right          tee      
-    ## 2 Fred Enke 2026-05-31 white     1     4     5      2 rough   9               143          182 no        long           full     
-    ## 3 Fred Enke 2026-05-31 white     1     4     5      3 rough   SW               39           48 no        long           chip     
-    ## 4 Fred Enke 2026-05-31 white     1     4     5      4 fairway P                 8            7 yes       on_target      chip     
-    ## 5 Fred Enke 2026-05-31 white     2     5     4      1 tee     D               270          273 yes       on_target      tee      
-    ## 6 Fred Enke 2026-05-31 white     2     5     4      2 fairway 5               200          211 yes       on_target      full
+    ##   course         date       tees   hole   par gross stroke lie     club  yds_to_target yds_traveled on_target miss_direction shot_type
+    ##   <chr>          <date>     <chr> <int> <int> <int>  <int> <chr>   <chr>         <int>        <int> <chr>     <chr>          <chr>    
+    ## 1 Randolph North 2026-06-07 white     1     4     4      1 tee     D               270          310 yes       on_target      tee      
+    ## 2 Randolph North 2026-06-07 white     1     4     4      2 fairway GW               34           27 no        short          choked   
+    ## 3 Randolph North 2026-06-07 white     1     4     4      3 fairway P                 8            8 yes       on_target      chip     
+    ## 4 Randolph North 2026-06-07 white     2     4     3      1 tee     D               270          308 no        right          tee      
+    ## 5 Randolph North 2026-06-07 white     2     4     3      2 rough   GW               48           42 yes       on_target      chip     
+    ## 6 Randolph North 2026-06-07 white     3     5     6      1 tee     D               270          245 no        right          tee
 
 ### Fit a LMER Model
 
@@ -300,36 +300,36 @@ gross_lmer <- lme4::lmer(
 
     ## Linear mixed model fit by REML ['lmerMod']
     ## Formula: `Gross Score` ~ `Handicap Index` * course_rating + days + (1 +      `Handicap Index` | course)
-    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",  
-    ##     replacement = ""), `Handicap Index` = -`Handicap Index` -      mean(-`Handicap Index`), days = as.numeric(as.Date(date) -      min(as.Date(date)) + 1, units = "days")), days, .after = date)
+    ##    Data: dplyr::relocate(dplyr::mutate(dplyr::ungroup(scores_sum), course_rating = course_rating -      mean(course_rating), course = gsub(date_course, pattern = "[0-9]|\\-|\\\n|\\.",      replacement = ""), `Handicap Index` = -`Handicap Index` -  
+    ##     mean(-`Handicap Index`), days = as.numeric(as.Date(date) -      min(as.Date(date)) + 1, units = "days")), days, .after = date)
     ## 
-    ## REML criterion at convergence: 196.8
+    ## REML criterion at convergence: 260.6
     ## 
     ## Scaled residuals: 
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.51178 -0.72303  0.00248  0.58413  1.77038 
+    ## -1.50414 -0.67669 -0.01733  0.50886  1.82708 
     ## 
     ## Random effects:
-    ##  Groups   Name             Variance Std.Dev. Corr 
-    ##  course   (Intercept)      42.409   6.512         
-    ##           `Handicap Index`  3.941   1.985    -1.00
-    ##  Residual                  10.862   3.296         
-    ## Number of obs: 35, groups:  course, 7
+    ##  Groups   Name             Variance  Std.Dev. Corr
+    ##  course   (Intercept)      19.908664 4.46191      
+    ##           `Handicap Index`  0.008379 0.09154  1.00
+    ##  Residual                  13.541254 3.67984      
+    ## Number of obs: 46, groups:  course, 7
     ## 
     ## Fixed effects:
-    ##                                 Estimate Std. Error t value
-    ## (Intercept)                    95.866584   3.877631  24.723
-    ## `Handicap Index`               -1.044384   1.200617  -0.870
-    ## course_rating                   3.760451   1.219482   3.084
-    ## days                           -0.021518   0.009296  -2.315
-    ## `Handicap Index`:course_rating -3.185372   0.714478  -4.458
+    ##                                Estimate Std. Error t value
+    ## (Intercept)                    93.11171    2.71496  34.296
+    ## `Handicap Index`                0.94264    0.72520   1.300
+    ## course_rating                   2.01840    0.77476   2.605
+    ## days                           -0.01917    0.00706  -2.715
+    ## `Handicap Index`:course_rating -1.40092    0.43784  -3.200
     ## 
     ## Correlation of Fixed Effects:
     ##             (Intr) `HInd` crs_rt days  
-    ## `HndcpIndx` -0.555                     
-    ## course_rtng  0.586 -0.480              
-    ## days        -0.698 -0.019 -0.581       
-    ## `HIndx`:cr_ -0.428  0.404 -0.764  0.325
+    ## `HndcpIndx`  0.332                     
+    ## course_rtng  0.442 -0.169              
+    ## days        -0.641 -0.575 -0.329       
+    ## `HIndx`:cr_ -0.106  0.058 -0.258 -0.053
     ## optimizer (nloptwrap) convergence code: 0 (OK)
     ## boundary (singular) fit: see help('isSingular')
 
@@ -342,15 +342,15 @@ gross_lmer <- lme4::lmer(
 The model’s estimated average *first* `Gross Score` (**`(Intercept)`
 `Estimate` of `Fixed effects`**) at my average `Handicap Index` and
 average `course_rating` at `Arizona National` (default reference course)
-is **95.87**.
+is **93.11**.
 
-My average `Gross Score`, however, is **85.71**.
+My average `Gross Score`, however, is **85.2**.
 
 ##### Handicap Index
 
 For every additional `Handicap Index` point improvement (lower) than my
 average `Handicap Index`, my expected `Gross Score` decreases by
-**1.04** strokes.
+**0.94** strokes.
 
 - This makes sense because `Gross Score` is used to directly determine
   `Handicap Index` and is positively correlated:
@@ -367,7 +367,7 @@ average `Handicap Index`, my expected `Gross Score` decreases by
 
     - `Handicap Index` corrects for skill-level
 
-  - The effect is not significant (**`t value` = -0.87**; significance :
+  - The effect is significant (**`t value` = 1.3**; significance :
     abs(**t value**) \> 1)
 
   - Again, `Handicap Index` is a metric *directly derived from*
@@ -382,7 +382,7 @@ average `Handicap Index`, my expected `Gross Score` decreases by
 
 For every additional `course_rating` point (aka, a stroke) greater than
 the average `course_rating` (~69-70 strokes in this dataset),
-`Gross Score` increases by **3.76** strokes (it decreases).
+`Gross Score` increases by **2.02** strokes (it decreases).
 
 - This also makes sense: harder courses should yield higher
   `Gross Score`s
@@ -400,13 +400,13 @@ strokes
   limit to lowering `Gross Score` and there will also be variation in
   the process
 
-- But this effect is strongly significant (**t value =** **-2.31**) and
+- But this effect is strongly significant (**t value =** **-2.71**) and
   appears to be the primary driver of the trend
 
 ##### Handicap Index\*Course Rating Interaction
 
 As `course_rating` increases by 1 stroke above average, the effect of
-`Handicap Index` on my expected `Gross Score` is **3.19** strokes less
+`Handicap Index` on my expected `Gross Score` is **1.4** strokes less
 than what the two effects would contribute independently.
 
 - In other words: hard courses already impose a big penalty, so the
@@ -423,7 +423,7 @@ than what the two effects would contribute independently.
 ##### Course, Handicap Index, and Time
 
 These `courses` vary in their difficulty, independent of player skill
-(`Handicap Index`), by ~ **+/- 6.51** strokes. This value is the
+(`Handicap Index`), by ~ **+/- 4.46** strokes. This value is the
 **`Random effects` `Std. Dev.` (`Intercept`) from the model summary**–
 the `Std.Dev.` of the course-level random intercepts, representing how
 much each course shifts my baseline expected `Gross Score` up or down
@@ -434,12 +434,12 @@ relative to the overall average, *even after accounting for
 
 Interestingly, `courses` also differ slightly in how sensitive they are
 to my `Handicap Index`, with a random-slope standard deviation of **+/-
-1.99** strokes per index point.
+0.09** strokes per index point.
 
 While there is a fair amount of variability in `Gross Score` driven by
 the `course`, there is also just a large amount of variability in
-`Gross Score`, overall: **3.3**. This is the `Random effects` `Residual`
-`Std.Dev.` from the model summary.
+`Gross Score`, overall: **3.68**. This is the `Random effects`
+`Residual` `Std.Dev.` from the model summary.
 
 ### Predict the Next Round
 
@@ -454,7 +454,7 @@ stats::predict(object = gross_lmer, newdata = new_df, allow.new.levels = T) |>
   round(., 0)
 ```
 
-    ## [1] 83
+    ## [1] 81
 
 #### Plot the Model
 
