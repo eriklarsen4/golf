@@ -22,7 +22,7 @@
 run_skill_pipeline <- function(db_path = NULL) {
   
   con <- golf::get_db_connection(db_path)
-  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  on.exit(DBI::dbDisconnect(con), add = T)
   
   run_started <- Sys.time()
   status <- "success"
@@ -85,7 +85,7 @@ run_skill_pipeline <- function(db_path = NULL) {
         )
       
       {
-        tmp_q <- try(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM predictions_round;"), silent = TRUE)
+        tmp_q <- try(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM predictions_round;"), silent = T)
         if (inherits(tmp_q, "try-error")) {
           prod_pred_before <<- NA_integer_
         } else {
@@ -132,10 +132,24 @@ run_skill_pipeline <- function(db_path = NULL) {
       
       # fit KF on residuals
       y <- scores_sum$residual
-      init_logQ <- log(stats::var(y, na.rm = TRUE))
-      init_logH <- log(stats::var(y, na.rm = TRUE))
+      init_logQ <- log(stats::var(y, na.rm = T))
+      init_logH <- log(stats::var(y, na.rm = T))
       
       build_kf_model <- function(pars, model) {
+        logQ <- pars[1]
+        logH <- pars[2]
+        
+        # base empirical scale
+        res_var <- stats::var(scores_sum$residual, na.rm = T)
+        
+        # "natural/native" floors; scaled by score volatility
+        Q_min <- 0.10*res_var # skill (observed state) can move, but not wildly
+        H_min <- 1.00*res_var # observations are as noisy as residuals
+        
+        # floors to prevent collapse
+        Q <- max(exp(logQ), Q_min)
+        H <- max(exp(logH), H_min)
+        
         KFAS::SSModel(
           residual ~ SSMtrend(1, Q = list(exp(pars[1]))),
           H = exp(pars[2]),
@@ -242,12 +256,12 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "predictions_round",
           predictions_round,
-          append = TRUE
+          append = T
         )
       }
       
       {
-        tmp_q2 <- try(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM predictions_round;"), silent = TRUE)
+        tmp_q2 <- try(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM predictions_round;"), silent = T)
         if (inherits(tmp_q2, "try-error")) {
           prod_pred_after <<- NA_integer_
         } else {
@@ -263,7 +277,7 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_scores_sum",
           scores_sum,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
@@ -273,14 +287,14 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_predictions_round",
           predictions_round,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
       # rounds ----
       dev_rounds <- NULL
       {
-        tmp_r <- try(DBI::dbReadTable(con, "rounds"), silent = TRUE)
+        tmp_r <- try(DBI::dbReadTable(con, "rounds"), silent = T)
         if (!inherits(tmp_r, "try-error")) {
           dev_rounds <- tmp_r
         }
@@ -290,14 +304,14 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_rounds",
           dev_rounds,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
       # players ----
       dev_players <- NULL
       {
-        tmp_p <- try(DBI::dbReadTable(con, "players"), silent = TRUE)
+        tmp_p <- try(DBI::dbReadTable(con, "players"), silent = T)
         if (!inherits(tmp_p, "try-error")) {
           dev_players <- tmp_p
         }
@@ -307,14 +321,14 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_players",
           dev_players,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
       # courses ----
       dev_courses <- NULL
       {
-        tmp_c <- try(DBI::dbReadTable(con, "courses"), silent = TRUE)
+        tmp_c <- try(DBI::dbReadTable(con, "courses"), silent = T)
         if (!inherits(tmp_c, "try-error")) {
           dev_courses <- tmp_c
         }
@@ -324,14 +338,14 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_courses",
           dev_courses,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
       # club_metrics ----
       dev_club_metrics <- NULL
       {
-        tmp_m <- try(DBI::dbReadTable(con, "club_metrics"), silent = TRUE)
+        tmp_m <- try(DBI::dbReadTable(con, "club_metrics"), silent = T)
         if (!inherits(tmp_m, "try-error")) {
           dev_club_metrics <- tmp_m
         }
@@ -341,7 +355,7 @@ run_skill_pipeline <- function(db_path = NULL) {
           con,
           "dev_club_metrics",
           dev_club_metrics,
-          overwrite = TRUE
+          overwrite = T
         )
       }
       
@@ -351,11 +365,11 @@ run_skill_pipeline <- function(db_path = NULL) {
       print("INSIDE TRY BLOCK - END")
       
       
-    }, silent = TRUE)
+    }, silent = T)
     
     
     if (inherits(tmp, "try-error")) {
-      pipeline_error <- TRUE
+      pipeline_error <- T
       pipeline_error_msg <- as.character(tmp)
     }
   }
@@ -382,7 +396,7 @@ run_skill_pipeline <- function(db_path = NULL) {
       con,
       "pipeline_run_log",
       log_row,
-      append = TRUE
+      append = T
     )
   }
   

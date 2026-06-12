@@ -42,12 +42,23 @@ mod_overview_ui <- function(id) {
         shiny::div(
           style = "display: flex; flex-wrap: wrap; gap: 20px;",
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_score"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_net"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_index"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_fir"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_gir"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_putts")))
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_score"))),
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_score"))),
+          
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_net"))),
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_net"))),
+          
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_index"))),
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_index"))),
+          
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_fir"))),
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_fir"))),
+          
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_gir"))),
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_gir"))),
+          
+          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_putts")))
+          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_putts")))
         ),
         
         shiny::hr(),
@@ -111,43 +122,82 @@ mod_overview_server <- function(id, data_r, data_skill) {
     })
     
     # KPIs
-    output$kpi_score <- shiny::renderUI({
+    output$mean_score <- shiny::renderUI({
       df <- filtered()
       shiny::req(nrow(df) > 0)
       value <- round(mean(df$tot_gross, na.rm = T), 1)
       kpi_card("Avg. Gross:", value)
     })
     
-    output$kpi_net <- shiny::renderUI({
+    output$mean_net <- shiny::renderUI({
       df <- filtered()
       shiny::req(nrow(df) > 0)
       value <- round(mean(df$tot_net, na.rm = T), 1)
       kpi_card("Avg. Net:", value)
     })
     
-    output$kpi_index <- shiny::renderUI({
+    output$mean_index <- shiny::renderUI({
       df <- filtered()
       value <- round(mean(df$handicap_index, na.rm = T), 1)
       kpi_card("Avg. H.I.:", value)
     })
     
-    output$kpi_fir <- shiny::renderUI({
+    output$mean_fir <- shiny::renderUI({
       df <- filtered()
       value <- round(mean(df$fir, na.rm = T), 1)
       kpi_card("Avg. FIR %:", value)
     })
     
-    output$kpi_gir <- shiny::renderUI({
+    output$mean_gir <- shiny::renderUI({
       df <- filtered()
       value <- round(mean(df$gir, na.rm = T), 1)
       kpi_card("Avg. GIR %:", value)
     })
     
-    output$kpi_putts <- shiny::renderUI({
+    output$mean_putts <- shiny::renderUI({
       df <- filtered()
       value <- round(mean(df$tot_putts, na.rm = T), 1)
       kpi_card("Avg. Tot. Putts:", value)
     })
+    
+    
+    # output$best_score <- shiny::renderUI({
+    #   df <- filtered()
+    #   shiny::req(nrow(df) > 0)
+    #   value <- round(min(df$tot_gross, na.rm = T), 1)
+    #   kpi_card("Best Gross:", value)
+    # })
+    # 
+    # output$best_net <- shiny::renderUI({
+    #   df <- filtered()
+    #   shiny::req(nrow(df) > 0)
+    #   value <- round(min(df$tot_net, na.rm = T), 1)
+    #   kpi_card("Best Net:", value)
+    # })
+    # 
+    # output$best_index <- shiny::renderUI({
+    #   df <- filtered()
+    #   value <- round(min(df$handicap_index, na.rm = T), 1)
+    #   kpi_card("Best H.I.:", value)
+    # })
+    # 
+    # output$best_fir <- shiny::renderUI({
+    #   df <- filtered()
+    #   value <- round(max(df$fir, na.rm = T), 1)
+    #   kpi_card("Best FIR %:", value)
+    # })
+    # 
+    # output$best_gir <- shiny::renderUI({
+    #   df <- filtered()
+    #   value <- round(max(df$gir, na.rm = T), 1)
+    #   kpi_card("Best GIR %:", value)
+    # })
+    # 
+    # output$best_putts <- shiny::renderUI({
+    #   df <- filtered()
+    #   value <- round(min(df$tot_putts, na.rm = T), 1)
+    #   kpi_card(strong("Min Tot. Putts:"), value)
+    # })
     
     ts_map <- list(
       "Gross Score"     = list(col = "tot_gross",       label = "Gross Score"),
@@ -159,12 +209,14 @@ mod_overview_server <- function(id, data_r, data_skill) {
     # force ts rebuild
     output$ts_plot_container <- shiny::renderUI({
       input$ts_choice
-      apexcharter::apexchartOutput(session$ns("ts_plot"), height = "auto",
-                                   style  = "height: 40vh; min-height: 250px;")
+      shiny::div(
+        style = "height: 40vh; min-height: 250px;",
+        apexchartOutput(session$ns("ts_plot"), height = '100%')
+      )
     })
     
     # Time series plot
-    output$ts_plot <- apexcharter::renderApexchart(height = function() 300, {
+    output$ts_plot <- renderApexchart({
       shiny::req(input$ts_choice)
       spec <- ts_map[[input$ts_choice]]
       # message("metric = ", spec$col, " | label = ", spec$label)

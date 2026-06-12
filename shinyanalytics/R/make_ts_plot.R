@@ -58,7 +58,7 @@ make_ts_plot <- function(df, metric, label) {
       purrr::transpose()
     
     p <- apexcharter::apexchart() |>
-      apexcharter::ax_chart(type = "line") |>
+      apexcharter::ax_chart(type = "line", height = 300) |>
       apexcharter::ax_series(
         list(
           name = "Skill Estimate",
@@ -82,7 +82,7 @@ make_ts_plot <- function(df, metric, label) {
         labels = list(formatter = htmlwidgets::JS("function(val){ return val.toFixed(1); }"))
       ) |>
       apexcharter::ax_tooltip(
-        shared = TRUE,
+        shared = T,
         y = list(
           title = list(formatter = htmlwidgets::JS("function(){ return ''; }")),
           formatter = htmlwidgets::JS("
@@ -167,7 +167,7 @@ make_ts_plot <- function(df, metric, label) {
     apexcharter::ax_xaxis(type = "datetime", title = list(text = "Date")) |>
     apexcharter::ax_yaxis(title = list(text = label)) |>
     apexcharter::ax_tooltip(
-      shared = FALSE,
+      shared = F,
       y = list(
         title = list(formatter = htmlwidgets::JS("function(){return ''}")),
         formatter = htmlwidgets::JS(

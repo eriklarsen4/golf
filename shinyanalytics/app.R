@@ -5,6 +5,26 @@ library(dplyr)
 library(lubridate)
 
 # data prep ----
+# overwrite apexcharter's broken renderApexchart
+renderApexchart <- function(expr,
+                            env = parent.frame(),
+                            quoted = FALSE,
+                            width = "100%",
+                            height = NULL) {
+  
+  if (!quoted) {
+    expr <- substitute(expr)
+  }
+  
+  htmlwidgets::shinyRenderWidget(
+    expr,
+    apexchartOutput,
+    env,
+    quoted = TRUE
+  )
+}
+
+
 # Load analytics functions
 source("R/load_data.R") # loads 'courses', 'rounds', and 'club_metrics'
 source("R/compute_metrics.R") # computes round-level aggregate metrics
@@ -22,6 +42,8 @@ source("modules/mod_club.R")
 source("modules/mod_lie.R")
 source("modules/mod_rounds.R")
 source("modules/mod_glossary_ui.R")
+
+
 
 # Load raw CSVs
 raw <- load_data("inst/extdata/golf_exports")

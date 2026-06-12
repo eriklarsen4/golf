@@ -24,8 +24,7 @@ COPY . /app
 
 
 # Install the R packages
-RUN R -e "install.packages(c('shiny','shinyWidgets','dplyr','ggplot2','data.table','plotly','bslib','tibble','ggridges','remotes','lubridate'), repos='https://cloud.r-project.org')"
-RUN R -e "remotes::install_github('dreamRs/apexcharter')"
+RUN R -e "install.packages(c('shiny','shinyWidgets','dplyr','ggplot2','data.table','plotly','bslib','tibble','ggridges','lubridate','apexcharter'), repos='https://cloud.r-project.org')"
 
 EXPOSE 3838
 
