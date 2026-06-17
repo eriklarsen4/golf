@@ -3,18 +3,20 @@ FROM rocker/r-ver:4.3.3
 
 # System dependencies for Shiny + htmlwidgets + DBI + tidyverse
 RUN apt-get update && apt-get install -y \
+    libuv1 \
+    libuv1-dev \
+    curl \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
     libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
     libfreetype6-dev \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
-    libharfbuzz-dev \
-    libfribidi-dev \
-    libglpk-dev \
-    libpq-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
