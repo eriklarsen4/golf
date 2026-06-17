@@ -8,6 +8,9 @@ on:
 jobs:
   r-cmd-check:
     runs-on: ubuntu-latest
+    
+    env:
+      RENV_PATHS_CACHE: "/tmp/renv-cache"
 
     steps:
       - name: Checkout repository
