@@ -1,15 +1,15 @@
-# Ignore everything outside this directory
-../*
+# Ignore renv library (local machine-specific)
+renv/library/
 
-# Allow this directory
-!./*
-
-# Allow the repo-root renv.lock (explicit COPY in Dockerfile)
-!../renv.lock
-
-# Local junk
+# RStudio junk
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
+# macOS junk
 .DS_Store
+
+# Git metadata (never needed in build context)
+.git
+.gitignore
