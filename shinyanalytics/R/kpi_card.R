@@ -1,7 +1,7 @@
 # KPI card helper (CSS-based) ----
-kpi_card <- function(label, value) {
+kpi_card <- function(label, value, class = NULL) {
   shiny::div(
-    class = "kpi-card",
+    class = paste("kpi-card", class),
     shiny::h4(label),
     shiny::h2(value)
   )

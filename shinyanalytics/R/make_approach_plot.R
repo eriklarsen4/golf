@@ -11,7 +11,10 @@ make_approach_plot <- function(df, view, group_var = NULL, facet_var = NULL) {
       ggplot2::geom_point(alpha = 0.4) +
       ggplot2::geom_smooth(method = "loess") +
       ggplot2::coord_cartesian(ylim = c(0, 1)) +
-      ggplot2::labs(title = 'GIR Curve (GIR Probability, given Distance)', x = "Distance (yds)", y = "GIR %")
+      ggplot2::labs(title = 'GIR Curve (GIR Prob.)', x = "Distance (yds)", y = "GIR %") +
+      ggplot2::theme(aspect.ratio = NULL,
+                     plot.margin = ggplot2::margin(5,5,5,5),
+                     axis.text.x = ggplot2::element_text(hjust = 0.5, vjust = 0.5, angle = 270))
     
     return(plotly::ggplotly(p))
   }
@@ -28,7 +31,10 @@ make_approach_plot <- function(df, view, group_var = NULL, facet_var = NULL) {
       ggplot2::geom_smooth(method = "loess") +
       ggplot2::coord_cartesian(ylim = c(0, 1)) +
       ggplot2::facet_wrap(~ lie) +
-      ggplot2::labs(x = "Distance (yds)", y = "GIR %", title = 'GIR Curve (GIR Probability) by Lie')
+      ggplot2::labs(x = "Distance (yds)", y = "GIR %", title = 'GIR Curve (GIR Prob.) by Lie') +
+      ggplot2::theme(aspect.ratio = NULL,
+                     plot.margin = ggplot2::margin(5,5,5,5),
+                     axis.text.x = ggplot2::element_text(hjust = 0.5, vjust = 0.5, angle = 270))
     
     return(plotly::ggplotly(p))
   }
@@ -45,7 +51,10 @@ make_approach_plot <- function(df, view, group_var = NULL, facet_var = NULL) {
       ggplot2::geom_smooth(method = "loess") +
       ggplot2::coord_cartesian(ylim = c(0, 1)) +
       ggplot2::facet_wrap(~ tees) +
-      ggplot2::labs(x = "Distance (yds)", y = "Par-3 GIR %", title = 'Par-3 GIR Curve (GIR Probability) by Tee')
+      ggplot2::labs(x = "Distance (yds)", y = "Par-3 GIR %", title = 'Par-3 GIR Curve\n(GIR Prob.) by Tee') +
+      ggplot2::theme(aspect.ratio = NULL,
+                     plot.margin = ggplot2::margin(5,5,5,5),
+                     axis.text.x = ggplot2::element_text(hjust = 0.5, vjust = 0.5, angle = 270))
     
     return(plotly::ggplotly(p))
   }
@@ -62,19 +71,30 @@ make_approach_plot <- function(df, view, group_var = NULL, facet_var = NULL) {
       ggplot2::geom_smooth(method = "loess") +
       ggplot2::coord_cartesian(ylim = c(0, 1)) +
       ggplot2::facet_wrap(~ course_name) +
-      ggplot2::labs(x = "Distance (yds)", y = "GIR %", title = 'Par-3 GIR Curve (GIR Probability) by Course')
+      ggplot2::labs(x = "Distance (yds)", y = "GIR %", title = 'Par-3 GIR Curve\n(GIR Prob.) by Course') +
+      ggplot2::theme(aspect.ratio = NULL,
+                     plot.margin = ggplot2::margin(5,5,5,5))
     
     return(plotly::ggplotly(p))
   }
   
   # custom GIR analysis
   if (view == "Custom GIR Analysis") {
+    
     df2 <- df |> dplyr::filter(!is.na(yds_to_target), !is.na(approach_gir))
     
     # grouping
     if (!is.null(group_var) && group_var != "") {
-      df2[[group_var]] <- df2[[group_var]]
+      aes_map <- ggplot2::aes(
+        x = yds_to_target,
+        y = approach_gir,
+        color = .data[[group_var]]
+      )
     } else {
+      aes_map <- ggplot2::aes(
+        x = yds_to_target,
+        y = approach_gir
+      )
       group_var <- NULL
     }
     
@@ -111,17 +131,16 @@ make_approach_plot <- function(df, view, group_var = NULL, facet_var = NULL) {
     }
     
     # build plot
-    aes_map <- if (!is.null(group_var)) {
-      ggplot2::aes(x = yds_to_target, y = approach_gir, color = .data[[group_var]])
-    } else {
-      ggplot2::aes(x = yds_to_target, y = )
-    }
-    
     p <- ggplot2::ggplot(df2, aes_map) +
       ggplot2::geom_point(alpha = 0.4) +
       ggplot2::geom_smooth(method = "loess") +
       ggplot2::coord_cartesian(ylim = c(0, 1)) +
-      ggplot2::labs(x = "Distance (yds)", y = "GIR %")
+      ggplot2::labs(x = "Distance (yds)", y = "GIR %") +
+      ggplot2::theme(
+        aspect.ratio = NULL,
+        plot.margin = ggplot2::margin(5,5,5,5),
+        axis.text.x = ggplot2::element_text(hjust = 0.5, vjust = 0.5, angle = 270)
+      )
     
     if (!is.null(facet_formula)) {
       p <- p + ggplot2::facet_wrap(facet_formula)

@@ -42,31 +42,32 @@ mod_overview_ui <- function(id) {
         shiny::div(
           style = "display: flex; flex-wrap: wrap; gap: 20px;",
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_score"))),
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_score"))),
+          shiny::div(shiny::uiOutput(ns("mean_score"))),
+          shiny::div(shiny::uiOutput(ns("best_score"))),
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_net"))),
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_net"))),
+          shiny::div(shiny::uiOutput(ns("mean_net"))),
+          shiny::div(shiny::uiOutput(ns("best_net"))),
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_index"))),
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_index"))),
+          shiny::div(shiny::uiOutput(ns("mean_index"))),
+          shiny::div(shiny::uiOutput(ns("best_index"))),
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_fir"))),
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_fir"))),
+          shiny::div(shiny::uiOutput(ns("mean_fir"))),
+          # shiny::div(shiny::uiOutput(ns("best_fir"))),
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_gir"))),
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_gir"))),
+          shiny::div(shiny::uiOutput(ns("mean_gir"))),
+          # shiny::div(shiny::uiOutput(ns("best_gir"))),
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("mean_putts")))
-          # shiny::div(style = "width: 200px;", shiny::uiOutput(ns("best_putts")))
+          shiny::div(shiny::uiOutput(ns("mean_putts")))#,
+          # shiny::div(shiny::uiOutput(ns("best_putts")))
         ),
         
         shiny::hr(),
         
         shiny::div(
-          style = "height: 40vh; min-height: 250px;",
-          shiny::uiOutput(ns("ts_plot_container"), 
-                          height = "auto")
+          #style = "height: 40vh; min-height: 250px;",
+          shiny::uiOutput(ns("ts_plot_container")#, 
+                          # height = "auto"
+                          )
         )
       )
     )
@@ -161,26 +162,26 @@ mod_overview_server <- function(id, data_r, data_skill) {
     })
     
     
-    # output$best_score <- shiny::renderUI({
-    #   df <- filtered()
-    #   shiny::req(nrow(df) > 0)
-    #   value <- round(min(df$tot_gross, na.rm = T), 1)
-    #   kpi_card("Best Gross:", value)
-    # })
-    # 
-    # output$best_net <- shiny::renderUI({
-    #   df <- filtered()
-    #   shiny::req(nrow(df) > 0)
-    #   value <- round(min(df$tot_net, na.rm = T), 1)
-    #   kpi_card("Best Net:", value)
-    # })
-    # 
-    # output$best_index <- shiny::renderUI({
-    #   df <- filtered()
-    #   value <- round(min(df$handicap_index, na.rm = T), 1)
-    #   kpi_card("Best H.I.:", value)
-    # })
-    # 
+    output$best_score <- shiny::renderUI({
+      df <- filtered()
+      shiny::req(nrow(df) > 0)
+      value <- round(min(df$tot_gross, na.rm = T), 1)
+      kpi_card("Best Gross:", value, class = 'kpi-best')
+    })
+
+    output$best_net <- shiny::renderUI({
+      df <- filtered()
+      shiny::req(nrow(df) > 0)
+      value <- round(min(df$tot_net, na.rm = T), 1)
+      kpi_card("Best Net:", value, class = 'kpi-best')
+    })
+
+    output$best_index <- shiny::renderUI({
+      df <- filtered()
+      value <- round(min(df$handicap_index, na.rm = T), 1)
+      kpi_card("Best H.I.:", value, class = 'kpi-best')
+    })
+
     # output$best_fir <- shiny::renderUI({
     #   df <- filtered()
     #   value <- round(max(df$fir, na.rm = T), 1)
@@ -211,7 +212,7 @@ mod_overview_server <- function(id, data_r, data_skill) {
       input$ts_choice
       shiny::div(
         style = "height: 40vh; min-height: 250px;",
-        apexchartOutput(session$ns("ts_plot"), height = '100%')
+        apexchartOutput(session$ns("ts_plot"))
       )
     })
     

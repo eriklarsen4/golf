@@ -21,6 +21,10 @@
   font-size: 0.95rem;
 }
 
+.kpi-best {
+  background-color: #e3f2fd !important; /* light blue */
+}
+
 /* KPI mobile scaling */
 @media (max-width: 600px) {
   .kpi-card {
@@ -65,6 +69,11 @@ body, .main-panel, .tab-content {
   overflow-x: hidden !important;
 }
 
+/* prevent vertical scrollbars caused by nested containers */
+html, body, .tab-content, .tab-pane, .main-panel {
+  overflow-y: visible !important;
+}
+
 /* Main panel height */
 .main-panel {
   min-height: 2000px;
@@ -94,6 +103,11 @@ body, .main-panel, .tab-content {
   overflow: hidden;
 }
 
+/* ensure parent grid columns never force scrollbars */
+.row, [class*="col-"] {
+  overflow: visible !important;
+}
+
 /* Image scaling */
 img { /* Ensure images (if any) scale properly */
   max-width: 100%;
@@ -120,3 +134,4 @@ table { /* Prevent horizontal scrolling on tables/text (wrapping) */
     font-size: 0.75rem;
   }
 }
+

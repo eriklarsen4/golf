@@ -70,20 +70,23 @@ mod_performance_ui <- function(id) {
         shiny::div(
           style = "display: flex; flex-wrap: wrap; gap: 20px;",
           
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_fir"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_gir"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_updown"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_putts"))),
-          shiny::div(style = "width: 200px;", shiny::uiOutput(ns("kpi_penalties")))
+          shiny::div(shiny::uiOutput(ns("kpi_fir"))), # removed style = "width: 200px;"
+          shiny::div(shiny::uiOutput(ns("best_fir"))),
+          shiny::div(shiny::uiOutput(ns("kpi_gir"))),
+          shiny::div(shiny::uiOutput(ns("best_gir"))),
+          shiny::div(shiny::uiOutput(ns("kpi_updown"))),
+          shiny::div(shiny::uiOutput(ns("kpi_putts"))),
+          shiny::div(shiny::uiOutput(ns("best_putts"))),
+          shiny::div(shiny::uiOutput(ns("kpi_penalties")))
         ),
         
         shiny::hr(),
         
         shiny::div(
-          style = "height: 40vh; min-height: 250px;",
+          # style = "height: 40vh; min-height: 250px;",
           shiny::plotOutput(
-            outputId = ns("metric_plot"),
-            height = "auto"
+            outputId = ns("metric_plot")#,
+            # height = "auto"
           )
         )
       )
@@ -137,6 +140,12 @@ mod_performance_server <- function(id, data_r) {
       kpi_card("Avg. FIR %:", value)
     })
     
+    output$best_fir <- shiny::renderUI({
+      df <- performance_round_df()
+      value <- round(max(df$fir, na.rm = T), 1)
+      kpi_card("Best FIR %:", value, class = 'kpi-best')
+    })
+    
     output$kpi_gir <- shiny::renderUI({
       df <- performance_round_df()
       shiny::req(nrow(df) > 0)
@@ -144,25 +153,37 @@ mod_performance_server <- function(id, data_r) {
       kpi_card("Avg. GIR %:", value)
     })
     
+    output$best_gir <- shiny::renderUI({
+      df <- performance_round_df()
+      value <- round(max(df$gir, na.rm = T), 1)
+      kpi_card("Best GIR %:", value, class = 'kpi-best')
+    })
+    
     output$kpi_updown <- shiny::renderUI({
       df <- performance_round_df()
       shiny::req(nrow(df) > 0)
       value <- round(mean(df$updown, na.rm = T), 1)
-      kpi_card("Avg. Up & Down %:", value)
+      kpi_card("Avg.\nUp & Down %:", value)
     })
     
     output$kpi_putts <- shiny::renderUI({
       df <- performance_round_df()
       shiny::req(nrow(df) > 0)
       value <- round(mean(df$tot_putts, na.rm = T), 1)
-      kpi_card("Avg. Total Putts:", value)
+      kpi_card("Avg.\nTotal Putts:", value)
+    })
+    
+    output$best_putts <- shiny::renderUI({
+      df <- performance_round_df()
+      value <- round(min(df$tot_putts, na.rm = T), 1)
+      kpi_card(strong("Min Tot. Putts:"), value, class = 'kpi-best')
     })
     
     output$kpi_penalties <- shiny::renderUI({
       df <- performance_round_df()
       shiny::req(nrow(df) > 0)
       value <- round(mean(df$tot_penalties, na.rm = T), 1)
-      kpi_card("Avg. Total Penalties:", value)
+      kpi_card("Avg.\nTotal Penalties:", value)
     })
     
     output$metric_plot <- shiny::renderPlot(height = function() 300, res = 96, {

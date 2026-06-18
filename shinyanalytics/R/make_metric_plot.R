@@ -165,7 +165,8 @@ make_metric_plot <- function(df_round, df_club, metric, facet, smooth, flip, x_c
   
   # geoms
   
-  p <- p + ggplot2::geom_point(size = 2, alpha = 0.8)
+  p <- p + ggplot2::geom_point(size = 2, alpha = 0.8) + ggplot2::theme(aspect.ratio = NULL,
+                                                                       plot.margin = ggplot2::margin(5,5,5,5))
   
   if (smooth) {
     p <- p + ggplot2::geom_smooth(method = "lm", linewidth = 0.6)

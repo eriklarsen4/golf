@@ -14,15 +14,17 @@ mod_lie_ui <- function(id) {
             title = "Distance Loss by Lie on Full Strokes",
             
             shiny::div(
-              style = "height: 40vh; min-height: 250px;",
+              style = "width: 100%;",
+              # style = "height: 40vh; min-height: 250px;",
               plotly::plotlyOutput(
-                outputId = ns("distance_loss"),
-                height = "auto")
+                outputId = ns("distance_loss")#,
+                # height = "auto"
+                )
             )
           ),
           
           shiny::tabPanel(
-            title = "Miss Direction by Lie",
+            title = "Miss Direction Composition by Lie",
             
             shiny::selectInput(
               inputId = ns("miss_view"),
@@ -33,15 +35,17 @@ mod_lie_ui <- function(id) {
             ),
             
             shiny::div(
-              style = "height: 40vh; min-height: 250px;",
+              style = "width: 100%;",
+              # style = "height: 40vh; min-height: 250px;",
               plotly::plotlyOutput(
-                outputId = ns("miss_by_lie"),
-                height = "auto")
+                outputId = ns("miss_by_lie")#,
+                # height = "auto"
+                )
             )
           ),
           
           shiny::tabPanel(
-            title = "Miss Direction by Lie & Club",
+            title = "Miss Direction Composition by Lie & Club",
             
             shiny::selectInput(
               inputId = ns("miss_view_lie_club"),
@@ -52,10 +56,12 @@ mod_lie_ui <- function(id) {
             ),
             
             shiny::div(
-              style = "height: 42vh; min-height: 240px;",
+              style = "width: 100%;",
+              # style = "height: 42vh; min-height: 240px;",
               plotly::plotlyOutput(
                 outputId = ns("miss_by_lie_club"),
-                height = "auto")
+                # height = "auto"
+                )
             )
             
           )
@@ -115,11 +121,16 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
           color      = "gray40"
         ) +
         ggplot2::labs(
-          title    = "Distance Loss by Lie Type on Full Strokes",
+          title    = "Distance Loss\non Full Swings",
           subtitle = "target − actual distance",
           x        = "Lie Type",
           y        = "Distance Loss (yd)"
         ) +
+        ggplot2::theme(
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5)#,
+          # axis.text.x = ggplot2::element_text(angle = 270, hjust = 0.5, vjust = 0.5)
+        )
         ggplot2::coord_flip()
       
       plotly::ggplotly(p)
@@ -157,10 +168,14 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
             ggplot2::labs(
               x = "Lie",
               y = "Proportion",
-              fill = "Miss Direction",
-              title = "Miss Direction Composition by Lie"
+              fill = "Miss\nDirection",
+              title = "Miss Direction Composition"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           title = ggplot2::element_text(size = 12),
+                           axis.text = ggplot2::element_blank())
         )
       }
       
@@ -177,10 +192,13 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
             ggplot2::labs(
               x = "Lie",
               y = "Count",
-              fill = "Miss Direction",
-              title = "Miss Direction Counts by Lie"
+              fill = "Miss\nDirection",
+              title = "Miss Direction Counts"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           title = ggplot2::element_text(size = 12))
         )
       }
       
@@ -203,9 +221,12 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
               x = "Miss Direction",
               y = "Lie",
               fill = "Count",
-              title = "Miss Direction Heatmap by Lie"
+              title = "Miss Direction Heatmap"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           axis.text.x = ggplot2::element_text(angle = 270, vjust = 0.5, hjust = 0.5))
         )
       }
     })
@@ -243,10 +264,13 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
             ggplot2::labs(
               x = "Club",
               y = "Proportion",
-              fill = "Miss Direction",
-              title = "Miss Direction Composition by Lie & Club"
+              fill = "Miss\nDirection",
+              title = "Miss Direction Composition"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           axis.text.x = ggplot2::element_blank())
         )
       }
       
@@ -264,10 +288,13 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
             ggplot2::labs(
               x = "Club",
               y = "Count",
-              fill = "Miss Direction",
-              title = "Miss Direction Counts by Lie & Club"
+              fill = "Miss\nDirection",
+              title = "Miss Direction Counts"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           axis.text.x = ggplot2::element_blank())
         )
       }
       
@@ -291,9 +318,13 @@ mod_lie_server <- function(id, stroke_level_df, stroke_quality) {
               x = "Miss Direction",
               y = "Club",
               fill = "Count",
-              title = "Miss Direction Heatmap by Lie & Club"
+              title = "Miss Direction Heatmap"
             ) +
-            ggplot2::theme(legend.position = 'bottom')
+            ggplot2::theme(legend.position = 'bottom',
+                           aspect.ratio = NULL,
+                           margins = ggplot2::margin(5,5,5,5),
+                           axis.text.x = ggplot2::element_text(angle = 270, vjust = 0.5, hjust = 0.5),
+                           axis.title.x.bottom = ggplot2::element_text(vjust = 2))
         )
       }
     })

@@ -29,10 +29,10 @@ mod_club_ui <- function(id) {
         class = 'main-panel',
         
         shiny::div(
-          style = "height: 42vh; min-height: 240px;",
+          style = "width: 100%;",
           plotly::plotlyOutput(
-            outputId = ns("club_plot"),
-            height = "auto"
+            outputId = ns("club_plot")#,
+            # height = "auto"
           )
         )
       )
@@ -102,17 +102,20 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           minor_breaks = NULL
         ) +
         ggplot2::labs(
-          title = "Actual Shot Distance & Calibration by Club",
+          title = "Actual Shot Distance +\nCalibration",
           # subtitle = "Shaded bands show calibrated full-swing distance windows",
           x = "Club",
           y = "Mean Distance (yd)"
         ) +
         ggplot2::theme(
           axis.text.x = ggplot2::element_text(
-            angle = 45,
-            hjust = 1,
-            vjust = 1
-          )
+            angle = 270,
+            hjust = 0.5,
+            vjust = 0.5,
+          ),
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5),
+          
         )
       
       
@@ -149,16 +152,18 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           color = "black"
         ) +
         ggplot2::labs(
-          title = "Full Stroke Accuracy by Club",
+          title = "Accuracy on Full Swings",
           x = "Club",
           y = "Accuracy %"
         ) +
         ggplot2::theme(
           axis.text.x = ggplot2::element_text(
-            angle = 45,
-            hjust = 1,
-            vjust = 1
-          )
+            angle = 270,
+            hjust = 0.5,
+            vjust = 0.5
+          ),
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5)
         )
       
       plotly::ggplotly(p)
@@ -182,18 +187,20 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
       ) +
         ggplot2::geom_col(alpha = 0.85) +
         ggplot2::labs(
-          title = "Miss Direction Composition by Club",
+          title = "Miss Direction Composition",
           x = "Club",
           y = "Proportion of Miss Types (%)",
-          fill = "Miss Direction"
+          fill = "Miss\nDirection"
         ) +
         ggplot2::theme(
           axis.text.x = ggplot2::element_text(
-            angle = 45,
-            hjust = 1,
-            vjust = 1
+            angle = 270,
+            hjust = 0.5,
+            vjust = 0.5
           ),
-          legend.position = 'bottom'
+          legend.position = 'bottom',
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5)
         )
       
       plotly::ggplotly(p)
@@ -238,17 +245,20 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           minor_breaks = NULL
         ) +
         ggplot2::labs(
-          title = "Distance Control by Club",
+          title = "Distance Control (actual - stock)", 
           subtitle = "Difference between actual shot distance and stock distance",
           x = "Club",
           y = "Distance Error (yd)"
         ) +
         ggplot2::theme(
           axis.text.x = ggplot2::element_text(
-            angle = 45,
-            hjust = 1,
-            vjust = 1
-          )
+            angle = 270,
+            hjust = 0.5,
+            vjust = 0.5
+          ),
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5),
+          title = ggplot2::element_text(size = 12)
         )
       
       plotly::ggplotly(p)
@@ -280,10 +290,15 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           size = 0.3
         ) +
         ggplot2::labs(
-          title = "Usage Distance Distribution by Club",
+          title = "Usage Distance Distribution",
           subtitle = "Shows how often each club is used from different distances",
           x = "Target Distance (yds)",
           y = "Club"
+        ) +
+        ggplot2::theme(
+          aspect.ratio = NULL,
+          plot.margin = ggplot2::margin(5,5,5,5),
+          axis.text.x = ggplot2::element_text(angle = 270, hjust = 0.5, vjust = 0.5)
         )
       
       plotly::ggplotly(p)
