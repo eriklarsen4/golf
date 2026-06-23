@@ -39,4 +39,4 @@ COPY . .
 EXPOSE 3838
 
 # Run the app
-CMD ["R", "-e", "shiny::runApp('/srv/shiny-server', host='0.0.0.0', port=3838)"]
+CMD ["R", "-e", "port <- as.numeric(Sys.getenv('PORT', 3838)); shiny::runApp('/srv/shiny-server', host='0.0.0.0', port=port)"]
