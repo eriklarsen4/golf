@@ -13,7 +13,7 @@ glossary_ui <- function(id) {
                                       h3("Handicap Index"),
                                       p(strong("Handicap Index")),
                                       p("Official USGA metric determining a player's skill level"),
-                                      p("Computed using only the 8 best Gross Scores of a player's most recent 20 officially-carded rounds, submitted to the USGA (biased measure of skill)"),
+                                      p("Computed using only the 8 best Gross Scores of a player's most recent 20 officially-carded rounds officially submitted to the USGA (biased measure of skill)"),
                       ),
                       shiny::tabPanel("Net Score",
                                       h3("Net Score"),
@@ -42,7 +42,7 @@ glossary_ui <- function(id) {
                                       h3("GIR"),
                                       p(strong("GIR")),
                                       p('Abbreviation for ', strong('G'), 'reens ', strong('I'), 'n ', strong('R'), 'egulation'),
-                                      p("Hole-level, boolean (1 or 0) metric for whether the green was hit on any given hole within 2 strokes of par (e.g. 2 for Par 4's")
+                                      p("Hole-level, boolean (1 or 0) metric for whether the green was hit on any given hole within 2 strokes of par (e.g. 2 for Par 4's)")
                       ),
                       shiny::tabPanel("GIR %",
                                       h3("GIR %"),
@@ -54,9 +54,10 @@ glossary_ui <- function(id) {
                       
                       shiny::tabPanel("GIR Probability Curve",
                                       h3("GIR Probability Curve"),
-                                      p(strong("GIR Probability Curve")),
+                                      p(strong("GIR Probability Curve (GIR Prob.)")),
                                       p("The continuous probability of achieving a GIR at a given distance, across all distances, computed by regression"),
-                                      p("Peaks/maxima indicate the distance with the highest probability of hitting the green in regulation")),
+                                      p("Peaks/maxima indicate the distance with the highest probability of hitting the green in regulation"),
+                                      p("Note these are for all swings/strokes with the intent to hit the green from >= 75 yards")),
                       
                       shiny::tabPanel("Up-and-Down %",
                                       h3("Up-and-Down %"),
@@ -79,7 +80,7 @@ glossary_ui <- function(id) {
                                         p("Par 5's are ~ 480+ yards from the tee box to the middle of the green")
                                       ),
                                       p('For each round, the sum of all "hole par"s, varying around 70-72 for most courses'),
-                                      p('"Par" also serves as the term for when a player makes the ball in the hole in the number of par strokes on a given hole (e.g. 4 strokes on a Par 4: "Par"')),
+                                      p('"Par" also serves as the term for when a player makes the ball in the hole in the number of par strokes on a given hole (e.g. 4 strokes on a Par 4: "Par")')),
                       
                       shiny::tabPanel("Birdie",
                                       h3("Birdie"),
