@@ -19,21 +19,35 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# in case of need to switch to rstudio server    
+#RUN apt-get update && apt-get install -y gdebi-core \
+#    && wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.20.1002-amd64.deb \
+#    && gdebi -n shiny-server-1.5.20.1002-amd64.deb \
+#    && rm shiny-server-1.5.20.1002-amd64.deb
+
 # Create app directory
 WORKDIR /srv/shiny-server/
 
-# Copy renv infrastructure
-COPY renv.lock renv.lock
-COPY renv/ renv/
+# new order
+COPY . .
 
-# Install renv
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
 
-# Restore the shinyanalytics environment
 RUN R -e "renv::restore()"
 
+# old order
+# Copy renv infrastructure
+#COPY renv.lock renv.lock
+#COPY renv/ renv/
+
+# Install renv
+#RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
+
+# Restore the shinyanalytics environment
+#RUN R -e "renv::restore()"
+
 # Copy the Shiny app
-COPY . .
+#COPY . .
 
 # Expose Shiny port
 EXPOSE 3838
