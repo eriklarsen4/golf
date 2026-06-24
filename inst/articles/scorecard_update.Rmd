@@ -63,30 +63,30 @@ library(duckdb)
 # required inputs to fill out the scorecard
 
 round_course <- 'Randolph North'
-round_date <- '2026-06-07'
+round_date <- '2026-06-21'
 round_tees <- 'white'
 
-hole_scores <- c(4, 3, 6, 5, 4, 3, 3, 4, 5,
-                 5, 3, 5, 3, 6, 4, 4, 5, 5)
+hole_scores <- c(5, 5, 7, 4, 4, 3, 5, 4, 5,
+                 5, 4, 5, 5, 4, 4, 5, 4, 5)
 
-FIRs <- c(1, rep(0, 5), 1, 0, 0,
-          1, 0, 0, 1, rep(0, 5))
+FIRs <- c(1, 0, 1, rep(0, 3), 1, 0, 0,
+          rep(0,3), 1, rep(0,3), 1, 1)
 
-GIRs <- c(0, 1, 0, 0, 1, 0, 1, 0, 0,
-          0, 1, 0, 1, 0, 0, 1, 0, 0) 
+GIRs <- c(1, 1, 0, 1, 1, 0, 0, 0, 1,
+          0, 0, 0, 1, 0, 1, 1, 1, 0) 
 
-putts_rec <- c(1, 1, 2, 2, 2, 1, 1, 1, 1,
-               2, 2, 2, 1, 2, 2, 1, 2, 1)
+putts_rec <- c(3, 3, 2, 2, 2, 1, 2, 2, 2,
+               2, 2, 2, 3, 1, 3, 2, 2, 2)
 
-chips_rec <- c(1, 0, 1, 1, 0, 1, 0, 2, 2,
-               1, 0, 1, 0, 1, 1, 1, 1, 1)
+chips_rec <- c(1, 1, 3, 0, 0, 1, 0, 1, 0,
+               1, 1, 1, 0, 1, 0, 0, 0, 1)
 
 penalties_rec <- c(rep(0, 18))
 
-tee_clubs <- c('D', 'D', 'D', 'D', 'D', 'PW', '4', '7', 'D',
-               'D', '7', 'D', 'D', 'D', '8', 'D', 'D', 'D')
+tee_clubs <- c('D', 'D', 'D', 'D', 'D', 'GW', '4', '9', 'D',
+               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
 
-index <- 11.0
+index <- 10.4
 ```
 
 ### Specify Course and Tees
@@ -308,156 +308,156 @@ club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date) |
 ```{r Annotate the New Club Metrics, include = T, message = F, warning = F, echo = T, eval = T}
 # manually annotate from Garmin Golf App log
 club_choice <- c(
-  'D', 'GW', 'P',
   'D', 'GW',
-  'D', '5', '5', 'PW',
-  'D', '5', 'PW',
-  'D', '9',
-  'PW', 'PW',
-  '4', 'PW',
-  '7', 'GW', 'PW',
-  'D', '5', '7', 'PW',
-  
-  'D', 'GW', 'LW',
-  '7',
-  'D', 'GW', 'P',
+  'D', 'SW',
+  'D', '4', 'LW', 'LW', 'LW',
   'D', '4',
-  'D', '4', '6', 'PW',
-  '8', 'SW',
-  'D', '3W', 'PW',
-  'D', 'PW', 'SW',
-  'D', '5', 'GW', 'LW'
+  'D', '9',
+  'GW', 'PW',
+  '4', '4', 'PW',
+  '7', 'LW',
+  'D', '7', 'GW',
+  
+  'D', '4', 'SW',
+  '7', 'PW',
+  'D', '4', 'PW',
+  'D', '3W',
+  'D', '4', 'PW',
+  '7',
+  'D', '4', 'GW', 
+  'D', 'GW',
+  'D', 'PW', 'LW'
 )
 
 dist_to_target <- c(
-  270, 34, 8,
-  270, 48,
-  270, 205, 189, 8,
-  270, 189, 16,
-  270, 148,
-  129, 30,
-  220, 130,
-  173, 25, 12,
-  270, 209, 46, 21,
+  270, 53,
+  270, 60,
+  270, 220, 27, 21, 21,
+  270, 165,
+  270, 153,
+  120, 16,
+  220, 232, 140,
+  163, 23,
+  270, 165, 28,
   
-  270, 112, 18,
-  185,
-  270, 118, 9,
-  270, 208,
-  270, 220, 191, 13,
-  168, 13,
-  270, 233, 15,
-  270, 148, 27,
-  270, 206, 105, 11
+  270, 120, 44,
+  178, 20, 
+  270, 120, 15,
+  270, 253,
+  270, 226, 12,
+  182, 
+  270, 126, 107, 
+  270, 86,
+  270, 132, 23
 )
 
 yds <- c(
-  310, 27, 8,
-  308, 42,
-  245, 71, 182, 6,
-  241, 173, 13,
-  281, 147,
-  146, 24,
-  224, 130,
-  166, 12, 9,
-  231, 188, 49, 23,
+  293, 44,
+  296, 56,
+  284, 235, 7, 3, 17,
+  248, 172,
+  256, 159,
+  114, 15,
+  133, 88, 140, 
+  144, 31,
+  289, 187, 30,
   
-  288, 106, 13,
-  173,
-  267, 110, 9,
-  256, 208,
-  118, 100, 188, 13,
-  159, 14,
-  263, 242, 9,
-  222, 130, 27,
-  200, 101, 102, 7
+  268, 120, 35,
+  176, 15, 
+  268, 131, 24,
+  229, 252,
+  227, 214, 11,
+  175,
+  267, 126, 84, 
+  262, 93,
+  277, 154, 12
 )
 lie_type <- c(
+  'tee', 'fairway',
+  'tee', 'rough',
+  'tee', 'fairway', 'sand', 'sand', 'sand',
+  'tee', 'rough',
+  'tee', 'rough',
+  'tee', 'rough',
   'tee', 'fairway', 'fairway',
-  'tee', 'rough',
-  'tee', 'sand', 'fairway', 'fairway',
-  'tee', 'rough', 'fairway',
-  'tee', 'rough',
-  'tee', 'rough',
-  'tee', 'fairway',
+  'tee', 'sand',
   'tee', 'rough', 'rough',
-  'tee', 'fairway', 'rough', 'rough',
   
-  'tee', 'fairway', 'sand',
-  'tee',
   'tee', 'rough', 'fairway',
-  'tee', 'fairway',
-  'tee', 'rough', 'rough', 'fairway',
   'tee', 'rough',
   'tee', 'rough', 'rough',
-  'tee', 'fairway','sand',
-  'tee', 'fairway', 'fairway', 'sand'
+  'tee', 'fairway',
+  'tee', 'fairway', 'fairway',
+  'tee', 
+  'tee', 'rough', 'fairway',
+  'tee', 'fairway',
+  'tee', 'fairway', 'sand'
 )
 
 target_status <- c(
-  'yes', 'no', 'yes',
+  'yes', 'yes',
   'no', 'yes',
-  'no', 'no', 'no', 'yes',
+  'yes', 'no', 'no', 'no', 'yes',
+  'no', 'yes',
+  'no', 'yes',
+  'no', 'yes',
+  'no', 'no', 'yes',
+  'no', 'yes',
+  'yes', 'no', 'yes',
+  
   'no', 'yes', 'yes',
   'no', 'yes',
-  'no', 'yes',
-  'yes', 'yes',
   'no', 'no', 'yes',
-  'no', 'no', 'yes', 'yes',
-  
-  'yes', 'no', 'yes',
+  'yes', 'yes',
+  'no', 'yes', 'yes',
   'yes',
-  'no', 'no', 'yes',
+  'no', 'yes', 'yes',
   'yes', 'yes',
-  'no', 'no', 'no', 'yes',
-  'no', 'yes',
-  'no', 'no', 'yes',
-  'no', 'no', 'yes',
-  'no', 'no', 'no', 'yes'
+  'yes', 'no', 'yes'
 )
 
 location <- c(
-  'on_target', 'short', 'on_target',
+  'on_target', 'on_target',
   'right', 'on_target',
-  'right', 'short', 'short', 'on_target',
-  'right', 'on_target', 'on_target',
-  'left', 'on_target',
-  'left', 'on_target',
-  'on_target', 'on_target',
-  'right', 'short', 'on_target',
-  'right', 'right', 'on_target', 'on_target',
-  
-  'on_target', 'right', 'on_target',
-  'on_target', 
-  'right', 'short', 'on_target',
-  'on_target', 'on_target',
-  'left', 'short', 'long', 'on_target',
+  'on_taraget', 'right', 'short', 'short', 'short',
+  'right', 'on_target',
+  'right', 'on_target',
+  'right', 'on_target',
+  'short', 'short', 'on_target',
   'short', 'on_target',
-  'right', 'long', 'on_target',
-  'right', 'left', 'on_target',
-  'right', 'short', 'left', 'on_target'
+  'on_target', 'long', 'on_target',
+  
+  'right', 'on_target', 'on_target',
+  'right', 'on_target',
+  'right', 'right', 'on_target',
+  'on_target', 'on_target',
+  'right', 'on_target', 'on_target',
+  'on_target',
+  'left', 'on_target', 'on_target',
+  'on_target', 'on_target',
+  'on_target', 'long', 'on_target'
 )
 
 type_of_shot <- c(
-  'tee', 'choked', 'chip',
   'tee', 'chip',
-  'tee', 'fwbunker', 'full', 'chip',
+  'tee', 'chip',
+  'tee', 'full', 'gsbunker', 'gsbunker', 'gsbunker',
+  'tee', 'punch',
+  'tee', 'full',
+  'tee', 'chip',
+  'tee', 'full', 'full',
+  'tee', 'gsbunker',
+  'tee', 'full', 'chip',
+  
+  'tee', 'punch', 'chip',
+  'tee', 'chip',
   'tee', 'punch', 'chip',
   'tee', 'full',
-  'tee', 'chip',
-  'tee', 'full',
-  'tee', 'chip', 'chip',
-  'tee', 'full', 'chip', 'chip',
-  
-  'tee', 'choked', 'gsbunker',
-  'tee',
   'tee', 'full', 'chip',
-  'tee', 'full',
-  'tee', 'punch', 'full', 'chip',
-  'tee', 'chip',
-  'tee', 'full', 'chip',
-  'tee', 'full', 'gsbunker',
-  'tee', 'full', 'choked', 'gsbunker'
+  'tee', 
+  'tee', 'punch', 'choked',
+  'tee', 'choked',
+  'tee', 'full', 'gsbunker'
 )
 ```
 
