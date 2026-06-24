@@ -7,7 +7,9 @@ app = 'golf-analytics-rmc'
 primary_region = 'lax'
 
 [build]
-  image = 'ghcr.io/eriklarsen4/golf-analytics:latest'
+  dockerfile = "shinyanalytics/Dockerfile"
+  context = "shinyanalytics"
+  #image = 'ghcr.io/eriklarsen4/golf-analytics:latest'
 
 [processes]
   #app = "/usr/bin/shiny-server"
