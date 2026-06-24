@@ -7,8 +7,8 @@ app = 'golf-analytics-rmc'
 primary_region = 'lax'
 
 [build]
-  dockerfile = "shinyanalytics/Dockerfile"
-  context = "shinyanalytics"
+  dockerfile = "Dockerfile"
+  context = "."
   #image = 'ghcr.io/eriklarsen4/golf-analytics:latest'
 
 [processes]
@@ -26,7 +26,6 @@ primary_region = 'lax'
 [[vm]]
   memory = '2gb'
   cpus = 1
-  memory_mb = 1024
 
 [registry]
   username = "eriklarsen4"
