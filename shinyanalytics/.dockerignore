@@ -1,15 +1,8 @@
-# Ignore renv library (local machine-specific)
-renv/library/
+# Reset all parent .dockerignore rules
+!**
 
-# RStudio junk
+# Now ignore only what THIS app wants ignored
 .Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-
-# macOS junk
-.DS_Store
-
-# Git metadata (never needed in build context)
-.git
-.gitignore
+rsconnect
+renv/library/
+renv/cache/
