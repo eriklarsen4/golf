@@ -17,6 +17,14 @@ RUN apt-get update && apt-get install -y \
     libtiff5-dev \
     libjpeg-dev \
     build-essential \
+    cmake \
+    git \
+    libgit2-dev \
+    libx11-dev \
+    pandoc \
+    libwebp-dev \
+    libwebpmux3 \
+    libwebpdemux2 \
     && rm -rf /var/lib/apt/lists/*
 
 # in case of need to switch to rstudio server    
