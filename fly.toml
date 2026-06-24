@@ -29,3 +29,6 @@ primary_region = 'lax'
 [registry]
   username = "eriklarsen4"
   password = "GHCR_PAT"
+  
+[env]
+  PORT = "3838"
