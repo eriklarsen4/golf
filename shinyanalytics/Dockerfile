@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     libwebp-dev \
     libwebpmux3 \
     libwebpdemux2 \
+    && echo "force rebuild $(date)" \
     && rm -rf /var/lib/apt/lists/*
 
 # in case of need to switch to rstudio server    
