@@ -4,7 +4,6 @@ FROM rocker/r-ver:4.3.3
 # System dependencies for Shiny + htmlwidgets + DBI + tidyverse
 RUN apt-get update && apt-get install -y \
     libuv1 \
-    libuv1-dev \
     curl \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -16,12 +15,6 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libtiff5-dev \
     libjpeg-dev \
-    build-essential \
-    cmake \
-    git \
-    libgit2-dev \
-    libx11-dev \
-    pandoc \
     libwebp-dev \
     libwebpmux3 \
     libwebpdemux2 \
