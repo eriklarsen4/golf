@@ -9,7 +9,7 @@ primary_region = 'lax'
 cmd = ["/usr/bin/shiny-server"]
 
 [build]
-  image = 'ghcr.io/eriklarsen4/golf:analytics-latest'
+  image = 'ghcr.io/eriklarsen4/golf-analytics:latest'
 
 [http_service]
   internal_port = 3838
