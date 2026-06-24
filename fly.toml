@@ -6,10 +6,11 @@
 app = 'golf-analytics-rmc'
 primary_region = 'lax'
 
-cmd = ["/usr/bin/shiny-server"]
-
 [build]
   image = 'ghcr.io/eriklarsen4/golf-analytics:latest'
+
+[processes]
+  app = "/usr/bin/shiny-server"
 
 [http_service]
   internal_port = 3838
