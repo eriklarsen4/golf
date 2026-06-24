@@ -70,3 +70,10 @@
 "2026-06-06 20:24:05.662488","success",NA,NA,NA,NA,NA
 "2026-06-06 20:24:25.400588","success",NA,NA,NA,NA,NA
 "2026-06-11 00:19:37.271031","success",NA,NA,NA,NA,NA
+"2026-06-12 00:02:53.397106","error","Error in eval(comp[[1]], envir = data, enclos = parent.frame()) : 
+  object 'SSMtrend' not found
+",NA,NA,NA,NA
+"2026-06-12 00:07:07.463239","success",NA,NA,NA,NA,NA
+"2026-06-24 22:37:41.65527","success",NA,NA,NA,NA,NA
+"2026-06-24 22:38:04.04884","success",NA,NA,NA,NA,NA
+"2026-06-24 22:38:26.952177","success",NA,NA,NA,NA,NA
