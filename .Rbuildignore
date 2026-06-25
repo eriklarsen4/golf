@@ -25,3 +25,8 @@ compose_email
 ^dev/local/
 ^rsconnect/
 ^packrat/
+^shinyanalytics$
+^shinyanalytics/renv$
+^shinyanalytics/renv\.lock$
+^shinyanalytics/\.Rprofile$
+^shinyanalytics/DESCRIPTION$
