@@ -109,13 +109,19 @@ mod_overview_server <- function(id, data_r, data_skill) {
         dplyr::distinct()
       
       skill <- data_skill() |> 
+        dplyr::arrange(desc(date), desc(generated_at)) |> 
         dplyr::ungroup() |> 
+        dplyr::group_by(date) |> 
+        dplyr::slice_tail(n = 1) |> 
+        dplyr::ungroup() |> 
+        dplyr::arrange(desc(date), desc(generated_at)) |> 
+        dplyr::distinct() |> 
         dplyr::rename(tot_gross = gross_score,
                       handicap_index = index_posted) |> 
-        dplyr::mutate(date = as.Date(date)) |> 
-        dplyr::group_by(date, course_name, tees) |> 
-        dplyr::slice_max(order_by = generated_at, n = 1) |> 
-        dplyr::ungroup()
+        dplyr::mutate(date = as.Date(date)) # |> 
+        # dplyr::group_by(date, course_name, tees) |> 
+        # dplyr::slice_max(order_by = generated_at, n = 1) |> 
+        # dplyr::ungroup()
       
       dplyr::left_join(base,
                        skill, 
