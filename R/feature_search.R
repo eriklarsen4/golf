@@ -30,7 +30,7 @@ feature_search <- function(feature){
   
   result <- lapply(
     sapply(
-      tbls, function(x) {
+      DBI::dbListTables(conn = con), function(x) {
         DBI::dbListFields(conn = con, name = x)
       }, USE.NAMES = T
     ),
