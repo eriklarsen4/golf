@@ -25,8 +25,20 @@ compose_email
 ^dev/local/
 ^rsconnect/
 ^packrat/
+
+# keep package lockfile, ignore library and cache
+^renv/library$
+^renv/cache$
+^renv/settings\.json$
+^renv/python$
+
+# keep app lockfile, ignore library and cache
 ^shinyanalytics$
 ^shinyanalytics/renv$
+^shinyanalytics/renv/library$
+^shinyanalytics/renv/cache$
+^shinyanalytics/renv/settings\.json$
+^shinyanalytics/renv/python$
 ^shinyanalytics/renv\.lock$
 ^shinyanalytics/\.Rprofile$
 ^shinyanalytics/DESCRIPTION$
