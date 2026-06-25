@@ -71,6 +71,8 @@ compute_full_stroke_quality_avg <- function(stroke_quality) {
     dplyr::summarize(
       avg_yds_to_target = round(mean(yds_to_target,  na.rm = T), 1),
       avg_yds_traveled  = round(mean(yds_traveled,   na.rm = T), 1),
+      min_yds_traveled = round(min(yds_traveled, na.rm = T), 1),
+      max_yds_traveled = round(max(yds_traveled, na.rm = T), 1),
       sd_yds_traveled   = round(sd(yds_traveled,     na.rm = T), 1),
       avg_yd_diff       = round(mean(yd_diff,        na.rm = T), 1),
       avg_accuracy      = round((sum(on_target,      na.rm = T) / dplyr::n()) * 100, 2),
