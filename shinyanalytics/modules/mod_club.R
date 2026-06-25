@@ -70,11 +70,31 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
           club = factor(club, levels = club_levels),
           x = as.numeric(club)
         ) |>
-        dplyr::left_join(cal_windows, by = "club")
+        dplyr::left_join(cal_windows, by = "club") |> 
+        dplyr::group_by() |> 
+        dplyr::mutate(
+          target_center = (ymin + ymax) /2,
+          lower_error = avg_yds_traveled - sd_yds_traveled,
+          upper_error = avg_yds_traveled + sd_yds_traveled,
+          min_shot_distance = min(yds_traveled, na.rm = T),
+          max_shot_distance = max(yds_traveled, na.rm = T)
+        ) |> 
+        dplyr::ungroup()
       
       p <- ggplot2::ggplot(
         df,
-        ggplot2::aes(x = x, y = avg_yds_traveled, color = club, fill = club)
+        ggplot2::aes(x = x, y = avg_yds_traveled, color = club, fill = club,
+                     text = paste0(
+                       "Club: ", club, "<br>",
+                       "Avg: ", round(avg_yds_traveled, 1), " yd<br>",
+                       "SD: ", round(sd_yds_traveled, 1), " yd<br>",
+                       "Lower Error: ", round(lower_error, 1), " yd<br>",
+                       "Upper Error: ", round(upper_error, 1), " yd<br>",
+                       "Min Shot Dist.: ", round(min_shot_distance, 1), " yd<br>",
+                       "Max Shot Dist.: ", round(max_shot_distance, 1), " yd<br>",
+                       "Cal Min: ", round(ymin, 1), " yd<br>",
+                       "Cal Max: ", round(ymax, 1), " yd<br>"
+                     ))
       ) +
         ggplot2::geom_rect(
           ggplot2::aes(
@@ -119,7 +139,7 @@ mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {
         )
       
       
-      plotly::ggplotly(p)
+      plotly::ggplotly(p, tooltip = 'text')
     })
     
     # ---- 2. Full-Stroke Accuracy ----
