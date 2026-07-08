@@ -125,7 +125,7 @@ mod_overview_server <- function(id, data_r, data_skill) {
       
       dplyr::left_join(base,
                        skill, 
-                       by = c('date', 'course_name', 'tees', 'handicap_index', 'tot_gross')) 
+                       by = c('date', 'course_name', 'tees', 'handicap_index', 'tot_gross'))
     })
     
     # KPIs
