@@ -236,7 +236,7 @@ get_course <- function(course, date, tees){
     Scorecard <- data.frame(course = 'Silverbell',
                             date = as.character(date),
                             tees = tees,
-                            to_par = 72,
+                            to_par = 70,
                             slope = NA,
                             course_rating = NA)
     if ( grepl(tees, pattern = 'blue') |> any() ) {
