@@ -94,7 +94,7 @@ ui <- shiny::navbarPage(
   ),
   
   shiny::tabPanel(
-    title = "Round Search",
+    title = "Data Search",
     icon = shiny::icon('magnifying-glass'),
     mod_rounds_ui("rounds")
   ),
