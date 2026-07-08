@@ -138,7 +138,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
   DBI::dbAppendTable(conn = con,
                    name = 'players',
                    value = players <- Card |> 
-                     dplyr::select(GHIN, index, date) |> 
+                     dplyr::select(player_id, player_name, GHIN, index, date) |> 
                      dplyr::distinct() |> 
                      dplyr::rename(handicap_index = index) |> 
                      dplyr::mutate(date = as.character(date))
@@ -165,7 +165,7 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
   DBI::dbAppendTable(conn = con,
                    name = 'dev_players',
                    value = players <- Card |> 
-                     dplyr::select(GHIN, index, date) |> 
+                     dplyr::select(player_id, player_name, GHIN, index, date) |> 
                      dplyr::distinct() |> 
                      dplyr::rename(handicap_index = index) |> 
                      dplyr::mutate(date = as.character(date))
