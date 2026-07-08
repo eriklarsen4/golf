@@ -19,7 +19,8 @@ Imports:
     lme4,
     tibble,
     readr,
-    stats
+    stats,
+    stringr
 Roxygen: list(markdown = TRUE)
 Depends:
   R (>= 4.5.0)
