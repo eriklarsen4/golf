@@ -8,13 +8,15 @@ log_score(
   Scorecard,
   hole_by_hole,
   GHIN = NULL,
+  name = NULL,
   index = NULL,
   FIR = NULL,
   GIR = NULL,
   putts = NULL,
   chips = NULL,
   penalties = NULL,
-  tee_club = NULL
+  tee_club = NULL,
+  db_path = NULL
 )
 }
 \arguments{
@@ -23,7 +25,9 @@ log_score(
 
 \item{hole_by_hole}{a concatenated vector of integers comprising a player's score for each hole}
 
-\item{GHIN}{(optional) a numeric (integer) representing a GHIN}
+\item{GHIN}{(optional) a character string of integers representing a GHIN}
+
+\item{name}{(optional) a character string of the player's name}
 
 \item{index}{(optional) a float representing a player's handicap index}
 
@@ -38,6 +42,10 @@ log_score(
 \item{penalties}{(optional) an integer representing the number of penalties incurred by a player for the given round}
 
 \item{tee_club}{(optional) a concatenated vector of strings comprising a player's choice of club off the tee for every hole}
+
+\item{db_path}{optional path to a DuckDB database file; if supplied, the
+function uses this database instead of the package's default. Designed for
+testing with temp writable databases}
 }
 \value{
 \item{\strong{Card}}{: a dataframe containing the record of a player's round; depending on the input, integrating the handicap to compute net strokes}
@@ -49,10 +57,11 @@ log_score(
 Completes and (pending input) analyzes the scorecard of the specific course and tees for data entry
 }
 \examples{
+\dontrun{
 Card <- get_course(course = 'North', date = '2025-12-01', tees = 'combo')
 log_score(Scorecard = Card,
           hole_by_hole = c(5, 6, 3, 5, 5, 3, 6, 5, 3, 5, 6, 2, 5, 6, 3, 4, 4, 7),
-          GHIN = 10526424,
+          GHIN = '10526424',
           index = 10.4,
           FIR = c(1, 1, 0, 1, 1, 0, 0, 1, 0,
                   0, 1, 0, 1, 0, 1, 0, 0, 0),
@@ -67,5 +76,6 @@ log_score(Scorecard = Card,
           tee_club = c('4', '4', 'D', 'D', 'D', 'GW', '4', '7', 'D',
                        'D', '7', 'D', 'D', 'D', '8', 'D', 'D', 'D')
         )
+}
 
 }
