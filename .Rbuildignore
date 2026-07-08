@@ -25,6 +25,8 @@ compose_email
 ^dev/local/
 ^rsconnect/
 ^packrat/
+^\.github$
+^\.dockerignore$
 
 # keep package lockfile, ignore library and cache
 ^renv/library$
