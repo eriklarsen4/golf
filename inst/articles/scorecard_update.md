@@ -21,29 +21,29 @@ library(duckdb)
 ``` r
 # required inputs to fill out the scorecard
 
-round_course <- 'Randolph North'
-round_date <- '2026-06-21'
+round_course <- 'Silverbell'
+round_date <- '2026-06-28'
 round_tees <- 'white'
 
-hole_scores <- c(5, 5, 7, 4, 4, 3, 5, 4, 5,
-                 5, 4, 5, 5, 4, 4, 5, 4, 5)
+hole_scores <- c(5, 5, 5, 5, 4, 3, 5, 5, 4,
+                 6, 5, 4, 4, 6, 4, 5, 8, 6)
 
-FIRs <- c(1, 0, 1, rep(0, 3), 1, 0, 0,
-          rep(0,3), 1, rep(0,3), 1, 1)
+FIRs <- c(rep(0,3), 1, 0, 0, 1, 0, 0,
+          0, 1, 0, 1, rep(0,5))
 
-GIRs <- c(1, 1, 0, 1, 1, 0, 0, 0, 1,
-          0, 0, 0, 1, 0, 1, 1, 1, 0) 
+GIRs <- c(rep(0,4), 1, 0, 1, 0, 0,
+          1, 0, 0, 1, rep(0, 5)) 
 
-putts_rec <- c(3, 3, 2, 2, 2, 1, 2, 2, 2,
-               2, 2, 2, 3, 1, 3, 2, 2, 2)
+putts_rec <- c(2, 1, 1, 2, 2, 1, 2, 2, 1,
+               4, 2, 2, 2, 2, 1, 2, 3, 2)
 
-chips_rec <- c(1, 1, 3, 0, 0, 1, 0, 1, 0,
-               1, 1, 1, 0, 1, 0, 0, 0, 1)
+chips_rec <- c(1, 2, 3, 1, 0, 1, 0, 1, 2,
+               0, 1, 1, 0, 0, 0, 1, 1, 1)
 
-penalties_rec <- c(rep(0, 18))
+penalties_rec <- c(rep(0,13), 1, 0, 1, 1, 1)
 
-tee_clubs <- c('D', 'D', 'D', 'D', 'D', 'GW', '4', '9', 'D',
-               'D', '7', 'D', 'D', 'D', '7', 'D', 'D', 'D')
+tee_clubs <- c('D', 'D', '9', 'D', 'D', '7', 'D', 'D', '7',
+               'D', '6', 'PW', 'D', 'D', 'D', '5', 'D', 'D')
 
 index <- 10.4
 ```
@@ -64,7 +64,7 @@ if ( length(hole_scores) > 0 ) {
 if ( length(hole_scores) > 0 ) {
  Card <- golf::log_score(Scorecard = Card,
                        hole_by_hole = hole_scores,
-                       GHIN = 10526424,
+                       name = 'Erik Larsen',
                        index = index,
                        FIR = FIRs,
                        GIR = GIRs,
@@ -181,156 +181,156 @@ club_metrics_df <- golf::get_tracked_shots_data_shape(round_date = round_date) |
 ``` r
 # manually annotate from Garmin Golf App log
 club_choice <- c(
+  'D', '8', 'PW',
+  'D', '4', 'GW', 'PW',
+  '9', 'SW', 'GW', 'PW',
+  'D', 'GW', 'PW',
   'D', 'GW',
-  'D', 'SW',
-  'D', '4', 'LW', 'LW', 'LW',
-  'D', '4',
-  'D', '9',
-  'GW', 'PW',
-  '4', '4', 'PW',
-  '7', 'LW',
-  'D', '7', 'GW',
-  
-  'D', '4', 'SW',
   '7', 'PW',
   'D', '4', 'PW',
-  'D', '3W',
-  'D', '4', 'PW',
-  '7',
-  'D', '4', 'GW', 
+  'D', '7', 'PW',
+  '7', 'SW', 'PW',
+  
   'D', 'GW',
-  'D', 'PW', 'LW'
+  '6', '9', 'PW',
+  'PW', 'SW', 
+  'D', 'PW',
+  'D', 'D', 'PW',
+  'D', '7', 'SW',
+  '5', 'PW',
+  'D', '4', 'GW', 'GW',
+  'D', '3W', 'PW'
 )
 
 dist_to_target <- c(
-  270, 53,
-  270, 60,
-  270, 220, 27, 21, 21,
-  270, 165,
-  270, 153,
-  120, 16,
-  220, 232, 140,
-  163, 23,
-  270, 165, 28,
+  270, 156, 16,
+  270, 220, 58, 13,
+  150, 71, 35, 10,
+  270, 128, 21,
+  270, 99,
+  176, 16,
+  270, 212, 21,
+  270, 116, 16,
+  181, 30, 17,
   
-  270, 120, 44,
-  178, 20, 
-  270, 120, 15,
-  270, 253,
-  270, 226, 12,
-  182, 
-  270, 126, 107, 
-  270, 86,
-  270, 132, 23
+  270, 70,
+  185, 158, 30,
+  130, 66, 
+  270, 137,
+  270, 270, 147,
+  270, 78, 38,
+  209, 25,
+  270, 220, 124, 25,
+  270, 250, 116
 )
 
 yds <- c(
-  293, 44,
-  296, 56,
-  284, 235, 7, 3, 17,
-  248, 172,
-  256, 159,
-  114, 15,
-  133, 88, 140, 
-  144, 31,
-  289, 187, 30,
+  271, 149, 20,
+  258, 191, 45, 12,
+  80, 103, 25, 7,
+  318, 107, 15,
+  268, 103,
+  160, 21,
+  317, 191, 23,
+  295, 100, 25,
+  155, 13, 18,
   
-  268, 120, 35,
-  176, 15, 
-  268, 131, 24,
-  229, 252,
-  227, 214, 11,
-  175,
-  267, 126, 84, 
-  262, 93,
-  277, 154, 12
+  324, 56,
+  186, 148, 18,
+  183, 61,
+  256, 137,
+  NA_real_, 267, 134,
+  240, 40, 38,
+  194, 22,
+  NA_real_, 264, 104, 34,
+  249, 155, 117
 )
 lie_type <- c(
-  'tee', 'fairway',
-  'tee', 'rough',
-  'tee', 'fairway', 'sand', 'sand', 'sand',
-  'tee', 'rough',
-  'tee', 'rough',
-  'tee', 'rough',
+  'tee', 'sand', 'rough',
+  'tee', 'rough', 'fairway', 'fairway',
+  'tee', 'rough', 'rough', 'fairway',
   'tee', 'fairway', 'fairway',
-  'tee', 'sand',
+  'tee', 'rough',
+  'tee', 'fairway',
+  'tee', 'fairway', 'fairway',
+  'tee', 'rough', 'fairway',
   'tee', 'rough', 'rough',
   
+  'tee', 'rough',
+  'tee', 'fairway', 'fairway',
+  'tee', 'fairway',
+  'tee', 'fairway',
+  'tee', 'tee', 'rough',
   'tee', 'rough', 'fairway',
   'tee', 'rough',
-  'tee', 'rough', 'rough',
-  'tee', 'fairway',
-  'tee', 'fairway', 'fairway',
-  'tee', 
-  'tee', 'rough', 'fairway',
-  'tee', 'fairway',
-  'tee', 'fairway', 'sand'
+  'tee', 'tee', 'rough', 'rough',
+  'tee', 'rough', 'fairway'
 )
 
 target_status <- c(
-  'yes', 'yes',
-  'no', 'yes',
-  'yes', 'no', 'no', 'no', 'yes',
-  'no', 'yes',
-  'no', 'yes',
-  'no', 'yes',
   'no', 'no', 'yes',
+  'no', 'yes', 'no', 'yes',
+  'no', 'no', 'no', 'yes',
+  'yes', 'no', 'yes',
+  'no', 'yes',
   'no', 'yes',
   'yes', 'no', 'yes',
+  'no', 'yes', 'yes',
+  'no', 'no', 'yes',
   
+  'no', 'yes',
+  'yes', 'no', 'yes',
+  'no', 'yes',
+  'yes', 'yes',
+  'no', 'no', 'yes',
   'no', 'yes', 'yes',
   'no', 'yes',
-  'no', 'no', 'yes',
-  'yes', 'yes',
-  'no', 'yes', 'yes',
-  'yes',
-  'no', 'yes', 'yes',
-  'yes', 'yes',
-  'yes', 'no', 'yes'
+  'no', 'no', 'no', 'yes',
+  'no', 'yes', 'no'
 )
 
 location <- c(
-  'on_target', 'on_target',
-  'right', 'on_target',
-  'on_taraget', 'right', 'short', 'short', 'short',
-  'right', 'on_target',
-  'right', 'on_target',
-  'right', 'on_target',
-  'short', 'short', 'on_target',
+  'long', 'right', 'on_target',
+  'left', 'on_target', 'short', 'on_target',
+  'short', 'long', 'short', 'on_target',
+  'on_target', 'short', 'on_target',
+  'left', 'on_target',
   'short', 'on_target',
-  'on_target', 'long', 'on_target',
+  'on_target', 'short', 'on_target',
+  'right', 'on_target', 'on_target',
+  'short', 'short', 'on_target',
   
-  'right', 'on_target', 'on_target',
-  'right', 'on_target',
-  'right', 'right', 'on_target',
+  'left', 'on_target',
+  'on_target', 'left', 'on_target',
+  'long', 'on_target',
   'on_target', 'on_target',
-  'right', 'on_target', 'on_target',
-  'on_target',
-  'left', 'on_target', 'on_target',
-  'on_target', 'on_target',
-  'on_target', 'long', 'on_target'
+  'right', 'left', 'on_target',
+  'left', 'on_target','on_target',
+  'left', 'on_target',
+  'right', 'right', 'short', 'on_target',
+  'right', 'on_target', 'right'
 )
 
 type_of_shot <- c(
-  'tee', 'chip',
-  'tee', 'chip',
-  'tee', 'full', 'gsbunker', 'gsbunker', 'gsbunker',
-  'tee', 'punch',
-  'tee', 'full',
-  'tee', 'chip',
-  'tee', 'full', 'full',
-  'tee', 'gsbunker',
+  'tee', 'fwbunker', 'chip',
+  'tee', 'full', 'choked', 'chip',
+  'tee', 'choked', 'chip', 'chip',
   'tee', 'full', 'chip',
-  
-  'tee', 'punch', 'chip',
-  'tee', 'chip',
-  'tee', 'punch', 'chip',
-  'tee', 'full',
-  'tee', 'full', 'chip',
-  'tee', 
-  'tee', 'punch', 'choked',
   'tee', 'choked',
-  'tee', 'full', 'gsbunker'
+  'tee', 'chip',
+  'tee', 'full', 'chip',
+  'tee', 'punch', 'chip',
+  'tee', 'chip', 'chip',
+  
+  'tee', 'choked',
+  'tee', 'full', 'chip',
+  'tee', 'choked',
+  'tee', 'full',
+  'tee', 'tee', 'full',
+  'tee', 'punch', 'chip',
+  'tee', 'chip',
+  'tee', 'tee', 'full', 'chip',
+  'tee', 'full', 'full'
 )
 ```
 
@@ -370,24 +370,24 @@ club_metrics_df |> dplyr::select(tracked_shots) |> dplyr::mutate(sum(tracked_sho
 ```
 
     ##    tracked_shots sum(tracked_shots)
-    ## 1              2                 45
-    ## 2              2                 45
-    ## 3              5                 45
-    ## 4              2                 45
-    ## 5              2                 45
-    ## 6              2                 45
-    ## 7              3                 45
-    ## 8              2                 45
-    ## 9              3                 45
-    ## 10             3                 45
-    ## 11             2                 45
-    ## 12             3                 45
-    ## 13             2                 45
-    ## 14             3                 45
-    ## 15             1                 45
-    ## 16             3                 45
-    ## 17             2                 45
-    ## 18             3                 45
+    ## 1              3                 51
+    ## 2              4                 51
+    ## 3              4                 51
+    ## 4              3                 51
+    ## 5              2                 51
+    ## 6              2                 51
+    ## 7              3                 51
+    ## 8              3                 51
+    ## 9              3                 51
+    ## 10             2                 51
+    ## 11             3                 51
+    ## 12             2                 51
+    ## 13             2                 51
+    ## 14             3                 51
+    ## 15             3                 51
+    ## 16             2                 51
+    ## 17             4                 51
+    ## 18             3                 51
 
 ### Update the Club Metrics Table
 
@@ -471,9 +471,10 @@ stroke_quality <- DBI::dbGetQuery(conn = con, statement = paste0(
 
     ## [1] "BEFORE TRY BLOCK"
     ## [1] "TRY BLOCK START"
+
     ## [1] "TABLES INSIDE TRY, AFTER DEV WRITES:"
-    ##  [1] "club_metrics"          "courses"               "dev_club_metrics"      "dev_courses"           "dev_players"           "dev_predictions_round" "dev_rounds"            "dev_scores_sum"        "pipeline_run_log"     
-    ## [10] "players"               "predictions_round"     "rounds"               
+    ##  [1] "club_metrics"          "courses"               "dev_club_metrics"      "dev_courses"           "dev_players"           "dev_predictions_round" "dev_rounds"           
+    ##  [8] "dev_scores_sum"        "pipeline_run_log"      "players"               "predictions_round"     "rounds"               
     ## [1] "INSIDE TRY BLOCK - END"
 
 ### Compute Metrics
@@ -570,15 +571,15 @@ head(scores_sum |>
 
     ## # A tibble: 6 × 26
     ## # Groups:   date, date_course, course_rating [6]
-    ##   date       date_course  course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts` `UpDown%`  pars birdies bogies `doubles+` penalties
-    ##   <date>     <chr>                <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>     <dbl> <int>   <int>  <int>      <int>     <int>
-    ## 1 2026-06-21 "2026-06-21…          69.8             10.4     6           1       100               5          38.5   42.9     9            1   50      38            2.44    12            50      25       8       0      9          1         0
-    ## 2 2026-06-07 "2026-06-07…          69.8             11       4           1       100               3          23.1   28.6     6            1   33.3    27            1.33    15            42      25       5       3      8          1         0
-    ## 3 2026-05-31 "2026-05-31…          68.6             11       3           1        12.5             2          33.3   21.4     5            2   27.8    34            2.2     13            47      20       5       1      7          5         4
-    ## 4 2026-05-24 "2026-05-24…          68.8             11       9           7        77.8             2          50     69.2    10            2   55.6    36            2.2     17            53       0       8       0      6          4         3
-    ## 5 2026-05-17 "2026-05-17…          70.4             11       2           0       NaN               2          14.3   14.3     2            1   11.1    29            1.5     17            46      31.2     6       1      8          3         3
-    ## 6 2026-04-26 "2026-04-26…          68.5             11       5           0       NaN               5          38.5   38.5     3            0   16.7    36            1.67    19            55      15.4     4       1      7          6         2
-    ## # ℹ 3 more variables: `Gross Score` <dbl>, `Net Score` <dbl>, `UpAndDown%` <dbl>
+    ##   date       date_course        course_rating `Handicap Index`  FIRs `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%` `FIR%`  GIRs `Par 3 GIRs` `GIR%` putts `Avg GIR putts` chips `chips+putts`
+    ##   <date>     <chr>                      <dbl>            <dbl> <int>       <dbl>       <dbl>         <dbl>         <dbl>  <dbl> <int>        <dbl>  <dbl> <int>           <dbl> <dbl>         <dbl>
+    ## 1 2026-06-28 "2026-06-28\nSilv…          68               10.4     4           0       NaN               3          25     30.8     4            0   22.2    34            2.5     16            50
+    ## 2 2026-06-28 "2026-06-28\nSilv…          68.9             10.4     4           0       NaN               3          25     30.8     4            0   22.2    34            2.5     16            50
+    ## 3 2026-06-21 "2026-06-21\nRand…          69.8             10.4     6           1       100               5          38.5   42.9     9            1   50      38            2.44    12            50
+    ## 4 2026-06-07 "2026-06-07\nRand…          69.8             11       4           1       100               3          23.1   28.6     6            1   33.3    27            1.33    15            42
+    ## 5 2026-05-31 "2026-05-31\nFred…          68.6             11       3           1        12.5             2          33.3   21.4     5            2   27.8    34            2.2     13            47
+    ## 6 2026-05-24 "2026-05-24\nQuar…          68.8             11       9           7        77.8             2          50     69.2    10            2   55.6    36            2.2     17            53
+    ## # ℹ 9 more variables: `UpDown%` <dbl>, pars <int>, birdies <int>, bogies <int>, `doubles+` <int>, penalties <int>, `Gross Score` <dbl>, `Net Score` <dbl>, `UpAndDown%` <dbl>
 
 ### View Metrics
 
@@ -599,12 +600,12 @@ head(scoring_metrics |>
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating `Handicap Index` `Gross Score` `Net Score`
     ##   <date>     <chr>                                      <dbl>            <dbl>         <dbl>       <dbl>
-    ## 1 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8             10.4            83          73
-    ## 2 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8             11              77          67
-    ## 3 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6             11              90          79
-    ## 4 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8             11              86          76
-    ## 5 2026-05-17 "2026-05-17\nRandolph North\n11"            70.4             11              85          76
-    ## 6 2026-04-26 "2026-04-26\nDell Urich\n11"                68.5             11              92          83
+    ## 1 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68               10.4            89          80
+    ## 2 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68.9             10.4            89          80
+    ## 3 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8             10.4            83          75
+    ## 4 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8             11              77          68
+    ## 5 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6             11              90          82
+    ## 6 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8             11              86          76
 
 #### Stroke Metrics
 
@@ -641,12 +642,12 @@ head(stroke_metrics |>
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating `doubles+` bogies  pars birdies
     ##   <date>     <chr>                                      <dbl>      <int>  <int> <int>   <int>
-    ## 1 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8          1      9     8       0
-    ## 2 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8          1      8     5       3
-    ## 3 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6          5      7     5       1
-    ## 4 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8          4      6     8       0
-    ## 5 2026-05-17 "2026-05-17\nRandolph North\n11"            70.4          3      8     6       1
-    ## 6 2026-04-26 "2026-04-26\nDell Urich\n11"                68.5          6      7     4       1
+    ## 1 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68            5      7     6       0
+    ## 2 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68.9          5      7     6       0
+    ## 3 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8          1      9     8       0
+    ## 4 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8          1      8     5       3
+    ## 5 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6          5      7     5       1
+    ## 6 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8          4      6     8       0
 
 #### Around-the-Green Metrics
 
@@ -671,12 +672,12 @@ head(atg_metrics |>
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating chips `chips+putts` `UpAndDown%` putts `Avg GIR putts`
     ##   <date>     <chr>                                      <dbl> <dbl>         <dbl>        <dbl> <int>           <dbl>
-    ## 1 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8    12            50         25      38            2.44
-    ## 2 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8    15            42         25      27            1.33
-    ## 3 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6    13            47         20      34            2.2 
-    ## 4 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8    17            53          0      36            2.2 
-    ## 5 2026-05-17 "2026-05-17\nRandolph North\n11"            70.4    17            46         31.2    29            1.5 
-    ## 6 2026-04-26 "2026-04-26\nDell Urich\n11"                68.5    19            55         15.4    36            1.67
+    ## 1 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68      16            50           25    34            2.5 
+    ## 2 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68.9    16            50           25    34            2.5 
+    ## 3 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8    12            50           25    38            2.44
+    ## 4 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8    15            42           25    27            1.33
+    ## 5 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6    13            47           20    34            2.2 
+    ## 6 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8    17            53            0    36            2.2
 
 #### Ball Striking Metrics
 
@@ -705,12 +706,12 @@ head(ball_striking_metrics |>
     ## # Groups:   date, date_course, course_rating [6]
     ##   date       date_course                        course_rating  GIRs `GIR%` `Par 3 GIRs`  FIRs `FIR%` `Iron FIRs` `Iron FIR%` `Driver FIRs` `Driver FIR%`
     ##   <date>     <chr>                                      <dbl> <int>  <dbl>        <dbl> <int>  <dbl>       <dbl>       <dbl>         <dbl>         <dbl>
-    ## 1 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8     9   50              1     6   42.9           1       100               5          38.5
-    ## 2 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8     6   33.3            1     4   28.6           1       100               3          23.1
-    ## 3 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6     5   27.8            2     3   21.4           1        12.5             2          33.3
-    ## 4 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8    10   55.6            2     9   69.2           7        77.8             2          50  
-    ## 5 2026-05-17 "2026-05-17\nRandolph North\n11"            70.4     2   11.1            1     2   14.3           0       NaN               2          14.3
-    ## 6 2026-04-26 "2026-04-26\nDell Urich\n11"                68.5     3   16.7            0     5   38.5           0       NaN               5          38.5
+    ## 1 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68       4   22.2            0     4   30.8           0       NaN               3          25  
+    ## 2 2026-06-28 "2026-06-28\nSilverbell\n10.4"              68.9     4   22.2            0     4   30.8           0       NaN               3          25  
+    ## 3 2026-06-21 "2026-06-21\nRandolph North\n10.4"          69.8     9   50              1     6   42.9           1       100               5          38.5
+    ## 4 2026-06-07 "2026-06-07\nRandolph North\n11"            69.8     6   33.3            1     4   28.6           1       100               3          23.1
+    ## 5 2026-05-31 "2026-05-31\nFred Enke\n11"                 68.6     5   27.8            2     3   21.4           1        12.5             2          33.3
+    ## 6 2026-05-24 "2026-05-24\nQuarry Pines\n11"              68.8    10   55.6            2     9   69.2           7        77.8             2          50
 
 #### Club Metrics
 
@@ -720,34 +721,34 @@ Yardage and accuracy for each club
     ## # Groups:   date [1]
     ##   date       club      n rd_min_yds_to_target rd_min_yds_traveled rd_min_yd_diff
     ##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
-    ## 1 2026-06-21 3W        1                  253                 252              1
-    ## 2 2026-06-21 4         8                  120                  88            -15
-    ## 3 2026-06-21 7         4                  163                 144            -22
-    ## 4 2026-06-21 9         1                  153                 159             -6
-    ## 5 2026-06-21 D        13                  270                 227            -26
-    ## 6 2026-06-21 GW        5                   28                  30             -7
+    ## 1 2026-06-28 3W        1                  250                 155             95
+    ## 2 2026-06-28 4         3                  212                 191            -44
+    ## 3 2026-06-28 5         1                  209                 194             15
+    ## 4 2026-06-28 6         1                  185                 186             -1
+    ## 5 2026-06-28 7         4                   78                  40             16
+    ## 6 2026-06-28 8         1                  156                 149              7
 
     ## # A tibble: 6 × 6
     ## # Groups:   date [1]
     ##   date       club      n rd_max_yds_to_target rd_max_yds_traveled rd_max_yd_diff
     ##   <date>     <chr> <int>                <dbl>               <dbl>          <dbl>
-    ## 1 2026-06-21 3W        1                  253                 252              1
-    ## 2 2026-06-21 4         8                  232                 235            144
-    ## 3 2026-06-21 7         4                  182                 187             19
-    ## 4 2026-06-21 9         1                  153                 159             -6
-    ## 5 2026-06-21 D        13                  270                 296             43
-    ## 6 2026-06-21 GW        5                  120                 114             23
+    ## 1 2026-06-28 3W        1                  250                 155             95
+    ## 2 2026-06-28 4         3                  220                 264             29
+    ## 3 2026-06-28 5         1                  209                 194             15
+    ## 4 2026-06-28 6         1                  185                 186             -1
+    ## 5 2026-06-28 7         4                  181                 160             38
+    ## 6 2026-06-28 8         1                  156                 149              7
 
     ## # A tibble: 6 × 10
     ## # Groups:   date [1]
     ##   date       club  `rd club strokes` miss_direction `rd club miss dir` rd_avg_yds_to_target rd_avg_yds_traveled rd_avg_yd_diff rd_avg_accuracy `rd club % miss direction`
     ##   <date>     <chr>             <int> <chr>                       <int>                <dbl>               <dbl>          <dbl>           <dbl>                      <dbl>
-    ## 1 2026-06-21 3W                    1 on_target                       1                 253                 252             1               100                        100
-    ## 2 2026-06-21 4                     4 on_target                       1                 224.                168.           57                25                         25
-    ## 3 2026-06-21 4                     4 right                           1                 224.                168.           57                25                         25
-    ## 4 2026-06-21 4                     4 short                           2                 224.                168.           57                25                         50
-    ## 5 2026-06-21 7                     4 long                            1                 172                 170.            1.5              25                         25
-    ## 6 2026-06-21 7                     4 on_target                       1                 172                 170.            1.5              25                         25
+    ## 1 2026-06-28 3W                    1 on_target                       1                 250                 155              95           100                        100  
+    ## 2 2026-06-28 4                     3 on_target                       1                 217.                215.              2            33.3                       33.3
+    ## 3 2026-06-28 4                     3 right                           1                 217.                215.              2            33.3                       33.3
+    ## 4 2026-06-28 4                     3 short                           1                 217.                215.              2            33.3                       33.3
+    ## 5 2026-06-28 5                     1 left                            1                 209                 194              15             0                        100  
+    ## 6 2026-06-28 6                     1 on_target                       1                 185                 186              -1           100                        100
 
 ## Plot Metric Summaries
 
