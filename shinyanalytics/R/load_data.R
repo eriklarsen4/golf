@@ -10,8 +10,7 @@ load_data <- function(data_dir = "inst/extdata/golf_exports") {
         orders = c("Ymd", "Y-m-d", "m/d/Y", "d-m-Y"),
         exact = F
       ) |> as.Date(),
-      date_js = as.numeric(date) * 86400000,
-      course = course_name
+      date_js = as.numeric(date) * 86400000
     )
   
   courses <- utils::read.csv(file.path(data_dir, "courses.csv")) #|> 
