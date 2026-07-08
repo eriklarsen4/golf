@@ -103,7 +103,7 @@ make_ts_plot <- function(df, metric, label) {
           // --- META BLOCK ---
           var html =
             '<b>Skill Estimate:</b> ' + point.y.toFixed(1) +
-            '<br>Date: ' + new Date(m.date_js).toLocaleDateString('en-US') +
+            '<br>Date: ' + new Date(m.date_js).toLocaleDateString('en-US', { timeZone : 'UTC' }) +
             '<br>Course: ' + m.course_name +
             '<br>Gross Score: ' + m.tot_gross +
             '<br>Net Score: ' + m.tot_net +
@@ -175,7 +175,7 @@ make_ts_plot <- function(df, metric, label) {
              const p = opts.w.config.series[0].data[opts.dataPointIndex];
              return (
                '<b>' + opts.w.globals.seriesNames[0] + ':</b> ' + val +
-               '<br>Date: ' + new Date(p.date_js).toLocaleDateString('en-US') +
+               '<br>Date: ' + new Date(p.date_js).toLocaleDateString('en-US', { timeZone: 'UTC' }) +
                '<br>Course: ' + p.course_name +
                '<br>Gross Score: ' + p.tot_gross +
                '<br>Net Score: ' + p.tot_net +
