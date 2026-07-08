@@ -14,7 +14,7 @@ mod_rounds_ui <- function(id) {
           label   = "Round",
           choices = NULL,
           selected = NULL,
-          multiple = F
+          multiple = T
         ),
         
         shiny::selectInput(
@@ -22,7 +22,7 @@ mod_rounds_ui <- function(id) {
           label   = "Hole",
           choices = NULL,
           selected = NULL,
-          multiple = F
+          multiple = T
         ),
         
         shiny::selectInput(
@@ -39,18 +39,6 @@ mod_rounds_ui <- function(id) {
           choices = c("All", "tee", "fairway", "rough", "sand"),
           selected = "All",
           multiple = T
-        ),
-        
-        shiny::checkboxInput(
-          inputId = ns("include_putts"),
-          label   = "Include Putts",
-          value   = T
-        ),
-        
-        shiny::checkboxInput(
-          inputId = ns("include_penalties"),
-          label   = "Include Penalties",
-          value   = T
         ),
         
         shiny::downloadButton(
@@ -76,13 +64,13 @@ mod_rounds_ui <- function(id) {
             shiny::h4(strong("Hole Metrics")),
             shiny::tableOutput(ns("hole_metrics")),
             
-            shiny::h4(strong("Club Metrics (This Round)")),
+            shiny::h4(strong("Club Metrics (Selected Round)")),
             shiny::tableOutput(ns("club_metrics")),
             
-            shiny::h4(strong("Lie Metrics (This Round)")),
+            shiny::h4(strong("Lie Metrics (Selected Round)")),
             shiny::tableOutput(ns("lie_metrics")),
             
-            shiny::h4(strong("Shot-Type Metrics (This Round)")),
+            shiny::h4(strong("Shot-Type Metrics (Selected Round)")),
             shiny::tableOutput(ns("shottype_metrics")),
             
             shiny::h4(strong("Shot List")),
@@ -98,8 +86,9 @@ mod_rounds_server <- function(id, data_r) {
     
     summarize_round <- function(df) {
       df |> 
-        dplyr::select(c(GHIN:tees), dplyr::contains("tot_"), fir, gir, updown) |> 
-        dplyr::distinct()
+        dplyr::select(c(player_name, handicap_index, course_name, date_js, tees), dplyr::contains("tot_"), fir, gir, updown) |> 
+        dplyr::distinct() |> 
+        dplyr::rename(course = course_name)
     }
     
     summarize_metrics <- function(df) {
@@ -124,9 +113,12 @@ mod_rounds_server <- function(id, data_r) {
                                                            TRUE ~ NA_real_),
                       approach_distance = dplyr::case_when(approach_shots == 1 ~ yds_traveled,
                                                            TRUE ~ NA_real_)) |> 
-        dplyr::group_by(GHIN, course_name, tees, date) |> 
+        dplyr::group_by(GHIN, course_name, tees, date, date_js) |> 
         dplyr::summarize(dplyr::across(c(tee_shot_distance, approach_distance, GIR_putts, putts), mean, na.rm = T, .names = 'avg_{col}')) |> 
-        dplyr::arrange(date)
+        dplyr::arrange(date) |> 
+        dplyr::ungroup() |> 
+        dplyr::rename(course = course_name) |> 
+        dplyr::select(-date, -GHIN)
       
     }
     
@@ -138,7 +130,7 @@ mod_rounds_server <- function(id, data_r) {
         dplyr::summarize(times_played = dplyr::n(), dplyr::across(c(par:penalties), mean, na.rm = T, .names = 'avg_{col}')) |> 
         dplyr::mutate(dplyr::across(c(avg_par:avg_penalties), ~round(.x,1))) |> 
         dplyr::distinct() |> 
-        dplyr::rename(par = avg_par)
+        dplyr::rename(par = avg_par, course = course_name)
     }
     
     summarize_hole_metrics <- function(df) {
@@ -167,7 +159,8 @@ mod_rounds_server <- function(id, data_r) {
         dplyr::rename_with(.cols = dplyr::ends_with("bogey"), ~gsub(.x, pattern = 'bogey', replacement = 'bogies')) |> 
         dplyr::rename_with(.cols = dplyr::matches("(birdie$|par$)"), ~gsub(.x, pattern = '(^.+?)(birdie$|par$)', replacement = '\\1\\2s')) %>%
         dplyr::mutate(dplyr::across(dplyr::contains("%"), ~.x*100)) |> 
-        dplyr::distinct()
+        dplyr::distinct() |> 
+        dplyr::rename(course = course_name)
     }
     
     summarize_club <- function(df) {
@@ -183,7 +176,7 @@ mod_rounds_server <- function(id, data_r) {
                       club = factor(club, levels = club_levels)
         ) |> 
         dplyr::select(c(GHIN:hole, stroke, club, yds_traveled, distance_loss, miss_direction, on_target)) |> 
-        dplyr::group_by(club) |> 
+        dplyr::group_by(player_name, club) |> 
         dplyr::summarize(strokes = dplyr::n(),
                          median_yds_traveled = round(stats::median(yds_traveled, na.rm = T),1),
                          accuracy_pct = round(mean(on_target, na.rm = T)*100, 1),
@@ -203,7 +196,7 @@ mod_rounds_server <- function(id, data_r) {
             dplyr::group_by(club) |> 
             dplyr::count(club, miss_direction) |> 
             dplyr::group_by(club) |> 
-            dplyr::arrange(club) |> 
+            dplyr::arrange(desc(strokes)) |> 
             dplyr::rename(direction_n = n) |> 
             dplyr::mutate(direction_pct = round((direction_n / sum(direction_n, na.rm = T))*100, 1)), by = c("club")
           
@@ -231,7 +224,8 @@ mod_rounds_server <- function(id, data_r) {
             dplyr::group_by(lie) |> 
             dplyr::rename(direction_n = n) |> 
             dplyr::mutate(direction_pct = round((direction_n / sum(direction_n, na.rm = T))*100, 1)), by = "lie"
-        )
+        ) |> 
+        dplyr::arrange(desc(strokes))
     }
     
     summarize_shottype <- function(df) {
@@ -265,8 +259,10 @@ mod_rounds_server <- function(id, data_r) {
       shiny::req(input$date)
       
       data_r() |>
-        dplyr::select(-dplyr::contains('js')) |>
-        dplyr::filter(date == input$date)
+        # dplyr::select(-dplyr::contains('js')) |>
+        dplyr::filter(date == input$date) |> 
+        dplyr::select(-date, -GHIN) |> 
+        dplyr::rename(course = course_name)
     })
     
     # Populate hole dropdown based on selected round ----
