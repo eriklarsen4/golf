@@ -28,12 +28,11 @@ compute_stroke_level_df <- function(rounds, courses, club_metrics) {
       scrambling_perc = round(mean(scramble_perc, na.rm = TRUE), 1)
     ) |>
     dplyr::group_by(date, hole) |>
-    dplyr::mutate(tot_chips = sum(chips, na.rm = T), .after = tot_putts) |> 
     dplyr::mutate(tot_putts_and_chips = tot_putts + tot_chips, .after = tot_chips) |> 
     dplyr::group_by(date) |> 
     dplyr::mutate(
       fir_perc = dplyr::case_when(
-        grepl(course_name, pattern = "Dell|Quarry") ~ round((tot_FIR / 13) * 100, 1),
+        grepl(course_name, pattern = "Dell|Quarry|Rio") ~ round((tot_FIR / 13) * 100, 1),
         T ~ round((tot_FIR / 14) * 100, 1)
       ),
       gir_perc = round((tot_GIR / 18) * 100, 1)
