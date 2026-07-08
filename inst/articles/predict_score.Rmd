@@ -471,8 +471,8 @@ Predict the next round's `Gross Score` according to the model
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
 con <- golf::get_db_connection()
 
-round_date <- lubridate::as_date('2026-07-03')
-index <- 10.6
+round_date <- lubridate::as_date('2026-07-05')
+index <- 10.5
 course <- "Randolph North"
 tees <- 'white'
 
