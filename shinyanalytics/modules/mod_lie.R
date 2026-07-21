@@ -1,73 +1,78 @@
 mod_lie_ui <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tabPanel(
-    title = "Lie Performance",
+  # shiny::tabPanel(
+  #   title = "Lie Performance",
+  shiny::sidebarLayout(
+    shiny::sidebarPanel(
+      width = 3
+    ),
+    
+    shiny::mainPanel(
+      width = 9,
+      class = 'main-panel',
       
-      shiny::mainPanel(
-        width = 9,
-        class = 'main-panel',
+      shiny::tabsetPanel(
         
-        shiny::tabsetPanel(
+        shiny::tabPanel(
+          title = "Distance Loss by Lie on Full Strokes",
           
-          shiny::tabPanel(
-            title = "Distance Loss by Lie on Full Strokes",
-            
-            shiny::div(
-              style = "width: 100%;",
-              # style = "height: 40vh; min-height: 250px;",
-              plotly::plotlyOutput(
-                outputId = ns("distance_loss")#,
-                # height = "auto"
-                )
+          shiny::div(
+            style = "width: 100%;",
+            # style = "height: 40vh; min-height: 250px;",
+            plotly::plotlyOutput(
+              outputId = ns("distance_loss")#,
+              # height = "auto"
             )
-          ),
-          
-          shiny::tabPanel(
-            title = "Miss Direction Composition by Lie",
-            
-            shiny::selectInput(
-              inputId = ns("miss_view"),
-              label   = "View",
-              choices = c("proportion", "count", "heatmap"),
-              selected = "proportion",
-              multiple = F
-            ),
-            
-            shiny::div(
-              style = "width: 100%;",
-              # style = "height: 40vh; min-height: 250px;",
-              plotly::plotlyOutput(
-                outputId = ns("miss_by_lie")#,
-                # height = "auto"
-                )
-            )
-          ),
-          
-          shiny::tabPanel(
-            title = "Miss Direction Composition by Lie & Club",
-            
-            shiny::selectInput(
-              inputId = ns("miss_view_lie_club"),
-              label   = "View",
-              choices = c("proportion", "count", "heatmap"),
-              selected = "proportion",
-              multiple = F
-            ),
-            
-            shiny::div(
-              style = "width: 100%;",
-              # style = "height: 42vh; min-height: 240px;",
-              plotly::plotlyOutput(
-                outputId = ns("miss_by_lie_club"),
-                # height = "auto"
-                )
-            )
-            
           )
+        ),
+        
+        shiny::tabPanel(
+          title = "Miss Direction Composition by Lie",
+          
+          shiny::selectInput(
+            inputId = ns("miss_view"),
+            label   = "View",
+            choices = c("proportion", "count", "heatmap"),
+            selected = "proportion",
+            multiple = F
+          ),
+          
+          shiny::div(
+            style = "width: 100%;",
+            # style = "height: 40vh; min-height: 250px;",
+            plotly::plotlyOutput(
+              outputId = ns("miss_by_lie")#,
+              # height = "auto"
+            )
+          )
+        ),
+        
+        shiny::tabPanel(
+          title = "Miss Direction Composition by Lie & Club",
+          
+          shiny::selectInput(
+            inputId = ns("miss_view_lie_club"),
+            label   = "View",
+            choices = c("proportion", "count", "heatmap"),
+            selected = "proportion",
+            multiple = F
+          ),
+          
+          shiny::div(
+            style = "width: 100%;",
+            # style = "height: 42vh; min-height: 240px;",
+            plotly::plotlyOutput(
+              outputId = ns("miss_by_lie_club"),
+              # height = "auto"
+            )
+          )
+          
         )
       )
+    )
   )
+  # )
 }
 
 
