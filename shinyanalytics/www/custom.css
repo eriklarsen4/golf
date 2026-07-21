@@ -98,9 +98,11 @@ html, body, .tab-content, .tab-pane, .main-panel {
 /* Responsive Shiny plots */
 .plot-container,
 .shiny-plot-output { /* patches classic Shiny renderPlot to scale to screen width without horz scrolling, overflow */
-  width: 100% !important;
-  height: auto !important;
-  overflow: hidden;
+    max-width: 100% !important;
+/*  width: 100% !important;*/
+/*  height: auto !important;*/
+/*  overflow: hidden;*/
+    overflow: visible !important;
 }
 
 /* ensure parent grid columns never force scrollbars */
