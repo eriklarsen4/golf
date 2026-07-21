@@ -67,13 +67,18 @@ ui <- shiny::navbarPage(
   
   # popover activation (info for tabs on mobile)
   shiny::tags$script(shiny::HTML("
-  $(document).on('shiny:sessioninitialized', function() {
+  $(function () {
+
+    // Remove Bootstrap's auto-initialized popovers
+    $('i.fa-info-circle').popover('destroy');
+
     // Remove Shiny's auto-inserted empty title
     $('i.fa-info-circle').removeAttr('title');
 
-    // Bind popovers AFTER Shiny finishes rendering the navbar
+    // Initialize popovers exactly once
     $('i.fa-info-circle[data-toggle=\"popover\"]').popover({
-      html: true
+      html: true,
+      container: 'body'
     });
   });
 ")),
