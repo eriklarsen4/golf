@@ -137,3 +137,18 @@ table { /* Prevent horizontal scrolling on tables/text (wrapping) */
   }
 }
 
+/* facilitates visualizing tabPanel info */
+.popover {
+  display: block !important;
+}
+
+/* facilitates visualizaing tabPanel info/text */
+.popover-content {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
