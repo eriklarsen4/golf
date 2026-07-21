@@ -61,7 +61,8 @@ ui <- shiny::navbarPage(
   
   # import css aesthetics
   shiny::tags$head(
-    shiny::tags$link(rel = 'stylesheet', type = 'text/css', href = 'custom.css')
+    shiny::tags$link(rel = 'stylesheet', type = 'text/css', href = 'custom.css'),
+    shiny::tags$script(src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js")
   ),
   
   # popover activation (info for tabs on mobile)
@@ -80,6 +81,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Overview",
     icon = shiny::icon('gauge'),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -95,6 +97,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Round Metrics",
     icon = shiny::icon("chart-bar"),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -110,6 +113,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Approach Analysis",
     icon = shiny::icon('crosshairs'),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -123,6 +127,7 @@ ui <- shiny::navbarPage(
   # ),
   shiny::tabPanel(
     "Club Analysis",
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -138,6 +143,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Lie Analysis",
     icon = shiny::icon('golf-ball-tee'),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -153,6 +159,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Data Search",
     icon = shiny::icon('magnifying-glass'),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",
@@ -168,6 +175,7 @@ ui <- shiny::navbarPage(
   shiny::tabPanel(
     "Glossary and Information",
     icon = shiny::icon('book-open'),
+    title = "",
     `data-toggle` = "popover",
     `data-trigger` = "focus",
     `data-placement` = "bottom",

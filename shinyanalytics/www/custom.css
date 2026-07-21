@@ -143,5 +143,4 @@ table { /* Prevent horizontal scrolling on tables/text (wrapping) */
   content: "\f05a"; /* info-circle */
   margin-left: 6px;
   font-size: 16px;
-  color: #666;
 }
