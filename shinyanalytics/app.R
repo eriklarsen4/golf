@@ -68,6 +68,10 @@ ui <- shiny::navbarPage(
   # popover activation (info for tabs on mobile)
   shiny::tags$script(shiny::HTML("
   $(function () {
+    // Remove Shiny's tooltip binding
+    $('i.fa-info-circle').tooltip('destroy');
+
+    // Bind popovers
     $('i.fa-info-circle[data-toggle=\"popover\"]').popover();
   });")),
   
