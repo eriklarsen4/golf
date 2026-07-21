@@ -64,46 +64,165 @@ ui <- shiny::navbarPage(
     shiny::tags$link(rel = 'stylesheet', type = 'text/css', href = 'custom.css')
   ),
   
+  # popover activation (info for tabs on mobile)
+  shiny::tags$script(shiny::HTML("
+                                 $(function () {
+                                 $('[data-bs-toggle=\"popover\"]').popover();
+                                 });
+                                 ")),
+  
+  
+  # shiny::tabPanel(
+  #   title = "Overview",
+  #   icon = shiny::icon('gauge'),
+  #   mod_overview_ui("overview")
+  # ),
   shiny::tabPanel(
-    title = "Overview",
-    icon = shiny::icon('gauge'),
+    title = tags$span(
+      "Overview",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "High-level summary of recent performance across the entire dataset with quick insights into scoring and trends"
+      )
+    ),
+    icon =shiny::icon('gauge'),
     mod_overview_ui("overview")
   ),
   
+  # shiny::tabPanel(
+  #   title = 'Round Metrics',
+  #   icon = shiny::icon('chart-bar'),
+  #   mod_performance_ui("performance")
+  # ),
   shiny::tabPanel(
-    title = 'Performance Metrics',
-    icon = shiny::icon('chart-bar'),
+    title = tags$span(
+      "Round Metrics",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Track how round-level statistics- including FIR, GIR, putting, penalties- and scoring, change over time"
+      )
+    ),
+    icon =shiny::icon('chart-bar'),
     mod_performance_ui("performance")
   ),
   
+  # shiny::tabPanel(
+  #   title = "Approach Analysis",
+  #   icon = shiny::icon('crosshairs'),
+  #   mod_approach_ui("approach")
+  # ),
   shiny::tabPanel(
-    title = "Approach Performance",
-    icon = shiny::icon('crosshairs'),
+    title = tags$span(
+      "Approach Analysis",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Break down approach-shot performance by distance and target to see accuracy, miss patterns, and tendencies into greens"
+      )
+    ),
+    icon =shiny::icon('crosshairs'),
     mod_approach_ui("approach")
   ),
   
+  # shiny::tabPanel(
+  #   title = "Club Analysis",
+  #   mod_club_ui("club")
+  # ),
   shiny::tabPanel(
-    title = "Club-Level Performance",
+    title = tags$span(
+      "Club Analysis",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Analyze performance for each club to identify strengths and weaknesses in dispersion, directional bias, and consistency"
+      )
+    ),
     mod_club_ui("club")
   ),
-  
+
+  # shiny::tabPanel(
+  #   title = "Lie Analysis",
+  #   icon = shiny::icon('golf-ball-tee'),
+  #   mod_lie_ui("lie")
+  # ),
   shiny::tabPanel(
-    title = "Lie-Type Performance",
+    title = tags$span(
+      "Lie Analysis",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Understand how different lies affect shots by comparing performance from fairway, rough, sand, and recovery situations"
+      )
+    ),
     icon = shiny::icon('golf-ball-tee'),
-    mod_lie_ui("lie")
+    mod_lie_ui("club")
   ),
-  
+
+  # shiny::tabPanel(
+  #   title = "Data Search",
+  #   icon = shiny::icon('magnifying-glass'),
+  #   mod_rounds_ui("rounds")
+  # ),
   shiny::tabPanel(
-    title = "Data Search",
+    title = tags$span(
+      "Data Search",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Search the entire database, filtering by club, lie, distance, course, or date to find specific patterns"
+      )
+    ),
     icon = shiny::icon('magnifying-glass'),
     mod_rounds_ui("rounds")
   ),
-  
+
+  # shiny::tabPanel(
+  #   title = 'Glossary and Information',
+  #   icon = shiny::icon("book-open"),
+  #   glossary_ui("glossary")
+  # )
   shiny::tabPanel(
-    title = 'Glossary and Information',
-    icon = shiny::icon("book-open"),
+    title = tags$span(
+      "Glossary and Information",
+      tags$i(
+        class = "fa fa-info-circle",
+        style = "margin-left:6px; font-size:16px;",
+        tabindex = "0",
+        `data-bs-toggle` = "popover",
+        `data-bs-trigger` = "focus",
+        `data-bs-placement` = "bottom",
+        `data-bs-content` = "Definitions of metrics and analytics used in the app, providing clarity on what each statistic means and how it's calculated"
+      )
+    ),
+    icon = shiny::icon('book-open'),
     glossary_ui("glossary")
-  )
+  ),
 )
 
 # App Server ----
@@ -133,9 +252,9 @@ server <- function(input, output, session) {
   mod_overview_server("overview", data_r = data_r, data_skill = data_skill)
   mod_performance_server("performance", data_r = data_r)
   mod_approach_server("approach", data_r = data_r)
-  mod_rounds_server("rounds", data_r = data_r)
   mod_club_server("club", stroke_quality = data_stroke, full_stroke_quality_avg = data_full)
   mod_lie_server("lie", stroke_level_df = data_r, stroke_quality = data_stroke)
+  mod_rounds_server("rounds", data_r = data_r)
 }
 
 # ----
