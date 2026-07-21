@@ -1,8 +1,8 @@
 mod_club_ui <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tabPanel(
-    title = "Club Diagnostics",
+  # shiny::tabPanel(
+  #   title = "Club Diagnostics",
     
     shiny::sidebarLayout(
       
@@ -37,7 +37,7 @@ mod_club_ui <- function(id) {
         )
       )
     )
-  )
+  # )
 }
 
 mod_club_server <- function(id, stroke_quality, full_stroke_quality_avg) {

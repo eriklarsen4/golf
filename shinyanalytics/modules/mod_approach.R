@@ -1,9 +1,5 @@
 mod_approach_ui <- function(id) {
   ns <- shiny::NS(id)
-  
-  shiny::tabPanel(
-    title = "Approach Analysis",
-    
     shiny::sidebarLayout(
       
       shiny::sidebarPanel(
@@ -92,7 +88,7 @@ mod_approach_ui <- function(id) {
         
       )
     )
-  )
+  # )
 }
 
 mod_approach_server <- function(id, data_r) {

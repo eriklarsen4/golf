@@ -1,9 +1,9 @@
 mod_overview_ui <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tabPanel(
-    title = "Overview",
-    
+  # shiny::tabPanel(
+  #   title = "Overview",
+
     shiny::sidebarLayout(
       
       shiny::sidebarPanel(
@@ -71,7 +71,7 @@ mod_overview_ui <- function(id) {
         )
       )
     )
-  )
+  # )
 }
 
 mod_overview_server <- function(id, data_r, data_skill) {
