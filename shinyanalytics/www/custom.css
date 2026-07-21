@@ -136,3 +136,12 @@ table { /* Prevent horizontal scrolling on tables/text (wrapping) */
     font-size: 0.75rem;
   }
 }
+
+/* workaround to keep icons in the navbar tabs but allow clickable tooltip info */
+.navbar-nav > li > a::after {
+  font-family: "FontAwesome";
+  content: "\f05a"; /* info-circle */
+  margin-left: 6px;
+  font-size: 16px;
+  color: #666;
+}
