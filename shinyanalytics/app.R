@@ -67,11 +67,11 @@ ui <- shiny::navbarPage(
   
   # popover activation (info for tabs on mobile)
   shiny::tags$script(shiny::HTML("
-  $(function () {
+  $(document).on('shiny:sessioninitialized', function() {
     // Remove Shiny's auto-inserted empty title
     $('i.fa-info-circle').removeAttr('title');
 
-    // Now bind popovers cleanly
+    // Bind popovers AFTER Shiny finishes rendering the navbar
     $('i.fa-info-circle[data-toggle=\"popover\"]').popover({
       html: true
     });
