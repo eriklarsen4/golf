@@ -67,10 +67,9 @@ ui <- shiny::navbarPage(
   
   # popover activation (info for tabs on mobile)
   shiny::tags$script(shiny::HTML("
-    $(function () {
-      $('[data-toggle=\"popover\"]').popover();
-    });
-  ")),
+  $(function () {
+    $('i.fa-info-circle[data-toggle=\"popover\"]').popover();
+  });")),
   
   # shiny::tabPanel(
   #   title = "Overview",
