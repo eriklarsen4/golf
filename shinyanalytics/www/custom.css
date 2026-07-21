@@ -137,3 +137,9 @@ table { /* Prevent horizontal scrolling on tables/text (wrapping) */
   }
 }
 
+/* for retaining navbar page tab aesthetics (one line for each tab) */
+.navbar-nav > li > a > span {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
