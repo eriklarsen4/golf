@@ -78,18 +78,18 @@ ui <- shiny::navbarPage(
   #   mod_overview_ui("overview")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Overview",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "High-level summary of recent performance across the entire dataset with quick insights into scoring and trends"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+      ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "High-level summary of recent performance across the entire dataset with quick insights into scoring and trends"
+      ),
     icon =shiny::icon('gauge'),
     mod_overview_ui("overview")
   ),
@@ -100,18 +100,18 @@ ui <- shiny::navbarPage(
   #   mod_performance_ui("performance")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Round Metrics",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Track how round-level statistics- including FIR, GIR, putting, penalties- and scoring, change over time"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+        ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Track how round-level statistics- including FIR, GIR, putting, penalties- and scoring, change over time"
+      ),
     icon =shiny::icon('chart-bar'),
     mod_performance_ui("performance")
   ),
@@ -122,18 +122,18 @@ ui <- shiny::navbarPage(
   #   mod_approach_ui("approach")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Approach Analysis",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Break down approach-shot performance by distance and target to see accuracy, miss patterns, and tendencies into greens"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+      ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Break down approach-shot performance by distance and target to see accuracy, miss patterns, and tendencies into greens"
+      ),
     icon =shiny::icon('crosshairs'),
     mod_approach_ui("approach")
   ),
@@ -143,18 +143,18 @@ ui <- shiny::navbarPage(
   #   mod_club_ui("club")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Club Analysis",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Analyze performance for each club to identify strengths and weaknesses in dispersion, directional bias, and consistency"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+      ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Analyze performance for each club to identify strengths and weaknesses in dispersion, directional bias, and consistency"
+      ),
     mod_club_ui("club")
   ),
 
@@ -164,18 +164,18 @@ ui <- shiny::navbarPage(
   #   mod_lie_ui("lie")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Lie Analysis",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Understand how different lies affect shots by comparing performance from fairway, rough, sand, and recovery situations"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+        ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Understand how different lies affect shots by comparing performance from fairway, rough, sand, and recovery situations"
+      ),
     icon = shiny::icon('golf-ball-tee'),
     mod_lie_ui("club")
   ),
@@ -186,18 +186,18 @@ ui <- shiny::navbarPage(
   #   mod_rounds_ui("rounds")
   # ),
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Data Search",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Search the entire database, filtering by club, lie, distance, course, or date to find specific patterns"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"
+        ),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Search the entire database, filtering by club, lie, distance, course, or date to find specific patterns"
+      ),
     icon = shiny::icon('magnifying-glass'),
     mod_rounds_ui("rounds")
   ),
@@ -208,21 +208,20 @@ ui <- shiny::navbarPage(
   #   glossary_ui("glossary")
   # )
   shiny::tabPanel(
-    title = tags$span(
+    title = tags$a(
+      href = "#",
       "Glossary and Information",
       tags$i(
         class = "fa fa-info-circle",
-        style = "margin-left:6px; font-size:16px;",
-        tabindex = "0",
-        `data-toggle` = "popover",
-        `data-trigger` = "focus",
-        `data-placement` = "bottom",
-        `data-content` = "Definitions of metrics and analytics used in the app, providing clarity on what each statistic means and how it's calculated"
-      )
-    ),
+        style = "margin-left:6px; font-size:16px;"),
+      `data-toggle` = "popover",
+      `data-trigger` = "focus",
+      `data-placement` = "bottom",
+      `data-content` = "Definitions of metrics and analytics used in the app, providing clarity on what each statistic means and how it's calculated"
+      ),
     icon = shiny::icon('book-open'),
     glossary_ui("glossary")
-  ),
+  )
 )
 
 # App Server ----
