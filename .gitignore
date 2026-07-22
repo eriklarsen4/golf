@@ -21,3 +21,7 @@ overwrite_csvs.R
 inst/extdata/golf.duckdb
 inst/extdata/golf.duckdb.wal
 inst/extdata/*.duckdb
+.Rproj.user
+.Rproj.user
+.Rproj.user
+.Rproj.user
