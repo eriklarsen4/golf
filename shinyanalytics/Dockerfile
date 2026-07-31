@@ -33,6 +33,8 @@ WORKDIR /srv/shiny-server/
 # new order
 COPY . .
 
+RUN echo " " > /usr/lib/R/etc/Rprofile.site
+
 ENV R_PROFILE_USER=/dev/null
 ENV RENV_CONFIG_AUTOLOAD=FALSE
 #ENV RENV_CONFIG_SANDBOX_ENABLED=FALSE
