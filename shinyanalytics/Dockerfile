@@ -33,8 +33,6 @@ WORKDIR /srv/shiny-server/
 # new order
 COPY . .
 
-RUN echo " " > /usr/lib/R/etc/Rprofile.site
-
 ENV R_PROFILE_USER=/dev/null
 ENV RENV_CONFIG_AUTOLOAD=FALSE
 #ENV RENV_CONFIG_SANDBOX_ENABLED=FALSE
@@ -42,7 +40,7 @@ ENV RENV_CONFIG_AUTOLOAD=FALSE
 #ENV RENV_CONFIG_INHERIT=FALSE
 #ENV RENV_CONFIG_USER_PROFILE=FALSE
 
-RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
+RUN R -e "install.packages('renv', repos='https://cloud.r-project.org', type='source', INSTALL_opts='--no-init')"
 
 RUN R -e "renv::load(project = NULL); renv::restore(lockfile = 'renv.lock', project = NULL)"
 
