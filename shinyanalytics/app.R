@@ -62,11 +62,9 @@ ui <- shiny::navbarPage(
   # import css aesthetics
   shiny::tags$head(
     shiny::tags$link(rel = 'stylesheet', type = 'text/css', href = 'custom.css'),
-    shiny::tags$script(src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js")
-  ),
-  
-  # popover activation (info for tabs on mobile)
-  shiny::tags$script(shiny::HTML("
+    shiny::tags$script(src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"),
+    # popover activation (info for tabs on mobile)
+    shiny::tags$script(shiny::HTML("
   $(function () {
 
     // Remove Bootstrap's auto-initialized popovers
@@ -81,7 +79,10 @@ ui <- shiny::navbarPage(
       container: 'body'
     });
   });
-")),
+"))
+  ),
+  
+  
   
   
   # shiny::tabPanel(
