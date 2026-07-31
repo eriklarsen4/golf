@@ -40,10 +40,17 @@ ENV RENV_CONFIG_PROJECT=NULL
 ENV RENV_CONFIG_INHERIT=FALSE
 ENV RENV_CONFIG_USER_PROFILE=FALSE
 
-
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
 
 RUN R -e "renv::load(project = NULL); renv::restore(lockfile = 'renv.lock', project = NULL)"
+
+# Re-enable normal R behavior for runtime
+ENV R_PROFILE_USER=
+ENV RENV_CONFIG_AUTOLOAD=
+ENV RENV_CONFIG_SANDBOX_ENABLED=
+ENV RENV_CONFIG_PROJECT=
+ENV RENV_CONFIG_INHERIT=
+ENV RENV_CONFIG_USER_PROFILE=
 
 # old order
 # Copy renv infrastructure
