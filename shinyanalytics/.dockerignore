@@ -9,7 +9,6 @@ renv/cache/
 
 /.Rprofile
 .Rprofile
+.Rprofile*
 .Renviron
-Rprofile.site
-Rprofile
-Renviron
+.Renviron*
