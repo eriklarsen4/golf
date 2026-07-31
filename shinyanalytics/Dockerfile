@@ -33,6 +33,8 @@ WORKDIR /srv/shiny-server/
 # new order
 COPY . .
 
+ENV RENV_CONFIG_AUTOLOAD=FALSE
+
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
 
 RUN R -e "renv::load(project = NULL); renv::restore(lockfile = 'renv.lock', project = NULL)"
