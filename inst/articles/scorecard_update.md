@@ -302,7 +302,7 @@ location <- c(
   'left', 'short', 'on_target',
   'long', 'on_target',
   'on_target', 'on_target',
-  'yes',
+  'on_target',
   'right', 'short', 'long', 'on_target',
   
   'right', 'on_target',
