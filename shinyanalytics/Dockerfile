@@ -42,7 +42,7 @@ ENV RENV_CONFIG_AUTOLOAD=FALSE
 
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org', type='source', INSTALL_opts='--no-init')"
 
-RUN R -e "renv::load(project = NULL); renv::restore(lockfile = 'renv.lock', project = NULL)"
+RUN R -e "renv::restore()"
 
 # Re-enable normal R behavior for runtime
 ENV R_PROFILE_USER=
