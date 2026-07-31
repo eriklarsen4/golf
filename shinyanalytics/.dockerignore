@@ -6,3 +6,5 @@
 rsconnect
 renv/library/
 renv/cache/
+
+/.Rprofile
