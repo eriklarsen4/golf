@@ -471,10 +471,10 @@ Predict the next round's `Gross Score` according to the model
 ```{r Predict the next score using Updated Data, include = T, warning = F, message = F, echo = F}
 con <- golf::get_db_connection()
 
-round_date <- lubridate::as_date('2026-07-26')
-index <- 10.2
-course <- "Randolph North"
-tees <- 'white'
+round_date <- lubridate::as_date('2026-07-31')
+index <- 9.8
+course <- "Silverbell"
+tees <- 'combo'
 
 ## get updated data to predict the next round
 new_df <- DBI::dbGetQuery(
