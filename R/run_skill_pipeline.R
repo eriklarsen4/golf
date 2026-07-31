@@ -37,11 +37,11 @@ run_skill_pipeline <- function(db_path = NULL) {
   pipeline_error_msg <- NA_character_
   
   # pipeline process to append new predictions to production tables; dev tables ----
-  print("BEFORE TRY BLOCK")
+  # print("BEFORE TRY BLOCK")
   {
     tmp <- try({
       
-      print("TRY BLOCK START")
+      # print("TRY BLOCK START")
       # read production hole-level data joined to course + player info
       scores <- DBI::dbGetQuery(
         con,
@@ -359,10 +359,10 @@ run_skill_pipeline <- function(db_path = NULL) {
         )
       }
       
-      print("TABLES INSIDE TRY, AFTER DEV WRITES:")
-      print(DBI::dbListTables(con))
+      # print("TABLES INSIDE TRY, AFTER DEV WRITES:")
+      # print(DBI::dbListTables(con))
       
-      print("INSIDE TRY BLOCK - END")
+      # print("INSIDE TRY BLOCK - END")
       
       
     }, silent = T)
