@@ -8,3 +8,8 @@ renv/library/
 renv/cache/
 
 /.Rprofile
+.Rprofile
+.Renviron
+Rprofile.site
+Rprofile
+Renviron
