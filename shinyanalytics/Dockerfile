@@ -33,7 +33,13 @@ WORKDIR /srv/shiny-server/
 # new order
 COPY . .
 
+ENV R_PROFILE_USER=/dev/null
 ENV RENV_CONFIG_AUTOLOAD=FALSE
+ENV RENV_CONFIG_SANDBOX_ENABLED=FALSE
+ENV RENV_CONFIG_PROJECT=NULL
+ENV RENV_CONFIG_INHERIT=FALSE
+ENV RENV_CONFIG_USER_PROFILE=FALSE
+
 
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
 
