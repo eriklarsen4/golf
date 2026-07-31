@@ -35,7 +35,7 @@ COPY . .
 
 RUN R -e "install.packages('renv', repos='https://cloud.r-project.org')"
 
-RUN R -e "renv::restore()"
+RUN R -e "renv::restore(lockfile = 'renv.lock')"
 
 # old order
 # Copy renv infrastructure
