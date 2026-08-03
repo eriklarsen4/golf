@@ -449,24 +449,6 @@
 "Silverbell","combo",70,120,70,16,214,3,12
 "Silverbell","combo",70,120,70,17,410,4,6
 "Silverbell","combo",70,120,70,18,555,5,2
-"Silverbell","white",70,121,68,1,440,4,5
-"Silverbell","white",70,121,68,2,522,5,3
-"Silverbell","white",70,121,68,3,143,3,17
-"Silverbell","white",70,121,68,4,455,4,9
-"Silverbell","white",70,121,68,5,336,4,13
-"Silverbell","white",70,121,68,6,186,3,11
-"Silverbell","white",70,121,68,7,548,5,1
-"Silverbell","white",70,121,68,8,395,4,7
-"Silverbell","white",70,121,68,9,177,3,15
-"Silverbell","white",70,121,68,10,335,4,14
-"Silverbell","white",70,121,68,11,378,4,10
-"Silverbell","white",70,121,68,12,178,3,18
-"Silverbell","white",70,121,68,13,420,4,8
-"Silverbell","white",70,121,68,14,430,4,4
-"Silverbell","white",70,121,68,15,316,4,16
-"Silverbell","white",70,121,68,16,214,3,12
-"Silverbell","white",70,121,68,17,380,4,6
-"Silverbell","white",70,121,68,18,538,5,2
 "Randolph North","white",72,120,69.8,1,354,4,7
 "Randolph North","white",72,120,69.8,2,337,4,9
 "Randolph North","white",72,120,69.8,3,550,5,11
@@ -575,3 +557,21 @@
 "Randolph North","white",72,120,69.8,16,560,5,18
 "Randolph North","white",72,120,69.8,17,360,4,12
 "Randolph North","white",72,120,69.8,18,407,4,4
+"Silverbell","white",70,121,68.9,1,440,4,5
+"Silverbell","white",70,121,68.9,2,522,5,3
+"Silverbell","white",70,121,68.9,3,143,3,17
+"Silverbell","white",70,121,68.9,4,455,4,9
+"Silverbell","white",70,121,68.9,5,336,4,13
+"Silverbell","white",70,121,68.9,6,186,3,11
+"Silverbell","white",70,121,68.9,7,548,5,1
+"Silverbell","white",70,121,68.9,8,395,4,7
+"Silverbell","white",70,121,68.9,9,177,3,15
+"Silverbell","white",70,121,68.9,10,335,4,14
+"Silverbell","white",70,121,68.9,11,378,4,10
+"Silverbell","white",70,121,68.9,12,178,3,18
+"Silverbell","white",70,121,68.9,13,420,4,8
+"Silverbell","white",70,121,68.9,14,430,4,4
+"Silverbell","white",70,121,68.9,15,316,4,16
+"Silverbell","white",70,121,68.9,16,214,3,12
+"Silverbell","white",70,121,68.9,17,380,4,6
+"Silverbell","white",70,121,68.9,18,538,5,2
