@@ -16,7 +16,9 @@ get_course(course, date, tees)
 "Arizona National"
 "Quarry Pines"
 "El Rio"
-"Crooked Tree"}
+"Crooked Tree"
+"Ventana Canyon Golf Club- Mountain"
+"Tucson National Resort"}
 
 \item{date}{a string in YYYY-MM-DD format, specifying the date played}
 
