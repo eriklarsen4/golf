@@ -5,7 +5,7 @@ library(DBI)
 library(duckdb)
 
 # connect to the db
-real_db <- fs::path_abs(paste0(getwd(), "../../../inst/extdata/golf.duckdb"))
+real_db <- fs::path_abs(paste0(getwd(), "/inst/extdata/golf.duckdb"))
 
 # refresh the dev tables from current production tables
 con <- golf::get_db_connection()
@@ -17,26 +17,312 @@ round_course <- readline("Course name: ") #'Randolph North'
 round_date <- readline("Round date (YYYY-MM-DD): ") #'2026-08-02'
 round_tees <- readline("Tees: ") #'white'
 
-cat("Enter 18 hole scores separated by spaces:\n")
-hole_scores <- scan(what = integer(), quiet = T) #c(5, 5, 6, 4, 4, 3, 4, 4, 4,   5, 4, 5, 6, 5, 3, 5, 4, 6)
+get_hole_scores <- function(n = 18) {
+  hole_scores <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " score: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid score. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      # sanity check (optional)
+      if (val < 1 || val > 20) {
+        cat("Score out of range. Try again.\n")
+        next
+      }
+      
+      hole_scores[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(hole_scores)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(hole_scores)
+  } else {
+    cat("Restarting input...\n")
+    return(get_hole_scores(n))
+  }
+}
+# cat("Enter 18 hole scores separated by spaces:\n")
+# hole_scores <- scan(what = integer(), quiet = T) #c(5, 5, 6, 4, 4, 3, 4, 4, 4,   5, 4, 5, 6, 5, 3, 5, 4, 6)
 
-cat("Enter FIR values (18 boolean digits):\n")
-FIRs <- scan(what = integer(), quiet = T) #c(rep(0, 4), 1, 0, 1, 0, 0,  rep(0, 9))
+get_FIRs <- function(n = 18) {
+  FIRs <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " FIR: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid input. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      # sanity check (optional)
+      if (val == 0 || val == 1) {
+        cat("Invalid input. Try again.\n")
+        next
+      }
+      
+      FIRs[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(FIRs)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(FIRs)
+  } else {
+    cat("Restarting input...\n")
+    return(get_FIRs(n))
+  }
+}
+# cat("Enter FIR values (18 boolean digits):\n")
+# FIRs <- scan(what = integer(), quiet = T) #c(rep(0, 4), 1, 0, 1, 0, 0,  rep(0, 9))
 
-cat("Enter GIR values (18 boolean digits):\n")
-GIRs <- scan(what = integer(), quiet = T)# c(rep(0, 3), rep(1, 6),  0, 0, 1, rep(0,3), 1, 0, 0) 
+get_GIRs <- function(n = 18) {
+  GIRs <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " GIR: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid input. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      # sanity check (optional)
+      if (val == 0 || val == 1) {
+        cat("Invalid input. Try again.\n")
+        next
+      }
+      
+      GIRs[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(GIRs)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(GIRs)
+  } else {
+    cat("Restarting input...\n")
+    return(get_GIRs(n))
+  }
+}
+# cat("Enter GIR values (18 boolean digits):\n")
+# GIRs <- scan(what = integer(), quiet = T)# c(rep(0, 3), rep(1, 6),  0, 0, 1, rep(0,3), 1, 0, 0) 
 
-cat("Enter putts (18 numbers):\n")
-putts_rec <- scan(what = integer(), quiet = T) # c(1, 1, 2, 2, 2, 2, 2, 3, 1,  1, 1, 3, 2, 2, 1, 2, 1, 3)
+get_putts <- function(n = 18) {
+  putts_rec <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " putts: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid input. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      putts_rec[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(putts_rec)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(putts_rec)
+  } else {
+    cat("Restarting input...\n")
+    return(get_putts(n))
+  }
+}
+# cat("Enter putts (18 numbers):\n")
+# putts_rec <- scan(what = integer(), quiet = T) # c(1, 1, 2, 2, 2, 2, 2, 3, 1,  1, 1, 3, 2, 2, 1, 2, 1, 3)
 
-cat("Enter chips (18 numbers):\n")
-chips_rec <- scan(what = integer(), quiet = T) #c(1, 1, 1, rep(0,5), 1,  2, 2, 0, 1, 1, 1, 0, 2, 1)
+get_chips <- function(n = 18) {
+  chips_rec <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " chips: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid input. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      chips_rec[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(chips_rec)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(chips_rec)
+  } else {
+    cat("Restarting input...\n")
+    return(get_chips(n))
+  }
+}
+# cat("Enter chips (18 numbers):\n")
+# chips_rec <- scan(what = integer(), quiet = T) #c(1, 1, 1, rep(0,5), 1,  2, 2, 0, 1, 1, 1, 0, 2, 1)
 
-cat("Enter penalties (18 numbers):\n")
-penalties_rec <- scan(what = integer(), quiet = T) #c(0, 1, rep(0,16))
+get_penalties <- function(n = 18) {
+  penalties_rec <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " penalties: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (!grepl("^[0-9]+$", val)) {
+        cat("Invalid input. Enter a number.\n")
+        next
+      }
+      
+      val <- as.integer(val)
+      
+      penalties_rec[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(penalties_rec)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(penalties_rec)
+  } else {
+    cat("Restarting input...\n")
+    return(get_penalties(n))
+  }
+}
+# cat("Enter penalties (18 numbers):\n")
+# penalties_rec <- scan(what = integer(), quiet = T) #c(0, 1, rep(0,16))
 
-cat("Enter the clubs used off each tee (18 strings, space-saparated):\n")
-tee_clubs <- scan(what = character(), quiet = T) #c('D', 'D', 'D', 'D', 'D', 'SW', 'D', '6', 'D',  'D', '6', 'D', 'D', 'D', '9', 'D', 'D', 'D')
+get_tee_clubs <- function(n = 18) {
+  tee_club <- integer(n)
+  
+  for (i in seq_len(n)) {
+    repeat {
+      val <- readline(paste0("Hole ", i, " tee_club: "))
+      
+      # empty input -> re-prompt
+      if (val == '') {
+        cat("No input detect. Try again.\n")
+        next
+      }
+      
+      # non-numeric -> re-prompt
+      if (grepl(val, pattern = 'D|(3W)|([4-9])|(PW|GW|SW)', ignore.case = F)) {
+        cat("Invalid input. Enter a valid string\n")
+        next
+      }
+      
+      val <- as.character(val)
+      
+      tee_club[i] <- val
+      break
+    }
+  }
+  
+  # confirmation
+  cat("\nYou entered:\n")
+  print(tee_club)
+  
+  confirm <- readline("Confirm? (y/n): ")
+  if (tolower(confirm == 'y')) {
+    return(tee_club)
+  } else {
+    cat("Restarting input...\n")
+    return(get_tee_clubs(n))
+  }
+}
+
+# cat("Enter the clubs used off each tee (18 strings, space-saparated):\n")
+# tee_clubs <- scan(what = character(), quiet = T) #c('D', 'D', 'D', 'D', 'D', 'SW', 'D', '6', 'D',  'D', '6', 'D', 'D', 'D', '9', 'D', 'D', 'D')
+
 
 cat("Enter Handicap Index heading into the round:\n")
 index <- as.numeric(readline("Handicap Index: ")) #9.8
