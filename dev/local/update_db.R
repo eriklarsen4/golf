@@ -1,14 +1,19 @@
+# db connection ----
+# get the connection
+real_db <- fs::path_abs(paste0(getwd(), "/inst/extdata/golf.duckdb"))
+# refresh the tables
+golf::refresh_dev_tables(db_path = real_db)
+# assign the connection globally
+assign("con", golf::get_db_connection(db_path = real_db), envir = .GlobalEnv)
+
 # environment ----
 library(golf)
 library(tidyverse)
 library(DBI)
 library(duckdb)
 
-# connect to the db
-real_db <- fs::path_abs(paste0(getwd(), "/inst/extdata/golf.duckdb"))
-
 # refresh the dev tables from current production tables
-con <- golf::get_db_connection()
+# con <- golf::get_db_connection()
 # con <- golf::get_db_connection(db_path = real_db)
 golf::refresh_dev_tables(db_path = real_db)
 
@@ -17,6 +22,7 @@ round_course <- readline("Course name: ") #'Randolph North'
 round_date <- readline("Round date (YYYY-MM-DD): ") #'2026-08-02'
 round_tees <- readline("Tees: ") #'white'
 
+# hole scores ----
 get_hole_scores <- function(n = 18) {
   hole_scores <- integer(n)
   
@@ -39,7 +45,7 @@ get_hole_scores <- function(n = 18) {
       val <- as.integer(val)
       
       # sanity check (optional)
-      if (val < 1 || val > 20) {
+      if (val < 1 || val > 10) {
         cat("Score out of range. Try again.\n")
         next
       }
@@ -50,8 +56,12 @@ get_hole_scores <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(hole_scores), 'values:\n')
   print(hole_scores)
+  cat("For subtotals of:\n")
+  cat(sum(hole_scores[c(1:9)]), " (OUT)\n")
+  cat(sum(hole_scores[c(10:18)]), " (IN)\n")
+  cat(sum(hole_scores), " (TOT GROSS)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -63,7 +73,38 @@ get_hole_scores <- function(n = 18) {
 }
 # cat("Enter 18 hole scores separated by spaces:\n")
 # hole_scores <- scan(what = integer(), quiet = T) #c(5, 5, 6, 4, 4, 3, 4, 4, 4,   5, 4, 5, 6, 5, 3, 5, 4, 6)
+cat("Pass hole-by-hole scores\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter 18 scores separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    hole_scores <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    hole_scores <- as.integer(vals)
+  }
 
+  if (length(hole_scores) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing hole scores: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  hole_scores <- get(varname)
+  
+  if (length(hole_scores) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  hole_scores <- get_hole_scores()
+}
+
+# FIRs ----
 get_FIRs <- function(n = 18) {
   FIRs <- integer(n)
   
@@ -73,21 +114,21 @@ get_FIRs <- function(n = 18) {
       
       # empty input -> re-prompt
       if (val == '') {
-        cat("No input detect. Try again.\n")
+        cat("No input detected. Please try again.\n")
         next
       }
       
       # non-numeric -> re-prompt
-      if (!grepl("^[0-9]+$", val)) {
-        cat("Invalid input. Enter a number.\n")
+      if (!grepl(val, pattern = "^[0-9]+$")) {
+        cat("Invalid input. Please enter a number, not a string.\n")
         next
       }
       
       val <- as.integer(val)
       
       # sanity check (optional)
-      if (val == 0 || val == 1) {
-        cat("Invalid input. Try again.\n")
+      if (as.numeric(val) > 1) {
+        cat("Invalid input. Please try again.\n")
         next
       }
       
@@ -97,8 +138,12 @@ get_FIRs <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(FIRs), 'values:\n')
   print(FIRs)
+  cat("For subtotals of:\n")
+  cat(sum(FIRs[c(1:9)]), " (OUT FIRs)\n")
+  cat(sum(FIRs[c(10:18)]), " (IN FIRs)\n")
+  cat(sum(FIRs), " (TOT FIRs)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -110,7 +155,38 @@ get_FIRs <- function(n = 18) {
 }
 # cat("Enter FIR values (18 boolean digits):\n")
 # FIRs <- scan(what = integer(), quiet = T) #c(rep(0, 4), 1, 0, 1, 0, 0,  rep(0, 9))
+cat("Pass hole-by-hole FIRs\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter 18 FIR values separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    FIRs <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    FIRs <- as.integer(vals)
+  }
+  
+  if (length(FIRs) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing FIR values: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  FIRs <- get(varname)
+  
+  if (length(FIRs) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  FIRs <- get_FIRs()
+}
 
+# GIRs -----
 get_GIRs <- function(n = 18) {
   GIRs <- integer(n)
   
@@ -125,16 +201,16 @@ get_GIRs <- function(n = 18) {
       }
       
       # non-numeric -> re-prompt
-      if (!grepl("^[0-9]+$", val)) {
-        cat("Invalid input. Enter a number.\n")
+      if (!grepl(val, pattern = "^[0-9]+$")) {
+        cat("Invalid input. Please enter a number, not a string.\n")
         next
       }
       
       val <- as.integer(val)
       
       # sanity check (optional)
-      if (val == 0 || val == 1) {
-        cat("Invalid input. Try again.\n")
+      if (as.numeric(val) > 1) {
+        cat("Invalid input. Please try again.\n")
         next
       }
       
@@ -144,8 +220,12 @@ get_GIRs <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(GIRs), 'values:\n')
   print(GIRs)
+  cat("For subtotals of:\n")
+  cat(sum(GIRs[c(1:9)]), " (OUT GIRs)\n")
+  cat(sum(GIRs[c(10:18)]), " (IN GIRs)\n")
+  cat(sum(GIRs), " (TOT GIRs)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -157,7 +237,38 @@ get_GIRs <- function(n = 18) {
 }
 # cat("Enter GIR values (18 boolean digits):\n")
 # GIRs <- scan(what = integer(), quiet = T)# c(rep(0, 3), rep(1, 6),  0, 0, 1, rep(0,3), 1, 0, 0) 
+cat("Pass hole-by-hole GIRs\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter 18 GIR values separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    GIRs <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    GIRs <- as.integer(vals)
+  }
+  
+  if (length(GIRs) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing GIR values: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  GIRs <- get(varname)
+  
+  if (length(GIRs) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  GIRs <- get_GIRs()
+}
 
+# putts ----
 get_putts <- function(n = 18) {
   putts_rec <- integer(n)
   
@@ -167,13 +278,13 @@ get_putts <- function(n = 18) {
       
       # empty input -> re-prompt
       if (val == '') {
-        cat("No input detect. Try again.\n")
+        cat("No input detect. Please try again.\n")
         next
       }
       
       # non-numeric -> re-prompt
-      if (!grepl("^[0-9]+$", val)) {
-        cat("Invalid input. Enter a number.\n")
+      if (!grepl(val, pattern = "^[0-9]+$")) {
+        cat("Invalid input. Please enter a number, not a string.\n")
         next
       }
       
@@ -185,8 +296,12 @@ get_putts <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(putts_rec), 'values:\n')
   print(putts_rec)
+  cat("For subtotals of:\n")
+  cat(sum(putts_rec[c(1:9)]), " (OUT putts)\n")
+  cat(sum(putts_rec[c(10:18)]), " (IN putts)\n")
+  cat(sum(putts_rec), " (TOT putts)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -198,7 +313,38 @@ get_putts <- function(n = 18) {
 }
 # cat("Enter putts (18 numbers):\n")
 # putts_rec <- scan(what = integer(), quiet = T) # c(1, 1, 2, 2, 2, 2, 2, 3, 1,  1, 1, 3, 2, 2, 1, 2, 1, 3)
+cat("Pass hole-by-hole putts\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter putts for each of 18 holes separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    putts_rec <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    putts_rec <- as.integer(vals)
+  }
+  
+  if (length(putts_rec) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing # of putts for each hole: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  putts_rec <- get(varname)
+  
+  if (length(putts_rec) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  putts_rec <- get_putts()
+}
 
+# chips ----
 get_chips <- function(n = 18) {
   chips_rec <- integer(n)
   
@@ -208,13 +354,13 @@ get_chips <- function(n = 18) {
       
       # empty input -> re-prompt
       if (val == '') {
-        cat("No input detect. Try again.\n")
+        cat("No input detect. Please try again.\n")
         next
       }
       
       # non-numeric -> re-prompt
-      if (!grepl("^[0-9]+$", val)) {
-        cat("Invalid input. Enter a number.\n")
+      if (!grepl(val, pattern = "^[0-9]+$")) {
+        cat("Invalid input. Please enter a number, not a string.\n")
         next
       }
       
@@ -226,8 +372,12 @@ get_chips <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(chips_rec), 'values:\n')
   print(chips_rec)
+  cat("For subtotals of:\n")
+  cat(sum(chips_rec[c(1:9)]), " (OUT chips)\n")
+  cat(sum(chips_rec[c(10:18)]), " (IN chips)\n")
+  cat(sum(chips_rec), " (TOT chips)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -239,7 +389,38 @@ get_chips <- function(n = 18) {
 }
 # cat("Enter chips (18 numbers):\n")
 # chips_rec <- scan(what = integer(), quiet = T) #c(1, 1, 1, rep(0,5), 1,  2, 2, 0, 1, 1, 1, 0, 2, 1)
+cat("Pass hole-by-hole chips\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter chips for each of 18 holes separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    chips_rec <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    chips_rec <- as.integer(vals)
+  }
+  
+  if (length(chips_rec) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing # of chips for each hole: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  chips_rec <- get(varname)
+  
+  if (length(putts_rec) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  chips_rec <- get_chips()
+}
 
+# penalties ----
 get_penalties <- function(n = 18) {
   penalties_rec <- integer(n)
   
@@ -254,8 +435,8 @@ get_penalties <- function(n = 18) {
       }
       
       # non-numeric -> re-prompt
-      if (!grepl("^[0-9]+$", val)) {
-        cat("Invalid input. Enter a number.\n")
+      if (!grepl(val, pattern = "^[0-9]+$")) {
+        cat("Invalid input. Please enter a number, not a string.\n")
         next
       }
       
@@ -267,8 +448,12 @@ get_penalties <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
+  cat("\nYou entered:\n", length(penalties_rec), 'values:\n')
   print(penalties_rec)
+  cat("For subtotals of:\n")
+  cat(sum(penalties_rec[c(1:9)]), " (OUT penalties)\n")
+  cat(sum(penalties_rec[c(10:18)]), " (IN penalties)\n")
+  cat(sum(penalties_rec), " (TOT penalties)")
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -280,7 +465,38 @@ get_penalties <- function(n = 18) {
 }
 # cat("Enter penalties (18 numbers):\n")
 # penalties_rec <- scan(what = integer(), quiet = T) #c(0, 1, rep(0,16))
+cat("Pass hole-by-hole penalties\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter penalties for each of 18 holes separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    penalties_rec <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    penalties_rec <- as.integer(vals)
+  }
+  
+  if (length(penalties_rec) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing # of penalties for each hole: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  penalties_rec <- get(varname)
+  
+  if (length(penalties_rec) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  penalties_rec <- get_penalties()
+}
 
+# tee clubs ----
 get_tee_clubs <- function(n = 18) {
   tee_club <- integer(n)
   
@@ -290,13 +506,13 @@ get_tee_clubs <- function(n = 18) {
       
       # empty input -> re-prompt
       if (val == '') {
-        cat("No input detect. Try again.\n")
+        cat("No input detect. Please try again.\n")
         next
       }
       
       # non-numeric -> re-prompt
-      if (grepl(val, pattern = 'D|(3W)|([4-9])|(PW|GW|SW)', ignore.case = F)) {
-        cat("Invalid input. Enter a valid string\n")
+      if (!grepl(val, pattern = '(D)|(3W)|([4-9])|(PW|GW|SW)', ignore.case = F)) {
+        cat("Invalid input. Please enter a valid string\n")
         next
       }
       
@@ -308,8 +524,10 @@ get_tee_clubs <- function(n = 18) {
   }
   
   # confirmation
-  cat("\nYou entered:\n")
-  print(tee_club)
+  cat("\nYou entered:\n", length(tee_club), 'values:\n')
+  for(i in 1:length(tee_club)){
+    cat("Hole ", i, " club off tee: ", tee_club[i],'\n')
+  }
   
   confirm <- readline("Confirm? (y/n): ")
   if (tolower(confirm == 'y')) {
@@ -319,16 +537,49 @@ get_tee_clubs <- function(n = 18) {
     return(get_tee_clubs(n))
   }
 }
-
 # cat("Enter the clubs used off each tee (18 strings, space-saparated):\n")
 # tee_clubs <- scan(what = character(), quiet = T) #c('D', 'D', 'D', 'D', 'D', 'SW', 'D', '6', 'D',  'D', '6', 'D', 'D', 'D', '9', 'D', 'D', 'D')
+cat("Pass clubs used on each tee\n")
+cat("Choose to pass as space-separated list, variable name, or hole-by-hole values")
+choice <- readline("list/var/ind.: ")
+if (tolower(choice) == 'list') {
+  raw <- readline("Enter putts for each of 18 holes separated by spaces OR a variable name: ")
+  
+  if (exists(raw, inherits = T)) {
+    tee_clubs <- get(raw)
+  } else {
+    vals <- strsplit(raw, '\\s+')[[1]]
+    tee_clubs <- as.character(vals)
+  }
+  
+  if (length(tee_clubs) != 18) {
+    stop("Please pass exactly 18 values!")
+  }
+} else if (tolower(choice) == 'var') {
+  varname <- readline('Variable name containing the club chosen to hit off the tee for each hole: ')
+  if (!exists(varname, inherits = T)) {
+    stop(paste0("Variable '", varname, "' not found!"))
+  }
+  
+  tee_clubs <- get(varname)
+  
+  if (length(tee_clubs) != 18) {
+    stop("Variable must contain exactly 18 values!")
+  }
+} else {
+  tee_clubs <- get_tee_clubs()
+}
 
-
+# H.I. ----
 cat("Enter Handicap Index heading into the round:\n")
-index <- as.numeric(readline("Handicap Index: ")) #9.8
+index <- readline("Handicap Index: ") #9.8
+index <- as.numeric(index)
 
+# Scorecard ----
+cat("Get the Scorecard for the round, formatted to the database")
 # get the scorecard for the new round, ensuring hole-by-hole scores are filled
 if ( length(hole_scores) > 0 ) {
+  
   Card <- golf::get_course(course = round_course, date = round_date, tees = round_tees) 
   
   Card <- golf::log_score(Scorecard = Card,
@@ -611,15 +862,15 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      
      length(hole_scores) > 0
 ) {
-  
-  DBI::dbAppendTable(conn = con,
-                     name = 'dev_players',
-                     value = players <- Card |> 
-                       dplyr::select(player_id, player_name, GHIN, index, date) |> 
-                       dplyr::distinct() |> 
-                       dplyr::rename(handicap_index = index) |> 
-                       dplyr::mutate(date = as.character(date))
-  )
+  cat("(appending to dev_players)...")
+  # DBI::dbAppendTable(conn = con,
+  #                    name = 'dev_players',
+  #                    value = players <- Card |> 
+  #                      dplyr::select(player_id, player_name, GHIN, index, date) |> 
+  #                      dplyr::distinct() |> 
+  #                      dplyr::rename(handicap_index = index) |> 
+  #                      dplyr::mutate(date = as.character(date))
+  # )
   
 }
 # courses table ----
@@ -631,16 +882,17 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      
      length(hole_scores) > 0
 ) {
-  DBI::dbAppendTable(conn = con,
-                     name = 'dev_courses',
-                     value = course <- Card |> 
-                       dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
-                       dplyr::distinct() |> 
-                       dplyr::rename(course_name = course)  |> 
-                       dplyr::mutate(hole = gsub(hole, 
-                                                 pattern = 'hole_',
-                                                 replacement = '') |> as.numeric())
-  )
+  cat('(appending to dev_courses)...')
+  # DBI::dbAppendTable(conn = con,
+  #                    name = 'dev_courses',
+  #                    value = course <- Card |> 
+  #                      dplyr::select(course, tees, to_par, slope, course_rating, hole, yds, par, hole_handicap) |> 
+  #                      dplyr::distinct() |> 
+  #                      dplyr::rename(course_name = course)  |> 
+  #                      dplyr::mutate(hole = gsub(hole, 
+  #                                                pattern = 'hole_',
+  #                                                replacement = '') |> as.numeric())
+  # )
 }
 
 # rounds table ----
@@ -652,23 +904,24 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM r
      
      length(hole_scores) > 0
 ) {
-  DBI::dbAppendTable(conn = con,
-                     name = 'dev_rounds',
-                     value = Card |> 
-                       dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
-                       dplyr::distinct() |>
-                       dplyr::rename(handicap_index = index) |> 
-                       dplyr::rename(course_name = course) |> 
-                       dplyr::mutate(date = as.character(date))  |> 
-                       dplyr::mutate(hole = gsub(hole, 
-                                                 pattern = 'hole_',
-                                                 replacement = '') |> as.numeric()) |> 
-                       dplyr::group_by(course_name, date) |> 
-                       dplyr::arrange(hole) |> 
-                       dplyr::ungroup() |> 
-                       dplyr::relocate(c(tot_gross, tot_net), .after = IN_net) |> 
-                       dplyr::relocate(course_handicap, .after = tees)
-  )
+  cat("(appending to dev_rounds...)")
+  # DBI::dbAppendTable(conn = con,
+  #                    name = 'dev_rounds',
+  #                    value = Card |> 
+  #                      dplyr::select(-to_par, -slope, -course_rating, -yds, -par) |> 
+  #                      dplyr::distinct() |>
+  #                      dplyr::rename(handicap_index = index) |> 
+  #                      dplyr::rename(course_name = course) |> 
+  #                      dplyr::mutate(date = as.character(date))  |> 
+  #                      dplyr::mutate(hole = gsub(hole, 
+  #                                                pattern = 'hole_',
+  #                                                replacement = '') |> as.numeric()) |> 
+  #                      dplyr::group_by(course_name, date) |> 
+  #                      dplyr::arrange(hole) |> 
+  #                      dplyr::ungroup() |> 
+  #                      dplyr::relocate(c(tot_gross, tot_net), .after = IN_net) |> 
+  #                      dplyr::relocate(course_handicap, .after = tees)
+  # )
 }
 
 # club metrics table -----
@@ -680,22 +933,23 @@ if ( DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT date FROM c
      
      length(hole_scores) > 0
 ) {
-  
-  DBI::dbAppendTable(conn = con,
-                     name = 'dev_club_metrics',
-                     value = club_metrics_df_upload |> 
-                       dplyr::relocate(stroke, .after = gross) |>
-                       dplyr::relocate(lie, .after = stroke) |> 
-                       dplyr::relocate(shot_type, .after = miss_direction) |> 
-                       dplyr::select(-tracked_shots) |> 
-                       dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x))) |> 
-                       dplyr::mutate(date = lubridate::as_date(date))
-  )
+  cat("(appending to dev_club_metrics)...")
+  # DBI::dbAppendTable(conn = con,
+  #                    name = 'dev_club_metrics',
+  #                    value = club_metrics_df_upload |> 
+  #                      dplyr::relocate(stroke, .after = gross) |>
+  #                      dplyr::relocate(lie, .after = stroke) |> 
+  #                      dplyr::relocate(shot_type, .after = miss_direction) |> 
+  #                      dplyr::select(-tracked_shots) |> 
+  #                      dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x))) |> 
+  #                      dplyr::mutate(date = lubridate::as_date(date))
+  # )
 }
 
 # validate tables -----
-golf::validate_dev_tables(db_path = real_db)
-
+cat("(validating dev tables)...")
+# golf::validate_dev_tables(db_path = real_db)
+cat("validated!")
 # DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM rounds;"))
 # DBI::dbGetQuery(conn = con, statement = paste0("SELECT DISTINCT * FROM club_metrics;")) |> colnames()
 # club_metrics_df_upload |> 
@@ -706,12 +960,18 @@ golf::validate_dev_tables(db_path = real_db)
 #   dplyr::mutate(dplyr::across(c(dplyr::contains("yds")), ~as.numeric(.x))) |>  colnames()
 
 # promote dev to production tables ----
-golf::promote_dev_to_production(db_path = real_db)
+cat("(promoting dev tables to production)...")
+# golf::promote_dev_to_production(db_path = real_db)
+cat("promoted!")
 
 # run the skill pipeline----
+cat("running the skill estimate pipeline...")
 if (DBI::dbGetQuery(conn = con, statement = paste0("SELECT COUNT(*) AS n FROM dev_rounds WHERE date = '", round_date, "';"))$n > 0L) {
-  golf::run_skill_pipeline(db_path = real_db)
+  cat("skill estimate pipeline has run!")
+  # golf::run_skill_pipeline(db_path = real_db)
 }
-
+# cat("skill estimate pipeline has run!")
 # call the run_etl.R script ----
-source(paste0(getwd(), '/dev/local/run_etl.R'))
+cat("running the etl (update .Rmd's and backup tables)..")
+# source(paste0(getwd(), '/dev/local/run_etl.R'))
+cat("complete!")
