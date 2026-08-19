@@ -23,7 +23,7 @@ filtered_rounds <- lapply(RMC_zips, function(x){
   unlist() |> 
   as.data.frame() |>  
   dplyr::rename(file = 1) |> 
-  dplyr::filter(!grepl(file, pattern = 'Cup|Classic|Tourn|Rolling_Hills|ABCD')) |> 
+  dplyr::filter(!grepl(file, pattern = 'Cup|Classic|Tourn|Rolling_Hills|ABCD|Del_Lago|Rained_Out|(Championship|CC)')) |> 
   dplyr::pull(file)
 
 # alternative
@@ -245,7 +245,7 @@ normalize_rounds <- function(raw_rounds) {
 
 library(DBI)
 con <- golf::get_db_connection()
-stringr::strrem
+
 purrr::map_dfr(filtered_rounds[1], function(path) {
   pdf <- pdftools::pdf_data(pdf = path)
   filename <- basename(path)
@@ -262,10 +262,72 @@ purrr::map_dfr(filtered_rounds[1], function(path) {
         stringr::str_replace_all("_", " "),
       .before = 1
     ) |>
-    dplyr::select(-date_token)
-})
+    dplyr::select(-date_token) |> 
+    normalize_rounds()
+}) |> 
+  dplyr::left_join(
+    DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
+      dplyr::mutate(
+        course_name = dplyr::case_when(
+          grepl(x = course_name, pattern = 'Ventana', ignore.case = T) ~ 'Ventana Canyon-Mountain',
+          grepl(x = course_name, pattern = 'Tucson National', ignore.case = T) ~ 'Tucson National',
+          TRUE ~ course_name
+        )
+      ),
+    by = c('course_name', 'hole')
+  ) |> 
+  dplyr::relocate(par, .after = hole) |> 
+  dplyr::mutate(
+    gross = as.numeric(gross),
+    net = as.numeric(net)
+  ) |> 
+  dplyr::group_by(player_name, date) |>
+  dplyr::mutate(
+    handicap_stroke = dplyr::case_when(
+      between(course_handicap + hole_handicap, -17, 0) ~ -1,
+      course_handicap + hole_handicap <= -18 ~ -2,
+      course_handicap + hole_handicap > 18 & course_handicap > 0 ~ 1,
+      TRUE ~ 0
+    ),
+    # per-hole net table digits equal gross digits in the source PDFs --
+    # net must be computed from handicap_stroke, never trusted as parsed
+    net_computed = handicap_stroke + gross,
+    net = net_computed,
+    OUT_net = dplyr::if_else(all(is.na(net_computed[c(1:9)])), NA_real_, sum(net_computed[c(1:9)], na.rm = T)),
+    IN_net  = dplyr::if_else(all(is.na(net_computed[c(10:18)])), NA_real_, sum(net_computed[c(10:18)], na.rm = T)),
+    # tot_net falls back to the value already parsed from NET_total
+    # (real round total) when gross is missing for the whole round
+    tot_net = dplyr::if_else(all(is.na(net_computed[c(1:18)])), dplyr::first(tot_net), sum(net_computed[c(1:18)], na.rm = T))
+  ) |>
+  dplyr::select(-net_computed) |>
+  dplyr::ungroup() |>
+  dplyr::relocate(c(hole_handicap, handicap_stroke), .after = net) |>
+  dplyr::mutate(
+    is_gross_birdie       = dplyr::case_when(gross - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_eagle_better = dplyr::case_when(gross - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_par          = dplyr::case_when(gross - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey        = dplyr::case_when(gross - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey_worse  = dplyr::case_when(gross - par > 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_birdie         = dplyr::case_when(net - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_eagle_better   = dplyr::case_when(net - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_par            = dplyr::case_when(net - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey          = dplyr::case_when(net - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
+  )
 
-all_scores <- purrr::map_dfr(filtered_rounds, function(path) {
+filtered_rounds |> 
+  stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}_|^\\d{2}-\\d{2}-\\d{2}[a-z]{1,}_|^\\d{2}-\\d{2}-\\d{2}-2") %>%
+  gsub(., pattern = '_Results.pdf|\\-[2|3].pdf|_RD[1|2]_Club_Championship.pdf|_CC_Rd[1|2].pdf|_Club_Championship_Rd[1|2].pdf|_Club_Championship.pdf', replacement = '.pdf') |> 
+  stringr::str_remove("\\.pdf$") |>
+  stringr::str_replace_all("_", " ")
+
+filtered_rounds[which(filtered_rounds %>% stringr::str_detect(., pattern = '\\d{2}-\\d{2}-\\d{2}[a-z]') == T)]
+dupes <- filtered_rounds[which(filtered_rounds %>% stringr::str_detect(., 
+                                                                       pattern = '(2020/05-03-20)|(2020/08-09-20)|(2022/05-01-22)|(2022/08-14-22)|(2024/04-07-24)|(2024/07-21-24)|(2024/08-11-24)|(2025/04-06-25)|(2025/08-17-25)|(2025/11-16-25)') == T)]
+
+"%notin%" <- Negate("%in%")
+
+all_scores <- purrr::map_dfr(filtered_rounds[which(filtered_rounds %notin% dupes == T)], function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
   
@@ -276,14 +338,18 @@ all_scores <- purrr::map_dfr(filtered_rounds, function(path) {
       date = stringr::str_remove(string = date_token, pattern = '[a-z]$') |>
         gsub(pattern = '([0-9]{1,}-)([0-9]{1,})-([0-9]{1,})', replacement = '20\\3\\-\\1\\2'),
       course_name = filename |>
-        stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}_") |>
+        stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}_|^\\d{2}-\\d{2}-\\d{2}[a-z]{1,}_|^\\d{2}-\\d{2}-\\d{2}-2") %>%
+        gsub(., pattern = '_Results.pdf|\\-[2|3].pdf|_RD[1|2]_Club_Championship.pdf|_CC_Rd[1|2].pdf|_Club_Championship_Rd[1|2].pdf|_Club_Championship.pdf', replacement = '.pdf') |> 
         stringr::str_remove("\\.pdf$") |>
         stringr::str_replace_all("_", " "),
       .before = 1
     ) |>
-    dplyr::select(-date_token)
+    dplyr::mutate(course_name = dplyr::case_when(course_name == 'Silvberbell' ~ 'Silverbell',
+                                                 grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
+                                                 TRUE ~ course_name)) |> 
+    dplyr::select(-date_token) |> 
+    normalize_rounds()
 }) |>
-  normalize_rounds() |>
   dplyr::left_join(
     DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
       dplyr::mutate(
@@ -296,6 +362,7 @@ all_scores <- purrr::map_dfr(filtered_rounds, function(path) {
     by = c('course_name', 'hole')
   ) |>
   dplyr::relocate(par, .after = hole) |>
+  # tidyr::unnest(cols = c(gross:tot_net)) |> 
   dplyr::mutate(
     gross = as.numeric(gross),
     net   = as.numeric(net)
@@ -334,8 +401,87 @@ all_scores <- purrr::map_dfr(filtered_rounds, function(path) {
     is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
   )
 
+# test 2025 CC rd1
+purrr::map_dfr(filtered_rounds[which(filtered_rounds %notin% dupes == T)], function(path) {
+  pdf <- pdftools::pdf_data(path)
+  filename <- basename(path)
+  
+  extract_round_scores(pdf = pdf) |>
+    dplyr::mutate(
+      date_token = filename |>
+        stringr::str_extract("[0-9]{2}-[0-9]{2}-[0-9]{2}[a-z]?"),
+      date = stringr::str_remove(string = date_token, pattern = '[a-z]$') |>
+        gsub(pattern = '([0-9]{1,}-)([0-9]{1,})-([0-9]{1,})', replacement = '20\\3\\-\\1\\2'),
+      course_name = filename |>
+        stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}_|^\\d{2}-\\d{2}-\\d{2}[a-z]{1,}_|^\\d{2}-\\d{2}-\\d{2}-2") %>%
+        gsub(., pattern = '_Results.pdf|\\-[2|3].pdf|_RD[1|2]_Club_Championship.pdf|_CC_Rd[1|2].pdf|_Club_Championship_Rd[1|2].pdf|_Club_Championship.pdf', replacement = '.pdf') |> 
+        stringr::str_remove("\\.pdf$") |>
+        stringr::str_replace_all("_", " "),
+      .before = 1
+    ) |>
+    dplyr::mutate(course_name = dplyr::case_when(course_name == 'Silvberbell' ~ 'Silverbell',
+                                                 grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
+                                                 TRUE ~ course_name)) |> 
+    dplyr::select(-date_token) |> 
+    normalize_rounds()
+}) |> 
+  dplyr::left_join(
+    DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
+      dplyr::mutate(
+        course_name = dplyr::case_when(
+          grepl(x = course_name, pattern = 'Ventana', ignore.case = T) ~ 'Ventana Canyon-Mountain',
+          grepl(x = course_name, pattern = 'Tucson National', ignore.case = T) ~ 'Tucson National',
+          TRUE ~ course_name
+        )
+      ),
+    by = c('course_name', 'hole')
+  ) |>
+  dplyr::relocate(par, .after = hole) |>
+  # tidyr::unnest(cols = c(gross:tot_net)) |> 
+  dplyr::mutate(
+    gross = as.numeric(gross),
+    net   = as.numeric(net)
+  ) |>
+  dplyr::group_by(player_name, date) |>
+  dplyr::mutate(
+    handicap_stroke = dplyr::case_when(
+      between(course_handicap + hole_handicap, -17, 0) ~ -1,
+      course_handicap + hole_handicap <= -18 ~ -2,
+      course_handicap + hole_handicap > 18 & course_handicap > 0 ~ 1,
+      TRUE ~ 0
+    ),
+    # per-hole net table digits equal gross digits in the source PDFs --
+    # net must be computed from handicap_stroke, never trusted as parsed
+    net_computed = handicap_stroke + gross,
+    net = net_computed,
+    OUT_net = dplyr::if_else(all(is.na(net_computed[c(1:9)])), NA_real_, sum(net_computed[c(1:9)], na.rm = T)),
+    IN_net  = dplyr::if_else(all(is.na(net_computed[c(10:18)])), NA_real_, sum(net_computed[c(10:18)], na.rm = T)),
+    # tot_net falls back to the value already parsed from NET_total
+    # (real round total) when gross is missing for the whole round
+    tot_net = dplyr::if_else(all(is.na(net_computed[c(1:18)])), dplyr::first(tot_net), sum(net_computed[c(1:18)], na.rm = T))
+  ) |>
+  dplyr::select(-net_computed) |>
+  dplyr::ungroup() |>
+  dplyr::relocate(c(hole_handicap, handicap_stroke), .after = net) |>
+  dplyr::mutate(
+    is_gross_birdie       = dplyr::case_when(gross - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_eagle_better = dplyr::case_when(gross - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_par          = dplyr::case_when(gross - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey        = dplyr::case_when(gross - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey_worse  = dplyr::case_when(gross - par > 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_birdie         = dplyr::case_when(net - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_eagle_better   = dplyr::case_when(net - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_par            = dplyr::case_when(net - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey          = dplyr::case_when(net - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
+  )
+
+
+
 all_scores |> 
-  dplyr::filter(is.na(par)) |> 
+  # dplyr::filter(is.na(par)) |> 
+  # dplyr::distinct(course_name)
   # dplyr::arrange(desc(course_handicap)) |> 
-  print(n = 100)
-  dplyr::filter(grepl(player_name, pattern = 'Epp', ignore.case = T))
+  # print(n = 100)
+  dplyr::filter(grepl(player_name, pattern = 'Epp', ignore.case = T)) |> 
+  dplyr::distinct(player_name)
