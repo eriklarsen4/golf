@@ -228,36 +228,6 @@ extract_round_scores <- function(pdf) {
     dplyr::distinct(player_name, hole, score_type, .keep_all = TRUE)
 }
 
-# normalize the rounds ----
-normalize_rounds <- function(raw_rounds) {
-  raw_rounds |>
-    dplyr::mutate(
-      player_name = dplyr::case_when(
-        grepl(x = player_name, pattern = '\\s\\(') ~ gsub(x = player_name, pattern = '\\s\\(.+?\\)', replacement = ''),
-        TRUE ~ player_name
-      )
-    ) |>
-    dplyr::group_by(player_name, date, course_name) |>
-    tidyr::fill(c(course_hcp, NET_total), .direction = 'updown') |>
-    dplyr::ungroup() |>
-    dplyr::mutate(
-      # net-table TOT reprints the gross total, not the real net total --
-      # NET_total holds the real one; swap it in before pivoting
-      TOT = dplyr::case_when(
-        score_type == 'net' & !is.na(NET_total) ~ NET_total,
-        TRUE ~ TOT
-      )
-    ) |>
-    dplyr::distinct(date, course_name, player_name, course_hcp, hole, score, OUT, IN, TOT, NET_total, score_type) |>
-    tidyr::pivot_wider(
-      id_cols = c(date, course_name, player_name, course_hcp, hole),
-      names_from = score_type,
-      values_from = c(score, OUT, IN, TOT),
-      names_glue = "{.value}_{score_type}"
-    ) |>
-    dplyr::rename(gross = score_gross, net = score_net, tot_gross = TOT_gross, tot_net = TOT_net, course_handicap = course_hcp)
-}
-
 # de-duplicate round dates ----
 dedupe_score_duplicates <- function(df) {
   instances <- df |>
@@ -342,6 +312,42 @@ dedupe_score_duplicates <- function(df) {
   )
 }
 
+# fill gross scores where missing ----
+fill_missing_gross_from_net <- function(df) {
+  # identify player-rounds with net but no gross
+  coverage <- df |>
+    dplyr::distinct(date, course_name, source_file, player_name, score_type)
+  
+  net_only <- coverage |>
+    dplyr::group_by(date, course_name, source_file, player_name) |>
+    dplyr::summarize(
+      has_gross = "gross" %in% score_type,
+      has_net   = "net" %in% score_type,
+      .groups = "drop"
+    ) |>
+    dplyr::filter(has_net, !has_gross)
+  
+  synthesized_gross <- df |>
+    dplyr::inner_join(
+      net_only |> dplyr::select(date, course_name, source_file, player_name),
+      by = c("date", "course_name", "source_file", "player_name")
+    ) |>
+    dplyr::filter(score_type == "net") |>
+    dplyr::mutate(
+      score_type = "gross",
+      NET_total  = NA_integer_,
+      is_synthesized_gross = TRUE
+    )
+  
+  list(
+    df = dplyr::bind_rows(
+      df |> dplyr::mutate(is_synthesized_gross = FALSE),
+      synthesized_gross
+    ),
+    net_only_summary = net_only
+  )
+}
+
 # function to replace last-name-only names ----
 fill_stub_player_names <- function(df) {
   instances <- df |>
@@ -399,6 +405,36 @@ fill_stub_player_names <- function(df) {
     dplyr::select(-new_player_name)
   
   list(df = df_renamed, review = review)
+}
+
+# normalize the rounds ----
+normalize_rounds <- function(raw_rounds) {
+  raw_rounds |>
+    dplyr::mutate(
+      player_name = dplyr::case_when(
+        grepl(x = player_name, pattern = '\\s\\(') ~ gsub(x = player_name, pattern = '\\s\\(.+?\\)', replacement = ''),
+        TRUE ~ player_name
+      )
+    ) |>
+    dplyr::group_by(player_name, date, course_name) |>
+    tidyr::fill(c(course_hcp, NET_total), .direction = 'updown') |>
+    dplyr::ungroup() |>
+    dplyr::mutate(
+      # net-table TOT reprints the gross total, not the real net total --
+      # NET_total holds the real one; swap it in before pivoting
+      TOT = dplyr::case_when(
+        score_type == 'net' & !is.na(NET_total) ~ NET_total,
+        TRUE ~ TOT
+      )
+    ) |>
+    dplyr::distinct(date, course_name, player_name, course_hcp, hole, score, OUT, IN, TOT, NET_total, score_type) |>
+    tidyr::pivot_wider(
+      id_cols = c(date, course_name, player_name, course_hcp, hole),
+      names_from = score_type,
+      values_from = c(score, OUT, IN, TOT),
+      names_glue = "{.value}_{score_type}"
+    ) |>
+    dplyr::rename(gross = score_gross, net = score_net, tot_gross = TOT_gross, tot_net = TOT_net, course_handicap = course_hcp)
 }
 
 # verify ----
@@ -579,7 +615,7 @@ dupes_scores <- purrr::map_dfr(dupes, function(path) {
   )
 
 
-purrr::map_dfr(filtered_rounds, function(path) {
+purrr::map_dfr(filtered_rounds[c(1:10)], function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
   
@@ -608,14 +644,14 @@ purrr::map_dfr(filtered_rounds, function(path) {
 }) |> 
   dedupe_score_duplicates() |>
   purrr::keep_at('kept') %>% 
+  purrr::map_df(., .f = as.data.frame) |>
+  fill_stub_player_names() |> 
+  purrr::keep_at('df') %>%
   purrr::map_df(., .f = as.data.frame) |> 
-  fill_stub_player_names() %>%
+  fill_missing_gross_from_net() |> 
+  purrr::keep_at('df') %>%
   purrr::map_df(., .f = as.data.frame) |> 
-  dplyr::filter(source_file == "04-11-21_Dell_Urich.pdf") |>
-  dplyr::group_by(player_name, score_type, source_element) |>
-  dplyr::summarize(score_sig = paste(score[order(hole)], collapse = ","), .groups = "drop") |>
-  dplyr::filter(grepl(x = player_name, pattern = "elobrayd", ignore.case = TRUE))
-
+  normalize_rounds()
 
 all_scores |> 
   # dplyr::filter(is.na(par)) |> 
