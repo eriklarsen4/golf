@@ -258,81 +258,153 @@ normalize_rounds <- function(raw_rounds) {
     dplyr::rename(gross = score_gross, net = score_net, tot_gross = TOT_gross, tot_net = TOT_net, course_handicap = course_hcp)
 }
 
+# de-duplicate round dates ----
+dedupe_score_duplicates <- function(df) {
+  instances <- df |>
+    dplyr::group_by(source_file, source_element, player_name, score_type) |>
+    dplyr::summarize(
+      date         = date[1],
+      course_name  = course_name[1],
+      score_sig    = paste(score[order(hole)], collapse = ","),
+      has_hcp      = !all(is.na(course_hcp)),
+      n_tokens     = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
+      surname      = tolower(utils::tail(stringr::str_split(player_name[1], "\\s+")[[1]], 1)),
+      name_quality = dplyr::if_else(n_tokens >= 2, 1, 0),
+      .groups = "drop"
+    )
+  
+  resolve_group <- function(g) {
+    if (nrow(g) == 1) {
+      g$status <- "unique"
+      return(g)
+    }
+    full <- g |> dplyr::filter(name_quality == 1)
+    stub <- g |> dplyr::filter(name_quality == 0)
+    full_surnames <- unique(full$surname)
+    
+    if (nrow(full) == 0) {
+      # Only treat this as a duplicate-export collapse if it's genuinely the
+      # same round: same surname, same date, same course, across >=2 files.
+      # Same surname alone isn't enough -- this league has multiple players
+      # sharing a surname, so a match across different dates/courses is a
+      # real collision risk, not a duplicate export.
+      distinct_surnames <- unique(g$surname)
+      distinct_files    <- unique(g$source_file)
+      distinct_dates    <- unique(g$date)
+      distinct_courses  <- unique(g$course_name)
+      if (length(distinct_surnames) == 1 && length(distinct_files) >= 2 &&
+          length(distinct_dates) == 1 && length(distinct_courses) == 1) {
+        best <- g |>
+          dplyr::slice_max(order_by = has_hcp, n = 1, with_ties = FALSE) |>
+          dplyr::mutate(status = "kept_cross_file_dup")
+        dropped <- g |>
+          dplyr::anti_join(best, by = c("source_file", "source_element", "player_name")) |>
+          dplyr::mutate(status = "merged_cross_file_dup")
+        return(dplyr::bind_rows(best, dropped))
+      }
+      g$status <- "ambiguous_no_full_name"
+      return(g)
+    }
+    if (length(full_surnames) > 1) {
+      match_counts <- sapply(stub$surname, function(s) sum(full_surnames == s))
+      stub$status <- dplyr::if_else(
+        stub$surname %in% full_surnames & match_counts == 1,
+        "merge_candidate", "ambiguous_surname_conflict"
+      )
+      full$status <- "keep_distinct"
+      return(dplyr::bind_rows(full, stub))
+    }
+    match_ok <- stub$surname == full_surnames[1]
+    keepable <- dplyr::bind_rows(full, stub[match_ok, ])
+    best <- keepable |>
+      dplyr::slice_max(order_by = name_quality + has_hcp, n = 1, with_ties = FALSE) |>
+      dplyr::mutate(status = "kept")
+    dplyr::bind_rows(best, stub[!match_ok, ] |> dplyr::mutate(status = "ambiguous_surname_mismatch"))
+  }
+  
+  resolved <- instances |>
+    dplyr::group_by(score_type, score_sig) |>
+    dplyr::group_modify(~ resolve_group(.x)) |>
+    dplyr::ungroup()
+  
+  list(
+    kept = df |>
+      dplyr::semi_join(
+        resolved |> dplyr::filter(status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup")),
+        by = c("source_file", "source_element", "player_name", "score_type")
+      ),
+    flagged = resolved |>
+      dplyr::filter(!status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup", "merged_cross_file_dup")) |>
+      dplyr::select(source_file, source_element, player_name, score_type, status),
+    auto_resolved = resolved |>
+      dplyr::filter(status %in% c("kept_cross_file_dup", "merged_cross_file_dup")) |>
+      dplyr::select(source_file, source_element, player_name, score_type, status)
+  )
+}
+
+# function to replace last-name-only names ----
+fill_stub_player_names <- function(df) {
+  instances <- df |>
+    dplyr::filter(hole <= 18) |>
+    dplyr::group_by(source_file, source_element, player_name, score_type, date, course_name) |>
+    dplyr::summarize(
+      score_sig    = paste(score[order(hole)][1:18], collapse = ","),
+      n_tokens     = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
+      surname      = tolower(utils::tail(stringr::str_split(player_name[1], "\\s+")[[1]], 1)),
+      name_quality = dplyr::if_else(n_tokens >= 2, 1, 0),
+      .groups = "drop"
+    )
+  
+  resolve_name <- function(g) {
+    full <- g |> dplyr::filter(name_quality == 1)
+    stub <- g |> dplyr::filter(name_quality == 0)
+    
+    if (nrow(stub) == 0) {
+      return(stub |> dplyr::mutate(new_player_name = character(0), rename_status = character(0)))
+    }
+    
+    resolve_stub <- function(s_surname) {
+      cand_names <- unique(full$player_name[full$surname == s_surname])
+      if (length(cand_names) == 1) {
+        list(name = cand_names, status = "renamed")
+      } else if (length(cand_names) > 1) {
+        list(name = NA_character_, status = "ambiguous_multiple_full_names")
+      } else {
+        list(name = NA_character_, status = "no_matching_full_name")
+      }
+    }
+    
+    res <- lapply(stub$surname, resolve_stub)
+    stub$new_player_name <- vapply(res, function(x) x$name, character(1))
+    stub$rename_status    <- vapply(res, function(x) x$status, character(1))
+    stub
+  }
+  
+  renames <- instances |>
+    dplyr::group_by(date, course_name, score_sig) |>   # score_type dropped: net duplicates gross digits
+    dplyr::group_modify(~ resolve_name(.x)) |>
+    dplyr::ungroup()
+  
+  applied <- renames |> dplyr::filter(rename_status == "renamed")
+  review  <- renames |>
+    dplyr::filter(rename_status != "renamed") |>
+    dplyr::select(source_file, source_element, player_name, score_type, date, course_name, rename_status)
+  
+  df_renamed <- df |>
+    dplyr::left_join(
+      applied |> dplyr::select(source_file, source_element, score_type, player_name, new_player_name),
+      by = c("source_file", "source_element", "score_type", "player_name")
+    ) |>
+    dplyr::mutate(player_name = dplyr::coalesce(new_player_name, player_name)) |>
+    dplyr::select(-new_player_name)
+  
+  list(df = df_renamed, review = review)
+}
+
 # verify ----
 
 library(DBI)
 con <- golf::get_db_connection()
-
-purrr::map_dfr(filtered_rounds[1], function(path) {
-  pdf <- pdftools::pdf_data(pdf = path)
-  filename <- basename(path)
-  
-  extract_round_scores(pdf = pdf) |>
-    dplyr::mutate(
-      date_token = filename |>
-        stringr::str_extract("[0-9]{2}-[0-9]{2}-[0-9]{2}[a-z]?"),
-      date = stringr::str_remove(string = date_token, pattern = '[a-z]$') |>
-        gsub(pattern = '([0-9]{1,}-)([0-9]{1,})-([0-9]{1,})', replacement = '20\\3\\-\\1\\2'),
-      course_name = filename |>
-        stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}[a-z]?_") |>
-        stringr::str_remove("\\.pdf$") |>
-        stringr::str_replace_all("_", " "),
-      .before = 1
-    ) |>
-    dplyr::select(-date_token) |> 
-    normalize_rounds()
-}) |> 
-  dplyr::left_join(
-    DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
-      dplyr::mutate(
-        course_name = dplyr::case_when(
-          grepl(x = course_name, pattern = 'Ventana', ignore.case = T) ~ 'Ventana Canyon-Mountain',
-          grepl(x = course_name, pattern = 'Tucson National', ignore.case = T) ~ 'Tucson National',
-          TRUE ~ course_name
-        )
-      ),
-    by = c('course_name', 'hole')
-  ) |> 
-  dplyr::relocate(par, .after = hole) |> 
-  dplyr::mutate(
-    gross = as.numeric(gross),
-    net = as.numeric(net)
-  ) |> 
-  dplyr::group_by(player_name, date) |>
-  dplyr::mutate(
-    handicap_stroke = dplyr::case_when(
-      is.na(course_handicap) ~ NA_real_,
-      between(course_handicap + hole_handicap, -17, 0) ~ -1,
-      course_handicap + hole_handicap <= -18 ~ -2,
-      course_handicap + hole_handicap > 18 & course_handicap > 0 ~ 1,
-      TRUE ~ 0
-    ),
-    # per-hole net table digits equal gross digits in the source PDFs --
-    # net must be computed from handicap_stroke, never trusted as parsed
-    net_computed = handicap_stroke + gross,
-    net = net_computed,
-    OUT_net = dplyr::if_else(all(is.na(net_computed[c(1:9)])), NA_real_, sum(net_computed[c(1:9)], na.rm = T)),
-    IN_net  = dplyr::if_else(all(is.na(net_computed[c(10:18)])), NA_real_, sum(net_computed[c(10:18)], na.rm = T)),
-    # tot_net falls back to the value already parsed from NET_total
-    # (real round total) when gross is missing for the whole round
-    tot_net = dplyr::if_else(all(is.na(net_computed[c(1:18)])), dplyr::first(tot_net), sum(net_computed[c(1:18)], na.rm = T))
-  ) |>
-  dplyr::select(-net_computed) |>
-  dplyr::ungroup() |>
-  dplyr::relocate(c(hole_handicap, handicap_stroke), .after = net) |>
-  dplyr::mutate(
-    is_gross_birdie       = dplyr::case_when(gross - par == -1 ~ TRUE, TRUE ~ FALSE),
-    is_gross_eagle_better = dplyr::case_when(gross - par < -1 ~ TRUE, TRUE ~ FALSE),
-    is_gross_par          = dplyr::case_when(gross - par == 0 ~ TRUE, TRUE ~ FALSE),
-    is_gross_bogey        = dplyr::case_when(gross - par == 1 ~ TRUE, TRUE ~ FALSE),
-    is_gross_bogey_worse  = dplyr::case_when(gross - par > 1 ~ TRUE, TRUE ~ FALSE),
-    is_net_birdie         = dplyr::case_when(net - par == -1 ~ TRUE, TRUE ~ FALSE),
-    is_net_eagle_better   = dplyr::case_when(net - par < -1 ~ TRUE, TRUE ~ FALSE),
-    is_net_par            = dplyr::case_when(net - par == 0 ~ TRUE, TRUE ~ FALSE),
-    is_net_bogey          = dplyr::case_when(net - par == 1 ~ TRUE, TRUE ~ FALSE),
-    is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
-  )
-
 
 filtered_rounds[which(filtered_rounds %>% stringr::str_detect(., pattern = '\\d{2}-\\d{2}-\\d{2}[a-z]') == T)]
 dupes <- filtered_rounds[which(filtered_rounds %>% stringr::str_detect(., 
@@ -344,6 +416,7 @@ purrr::map(dupes, ~ extract_round_scores(pdf = pdftools::pdf_data(.x)) |>
              dplyr::pull(player_name) |> unique()) |>
   purrr::set_names(basename(dupes))
 
+# for filtered rounds
 filtered_scores <- purrr::map_dfr(filtered_rounds, function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
@@ -362,22 +435,16 @@ filtered_scores <- purrr::map_dfr(filtered_rounds, function(path) {
         stringr::str_remove("_Results$|_RD[12]_Club_Championship$|_CC_Rd[12]$|_Club_Championship_Rd[12]$|_Club_Championship$") |>
         stringr::str_replace_all("_", " ") |>
         stringr::str_trim(),
-      # date_token = filename |>
-      #   stringr::str_extract("[0-9]{2}-[0-9]{2}-[0-9]{2}[a-z]?"),
-      # date = stringr::str_remove(string = date_token, pattern = '[a-z]$') |>
-      #   gsub(pattern = '([0-9]{1,}-)([0-9]{1,})-([0-9]{1,})', replacement = '20\\3\\-\\1\\2'),
-      # course_name = filename |>
-      #   stringr::str_remove("^\\d{2}-\\d{2}-\\d{2}_|^\\d{2}-\\d{2}-\\d{2}[a-z]{1,}_|^\\d{2}-\\d{2}-\\d{2}-2") %>%
-      #   gsub(., pattern = '_Results.pdf|\\-[2|3].pdf|_RD[1|2]_Club_Championship.pdf|_CC_Rd[1|2].pdf|_Club_Championship_Rd[1|2].pdf|_Club_Championship.pdf', replacement = '.pdf') |> 
-      #   stringr::str_remove("\\.pdf$") |>
-      #   stringr::str_replace_all("_", " "),
-      # course_name = stringr::str_trim(course_name),
       .before = 1
     ) |>
     dplyr::mutate(course_name = dplyr::case_when(course_name == 'Silvberbell' ~ 'Silverbell',
                                                  grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
                                                  TRUE ~ course_name)) |> 
-    # dplyr::select(-date_token) |> 
+    dedupe_score_duplicates() |>
+    purrr::keep_at('kept') %>% 
+    purrr::map_df(., .f = as.data.frame) |> 
+    fill_stub_player_names() %>%
+    purrr::map_df(., .f = as.data.frame) |> 
     normalize_rounds()
 }) |>
   dplyr::left_join(
@@ -511,118 +578,8 @@ dupes_scores <- purrr::map_dfr(dupes, function(path) {
     is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
   )
 
-# 1. classify what each file's pages actually are
-purrr::map(dupes, function(path) {
-  pdf <- pdftools::pdf_data(path)
-  txt <- purrr::map_chr(pdf, ~ paste(.x$text, collapse = " "))
-  c("Leaderboard", "Skins", "Payout", "Points") |>
-    purrr::map_lgl(~ any(grepl(txt, pattern = .x, ignore.case = TRUE))) |>
-    purrr::set_names(c("Leaderboard", "Skins", "Payout", "Points"))
-}) |> purrr::set_names(basename(dupes))
 
-# 2. for every pair/trio, is the player roster identical (dup format) or disjoint (real flights)?
-purrr::map(dupes, ~ extract_round_scores(pdf = pdftools::pdf_data(.x)) |>
-             dplyr::pull(player_name) |> unique() |> sort()) |>
-  purrr::set_names(basename(dupes))
-
-compare_dupe_files <- function(file_a, file_b) {
-  a <- extract_round_scores(pdf = pdftools::pdf_data(file_a)) |>
-    dplyr::filter(score_type == "gross") |>
-    dplyr::select(player_name, hole, score)
-  b <- extract_round_scores(pdf = pdftools::pdf_data(file_b)) |>
-    dplyr::filter(score_type == "gross") |>
-    dplyr::select(player_name, hole, score)
-  
-  dplyr::full_join(a, b, by = c("player_name", "hole"), suffix = c("_a", "_b")) |>
-    dplyr::mutate(match = score_a == score_b)
-}
-
-compare_dupe_files(file_a = dupes[1], file_b = dupes[2])
-dupes[c(1,2)]
-
-pdftools::pdf_info(pdf = dupes[1])$created
-pdftools::pdf_info(pdf = dupes[2])$created
-
-extract_round_scores(pdf = pdftools::pdf_data(dupes[1])) |> nrow()
-extract_round_scores(pdf = pdftools::pdf_data(dupes[2])) |> nrow()
-
-pdftools::pdf_data(pdf = dupes[5])[[7]]
-
-extract_element_scores(pdf = pdftools::pdf_data(dupes[5]), element = 7) |>
-  dplyr::pull(player_name) |> unique()
-
-dupes_scores |> 
-  dplyr::filter(grepl(player_name, pattern = 'Valdez', ignore.case = T)) |> 
-  print(n = Inf)
-
-extract_round_scores(pdf = pdftools::pdf_data(dupes[6])) |>
-  dplyr::group_by(source_element, score_type) |>
-  dplyr::summarize(
-    n_players = dplyr::n_distinct(player_name),
-    players   = paste(unique(player_name), collapse = "; "),
-    .groups   = "drop"
-  )
-
-dedupe_score_duplicates <- function(df) {
-  instances <- df |>
-    dplyr::group_by(source_file, source_element, player_name, score_type) |>
-    dplyr::summarize(
-      score_sig    = paste(score[order(hole)], collapse = ","),
-      has_hcp      = !all(is.na(course_hcp)),
-      n_tokens     = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
-      surname      = tolower(utils::tail(stringr::str_split(player_name[1], "\\s+")[[1]], 1)),
-      name_quality = dplyr::if_else(n_tokens >= 2, 1, 0),
-      .groups = "drop"
-    )
-  
-  resolve_group <- function(g) {
-    if (nrow(g) == 1) {
-      g$status <- "unique"
-      return(g)
-    }
-    full <- g |> dplyr::filter(name_quality == 1)
-    stub <- g |> dplyr::filter(name_quality == 0)
-    full_surnames <- unique(full$surname)
-    
-    if (nrow(full) == 0) {
-      g$status <- "ambiguous_no_full_name"
-      return(g)
-    }
-    if (length(full_surnames) > 1) {
-      match_counts <- sapply(stub$surname, function(s) sum(full_surnames == s))
-      stub$status <- dplyr::if_else(
-        stub$surname %in% full_surnames & match_counts == 1,
-        "merge_candidate", "ambiguous_surname_conflict"
-      )
-      full$status <- "keep_distinct"
-      return(dplyr::bind_rows(full, stub))
-    }
-    match_ok <- stub$surname == full_surnames[1]
-    keepable <- dplyr::bind_rows(full, stub[match_ok, ])
-    best <- keepable |>
-      dplyr::slice_max(order_by = name_quality + has_hcp, n = 1, with_ties = FALSE) |>
-      dplyr::mutate(status = "kept")
-    dplyr::bind_rows(best, stub[!match_ok, ] |> dplyr::mutate(status = "ambiguous_surname_mismatch"))
-  }
-  
-  resolved <- instances |>
-    dplyr::group_by(score_type, score_sig) |>
-    dplyr::group_modify(~ resolve_group(.x)) |>
-    dplyr::ungroup()
-  
-  list(
-    kept = df |>
-      dplyr::semi_join(
-        resolved |> dplyr::filter(status %in% c("unique", "kept", "keep_distinct")),
-        by = c("source_file", "source_element", "player_name", "score_type")
-      ),
-    flagged = resolved |>
-      dplyr::filter(!status %in% c("unique", "kept", "keep_distinct")) |>
-      dplyr::select(source_file, source_element, player_name, score_type, status)
-  )
-}
-
-purrr::map_dfr(dupes[c(5,6)], function(path) {
+purrr::map_dfr(filtered_rounds, function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
   
@@ -649,15 +606,16 @@ purrr::map_dfr(dupes[c(5,6)], function(path) {
       TRUE ~ course_name
     ))
 }) |> 
-  dedupe_score_duplicates()
+  dedupe_score_duplicates() |>
+  purrr::keep_at('kept') %>% 
+  purrr::map_df(., .f = as.data.frame) |> 
+  fill_stub_player_names() %>%
+  purrr::map_df(., .f = as.data.frame) |> 
+  dplyr::filter(source_file == "04-11-21_Dell_Urich.pdf") |>
+  dplyr::group_by(player_name, score_type, source_element) |>
+  dplyr::summarize(score_sig = paste(score[order(hole)], collapse = ","), .groups = "drop") |>
+  dplyr::filter(grepl(x = player_name, pattern = "elobrayd", ignore.case = TRUE))
 
-extract_round_scores(pdf = pdftools::pdf_data(dupes[5])) |>
-  dplyr::filter(player_name == "Chris Johnson", score_type == "gross") |>
-  dplyr::arrange(hole) |> dplyr::pull(score)
-
-extract_round_scores(pdf = pdftools::pdf_data(dupes[6])) |>
-  dplyr::filter(player_name == "Chris Johnson", score_type == "gross") |>
-  dplyr::arrange(hole) |> dplyr::pull(score)
 
 all_scores |> 
   # dplyr::filter(is.na(par)) |> 
