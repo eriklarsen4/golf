@@ -363,14 +363,15 @@ fill_stub_player_names <- function(df) {
     dplyr::filter(hole <= 18) |>
     dplyr::group_by(source_file, source_element, player_name, score_type, date, course_name) |>
     dplyr::summarize(
-      score_sig    = paste(score[order(hole)][1:18], collapse = ","),
-      n_tokens     = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
-      surname      = tolower(utils::tail(stringr::str_split(player_name[1], "\\s+")[[1]], 1)),
-      name_quality = dplyr::if_else(n_tokens >= 2, 1, 0),
+      score_sig     = paste(score[order(hole)][1:18], collapse = ","),
+      n_valid_holes = sum(!is.na(score)),
+      n_tokens      = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
+      surname       = tolower(utils::tail(stringr::str_split(player_name[1], "\\s+")[[1]], 1)),
+      name_quality  = dplyr::if_else(n_tokens >= 2, 1, 0),
       .groups = "drop"
     )
   
-  resolve_name <- function(g) {
+  resolve_by_score <- function(g) {
     full <- g |> dplyr::filter(name_quality == 1)
     stub <- g |> dplyr::filter(name_quality == 0)
     if (nrow(stub) == 0) {
@@ -392,23 +393,57 @@ fill_stub_player_names <- function(df) {
     stub
   }
   
-  renames <- instances |>
+  tier1 <- instances |>
     dplyr::group_by(date, course_name, score_sig) |>
-    dplyr::group_modify(~ resolve_name(.x)) |>
+    dplyr::group_modify(~ resolve_by_score(.x)) |>
     dplyr::ungroup()
   
-  applied <- renames |> dplyr::filter(rename_status == "renamed")
+  tier1_resolved   <- tier1 |> dplyr::filter(rename_status == "renamed")
+  tier1_unresolved <- tier1 |> dplyr::filter(rename_status != "renamed")
+  
+  full_name_pool <- instances |>
+    dplyr::filter(name_quality == 1, n_valid_holes == 18) |>
+    dplyr::distinct(date, course_name, surname, player_name)
+  
+  candidate_counts <- tier1_unresolved |>
+    dplyr::distinct(date, course_name, surname) |>
+    dplyr::inner_join(full_name_pool, by = c("date", "course_name", "surname")) |>
+    dplyr::group_by(date, course_name, surname) |>
+    dplyr::summarize(
+      n_candidates   = dplyr::n_distinct(player_name),
+      candidate_name = dplyr::first(player_name),
+      .groups = "drop"
+    )
+  
+  tier2 <- tier1_unresolved |>
+    dplyr::left_join(candidate_counts, by = c("date", "course_name", "surname")) |>
+    dplyr::mutate(
+      new_player_name = dplyr::if_else(!is.na(n_candidates) & n_candidates == 1, candidate_name, NA_character_),
+      rename_status = dplyr::case_when(
+        !is.na(n_candidates) & n_candidates == 1 ~ "resolved_by_round_uniqueness",
+        !is.na(n_candidates) & n_candidates >= 2 ~ "ambiguous_multiple_full_names",
+        TRUE ~ "no_matching_full_name"
+      )
+    ) |>
+    dplyr::select(-n_candidates, -candidate_name)
+  
+  renames <- dplyr::bind_rows(tier1_resolved, tier2)
+  
+  applied <- renames |> dplyr::filter(rename_status %in% c("renamed", "resolved_by_round_uniqueness"))
   review  <- renames |>
-    dplyr::filter(rename_status != "renamed") |>
+    dplyr::filter(!rename_status %in% c("renamed", "resolved_by_round_uniqueness")) |>
     dplyr::select(source_file, source_element, player_name, score_type, date, course_name, rename_status)
   
   df_renamed <- df |>
     dplyr::left_join(
-      applied |> dplyr::select(source_file, source_element, score_type, player_name, new_player_name),
+      applied |> dplyr::select(source_file, source_element, score_type, player_name, new_player_name, rename_status),
       by = c("source_file", "source_element", "score_type", "player_name")
     ) |>
-    dplyr::mutate(player_name = dplyr::coalesce(new_player_name, player_name)) |>
-    dplyr::select(-new_player_name)
+    dplyr::mutate(
+      player_name  = dplyr::coalesce(new_player_name, player_name),
+      rename_basis = rename_status
+    ) |>
+    dplyr::select(-new_player_name, -rename_status)
   
   attr(df_renamed, "qc") <- qc_in
   df_renamed |> set_qc("fill_stub_review", review)
@@ -661,8 +696,8 @@ purrr::map_dfr(filtered_rounds, function(path) {
   purrr::map_df(., .f = as.data.frame) |> 
   normalize_rounds()
 
-# sussing out playername issues
-purrr::map_dfr(filtered_rounds, function(path) {
+# 
+filtered_scores <- purrr::map_dfr(filtered_rounds, function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
   
@@ -689,17 +724,79 @@ purrr::map_dfr(filtered_rounds, function(path) {
       TRUE ~ course_name
     ))
 }) |> 
-  dedupe_score_duplicates() |>
-  purrr::keep_at('kept') %>% 
-  purrr::map_df(., .f = as.data.frame) |>
   dplyr::filter(!grepl(player_name, pattern = '(Par)', ignore.case = T)) |> 
-  fill_stub_player_names() |> 
-  purrr::keep_at('review') %>%
-  purrr::map_df(., .f = as.data.frame) |> 
-  fill_missing_gross_from_net() |> 
-  purrr::keep_at('df') %>%
-  purrr::map_df(., .f = as.data.frame) |> 
-  normalize_rounds()
+  dedupe_score_duplicates() |>
+  fill_stub_player_names() |>
+  fill_missing_gross_from_net()
+
+filtered_scores |> dplyr::count(rename_basis)
+
+qc(filtered_scores)$fill_stub_review |> print(n = Inf)
+
+filtered_scores
+
+qc(filtered_scores)$fill_stub_review |> 
+  dplyr::mutate(player_name = dplyr::case_when(grepl(player_name, pattern = 'Valdez', ignore.case = T) ~ 'Norberto Valdez',
+                                               grepl(player_name, pattern = 'Throssell', ignore.case = T) ~ 'Stanley Throssell',
+                                               grepl(player_name, pattern = 'Mundinger', ignore.case = T) ~ 'Richard Mundinger',
+                                               grepl(player_name, pattern = 'Orndorff', ignore.case = T) ~ 'Christopher Orndorff',
+                                               grepl(player_name, pattern = 'Kardonchik', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                               grepl(player_name, pattern = 'Duschinski', ignore.case = T) ~ 'Matt Duschinski',
+                                               grepl(player_name, pattern = 'Alcombright', ignore.case = T) ~ 'Daniel Alcombright',
+                                               grepl(player_name, pattern = 'Singleton', ignore.case = T) ~ 'Jeff Singleton',
+                                               grepl(player_name, pattern = 'Brushwood', ignore.case = T) ~ 'James Brushwood',
+                                               grepl(player_name, pattern = 'Sharpe', ignore.case = T) ~ 'Michael Sharpe',
+                                               grepl(player_name, pattern = 'Osborne', ignore.case = T) ~ 'Buzz Osborne',
+                                               grepl(player_name, pattern = 'Lashley', ignore.case = T) ~ 'Wade Lashley',
+                                               grepl(player_name, pattern = 'Dmohowski', ignore.case = T) ~ 'John Dmohowski',
+                                               grepl(player_name, pattern = 'Nottingham', ignore.case = T) ~ 'Steve Nottingham',
+                                               grepl(player_name, pattern = 'Wilson', ignore.case = T) ~ 'James Wilson',
+                                               grepl(player_name, pattern = 'Dominguez', ignore.case = T) ~ 'Bernie Dominguez',
+                                               grepl(player_name, pattern = 'Russell', ignore.case = T) ~ 'Rick Russell',
+                                               grepl(player_name, pattern = 'Czechowski', ignore.case = T) ~ 'Mike Czechowski',
+                                               grepl(player_name, pattern = 'Lemaster', ignore.case = T) ~ 'Frank Lemaster',
+                                               grepl(player_name, pattern = 'Holly', ignore.case = T) ~ 'Stephen Holly',
+                                               grepl(player_name, pattern = 'Kennedy', ignore.case = T) ~ 'Gerome Kennedy',
+                                               grepl(player_name, pattern = 'Francis', ignore.case = T) ~ 'Curtis Francis',
+                                               grepl(player_name, pattern = 'Saunders', ignore.case = T) ~ 'Wendell Saunders',
+                                               grepl(player_name, pattern = 'Gusick', ignore.case = T) ~ 'Michael Gusick',
+                                               grepl(player_name, pattern = 'Fernandez', ignore.case = T) ~ 'Pablo Fernandez',
+                                               grepl(player_name, pattern = 'Townsend', ignore.case = T) ~ 'Ned Townsend',
+                                               grepl(player_name, pattern = 'Rickard', ignore.case = T) ~ 'Derek Rickard',
+                                               grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
+                                               grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
+                                               grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                               TRUE ~ player_name
+                                               )) |> 
+  dplyr::filter((grepl(rename_status, pattern = 'no', ignore.case = T) &
+                   stringr::str_count(player_name, pattern = '(\\s){1,}')))
+
+qc(filtered_scores)$dedupe_flagged
+qc(filtered_scores)$dedupe_auto_resolved |> print(n = Inf)
+qc(filtered_scores)$fill_stub_review |> print(n = Inf)
+qc(filtered_scores)$fill_gross_net_only_summary |> 
+  dplyr::group_by(date) |> 
+  dplyr::summarize(n = dplyr::n())
+
+qc(filtered_scores)$fill_gross_net_only_summary |>
+  dplyr::filter(date == "2020-04-12") |>
+  dplyr::arrange(player_name) |> print(n = Inf)
+
+filtered_scores |>
+  dplyr::filter(source_file == "04-12-20_Fred_Enke.pdf", score_type == "gross") |>
+  dplyr::distinct(player_name) |>
+  dplyr::arrange(player_name) |> print(n = Inf)
+
+filtered_scores |>
+  dplyr::count(rename_basis)
+
+qc(filtered_scores)$fill_stub_review |>
+  dplyr::count(rename_status)
+
+filtered_scores |>
+  dplyr::filter(rename_basis == "resolved_by_round_uniqueness") |>
+  dplyr::distinct(source_file, date, player_name) |>
+  print(n = Inf)
 
 all_scores |> 
   # dplyr::filter(is.na(par)) |> 
