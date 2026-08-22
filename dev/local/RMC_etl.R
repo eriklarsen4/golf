@@ -228,6 +228,17 @@ extract_round_scores <- function(pdf) {
     dplyr::distinct(player_name, hole, score_type, .keep_all = TRUE)
 }
 
+# qc's to link deduplication, missing gross scores, and last name only players ----
+qc <- function(df) attr(df, "qc")
+
+set_qc <- function(df, name, value) {
+  existing <- attr(df, "qc")
+  if (is.null(existing)) existing <- list()
+  existing[[name]] <- value
+  attr(df, "qc") <- existing
+  df
+}
+
 # de-duplicate round dates ----
 dedupe_score_duplicates <- function(df) {
   instances <- df |>
@@ -614,8 +625,8 @@ dupes_scores <- purrr::map_dfr(dupes, function(path) {
     is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
   )
 
-
-purrr::map_dfr(filtered_rounds[c(1:10)], function(path) {
+# entire chain for filtered rounds
+purrr::map_dfr(filtered_rounds, function(path) {
   pdf <- pdftools::pdf_data(path)
   filename <- basename(path)
   
@@ -645,8 +656,49 @@ purrr::map_dfr(filtered_rounds[c(1:10)], function(path) {
   dedupe_score_duplicates() |>
   purrr::keep_at('kept') %>% 
   purrr::map_df(., .f = as.data.frame) |>
+  dplyr::filter(!grepl(player_name, pattern = '(Par)', ignore.case = T)) |> 
   fill_stub_player_names() |> 
   purrr::keep_at('df') %>%
+  purrr::map_df(., .f = as.data.frame) |> 
+  fill_missing_gross_from_net() |> 
+  purrr::keep_at('df') %>%
+  purrr::map_df(., .f = as.data.frame) |> 
+  normalize_rounds()
+
+# sussing out playername issues
+purrr::map_dfr(filtered_rounds, function(path) {
+  pdf <- pdftools::pdf_data(path)
+  filename <- basename(path)
+  
+  m <- stringr::str_match(
+    filename,
+    "^([0-9]{2}-[0-9]{2}-[0-9]{2})([a-z]|-[0-9]+)?_(.+?)(-[0-9]+)?\\.pdf$"
+  )
+  
+  extract_round_scores(pdf = pdf) |>
+    dplyr::mutate(
+      date = m[,2] |>
+        gsub(pattern = '([0-9]{1,})-([0-9]{1,})-([0-9]{1,})', replacement = '20\\3-\\1-\\2'),
+      file_suffix = dplyr::coalesce(m[,3], m[,5]),
+      source_file = filename,
+      course_name = m[,4] |>
+        stringr::str_remove("_Results$|_RD[12]_Club_Championship$|_CC_Rd[12]$|_Club_Championship_Rd[12]$|_Club_Championship$") |>
+        stringr::str_replace_all("_", " ") |>
+        stringr::str_trim(),
+      .before = 1
+    ) |>
+    dplyr::mutate(course_name = dplyr::case_when(
+      course_name == 'Silvberbell' ~ 'Silverbell',
+      grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
+      TRUE ~ course_name
+    ))
+}) |> 
+  dedupe_score_duplicates() |>
+  purrr::keep_at('kept') %>% 
+  purrr::map_df(., .f = as.data.frame) |>
+  dplyr::filter(!grepl(player_name, pattern = '(Par)', ignore.case = T)) |> 
+  fill_stub_player_names() |> 
+  purrr::keep_at('review') %>%
   purrr::map_df(., .f = as.data.frame) |> 
   fill_missing_gross_from_net() |> 
   purrr::keep_at('df') %>%
