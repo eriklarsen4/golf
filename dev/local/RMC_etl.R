@@ -325,18 +325,18 @@ dedupe_score_duplicates <- function(df) {
 
 # fill gross scores where missing ----
 fill_missing_gross_from_net <- function(df) {
-  # identify player-rounds with net but no gross
-  coverage <- df |>
-    dplyr::distinct(date, course_name, source_file, player_name, score_type)
+  qc_in <- attr(df, "qc")
   
-  net_only <- coverage |>
+  coverage <- df |>
+    dplyr::distinct(date, course_name, source_file, player_name, score_type) |>
     dplyr::group_by(date, course_name, source_file, player_name) |>
     dplyr::summarize(
       has_gross = "gross" %in% score_type,
       has_net   = "net" %in% score_type,
       .groups = "drop"
-    ) |>
-    dplyr::filter(has_net, !has_gross)
+    )
+  
+  net_only <- coverage |> dplyr::filter(has_net, !has_gross)
   
   synthesized_gross <- df |>
     dplyr::inner_join(
@@ -344,19 +344,15 @@ fill_missing_gross_from_net <- function(df) {
       by = c("date", "course_name", "source_file", "player_name")
     ) |>
     dplyr::filter(score_type == "net") |>
-    dplyr::mutate(
-      score_type = "gross",
-      NET_total  = NA_integer_,
-      is_synthesized_gross = TRUE
-    )
+    dplyr::mutate(score_type = "gross", NET_total = NA_integer_, is_synthesized_gross = TRUE)
   
-  list(
-    df = dplyr::bind_rows(
-      df |> dplyr::mutate(is_synthesized_gross = FALSE),
-      synthesized_gross
-    ),
-    net_only_summary = net_only
+  out <- dplyr::bind_rows(
+    df |> dplyr::mutate(is_synthesized_gross = FALSE),
+    synthesized_gross
   )
+  
+  attr(out, "qc") <- qc_in
+  out |> set_qc("fill_gross_net_only_summary", net_only)
 }
 
 # function to replace last-name-only names ----
