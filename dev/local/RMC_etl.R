@@ -241,11 +241,11 @@ set_qc <- function(df, name, value) {
 
 # de-duplicate round dates ----
 dedupe_score_duplicates <- function(df) {
+  qc_in <- attr(df, "qc")
+  
   instances <- df |>
-    dplyr::group_by(source_file, source_element, player_name, score_type) |>
+    dplyr::group_by(source_file, source_element, player_name, score_type, date, course_name) |>
     dplyr::summarize(
-      date         = date[1],
-      course_name  = course_name[1],
       score_sig    = paste(score[order(hole)], collapse = ","),
       has_hcp      = !all(is.na(course_hcp)),
       n_tokens     = length(stringr::str_split(player_name[1], "\\s+")[[1]]),
@@ -264,11 +264,6 @@ dedupe_score_duplicates <- function(df) {
     full_surnames <- unique(full$surname)
     
     if (nrow(full) == 0) {
-      # Only treat this as a duplicate-export collapse if it's genuinely the
-      # same round: same surname, same date, same course, across >=2 files.
-      # Same surname alone isn't enough -- this league has multiple players
-      # sharing a surname, so a match across different dates/courses is a
-      # real collision risk, not a duplicate export.
       distinct_surnames <- unique(g$surname)
       distinct_files    <- unique(g$source_file)
       distinct_dates    <- unique(g$date)
@@ -308,19 +303,24 @@ dedupe_score_duplicates <- function(df) {
     dplyr::group_modify(~ resolve_group(.x)) |>
     dplyr::ungroup()
   
-  list(
-    kept = df |>
-      dplyr::semi_join(
-        resolved |> dplyr::filter(status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup")),
-        by = c("source_file", "source_element", "player_name", "score_type")
-      ),
-    flagged = resolved |>
-      dplyr::filter(!status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup", "merged_cross_file_dup")) |>
-      dplyr::select(source_file, source_element, player_name, score_type, status),
-    auto_resolved = resolved |>
-      dplyr::filter(status %in% c("kept_cross_file_dup", "merged_cross_file_dup")) |>
-      dplyr::select(source_file, source_element, player_name, score_type, status)
-  )
+  kept <- df |>
+    dplyr::semi_join(
+      resolved |> dplyr::filter(status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup")),
+      by = c("source_file", "source_element", "player_name", "score_type")
+    )
+  
+  flagged <- resolved |>
+    dplyr::filter(!status %in% c("unique", "kept", "keep_distinct", "kept_cross_file_dup", "merged_cross_file_dup")) |>
+    dplyr::select(source_file, source_element, player_name, score_type, status)
+  
+  auto_resolved <- resolved |>
+    dplyr::filter(status %in% c("kept_cross_file_dup", "merged_cross_file_dup")) |>
+    dplyr::select(source_file, source_element, player_name, score_type, status)
+  
+  attr(kept, "qc") <- qc_in
+  kept |>
+    set_qc("dedupe_flagged", flagged) |>
+    set_qc("dedupe_auto_resolved", auto_resolved)
 }
 
 # fill gross scores where missing ----
