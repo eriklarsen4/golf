@@ -361,6 +361,8 @@ fill_missing_gross_from_net <- function(df) {
 
 # function to replace last-name-only names ----
 fill_stub_player_names <- function(df) {
+  qc_in <- attr(df, "qc")
+  
   instances <- df |>
     dplyr::filter(hole <= 18) |>
     dplyr::group_by(source_file, source_element, player_name, score_type, date, course_name) |>
@@ -375,11 +377,9 @@ fill_stub_player_names <- function(df) {
   resolve_name <- function(g) {
     full <- g |> dplyr::filter(name_quality == 1)
     stub <- g |> dplyr::filter(name_quality == 0)
-    
     if (nrow(stub) == 0) {
       return(stub |> dplyr::mutate(new_player_name = character(0), rename_status = character(0)))
     }
-    
     resolve_stub <- function(s_surname) {
       cand_names <- unique(full$player_name[full$surname == s_surname])
       if (length(cand_names) == 1) {
@@ -390,7 +390,6 @@ fill_stub_player_names <- function(df) {
         list(name = NA_character_, status = "no_matching_full_name")
       }
     }
-    
     res <- lapply(stub$surname, resolve_stub)
     stub$new_player_name <- vapply(res, function(x) x$name, character(1))
     stub$rename_status    <- vapply(res, function(x) x$status, character(1))
@@ -398,7 +397,7 @@ fill_stub_player_names <- function(df) {
   }
   
   renames <- instances |>
-    dplyr::group_by(date, course_name, score_sig) |>   # score_type dropped: net duplicates gross digits
+    dplyr::group_by(date, course_name, score_sig) |>
     dplyr::group_modify(~ resolve_name(.x)) |>
     dplyr::ungroup()
   
@@ -415,7 +414,8 @@ fill_stub_player_names <- function(df) {
     dplyr::mutate(player_name = dplyr::coalesce(new_player_name, player_name)) |>
     dplyr::select(-new_player_name)
   
-  list(df = df_renamed, review = review)
+  attr(df_renamed, "qc") <- qc_in
+  df_renamed |> set_qc("fill_stub_review", review)
 }
 
 # normalize the rounds ----
