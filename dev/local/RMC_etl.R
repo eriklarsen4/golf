@@ -585,12 +585,12 @@ dupes_scores <- purrr::map_dfr(dupes, function(path) {
     filename,
     "^([0-9]{2}-[0-9]{2}-[0-9]{2})([a-z]|-[0-9]+)?_(.+?)(-[0-9]+)?\\.pdf$"
   )
-  
   extract_round_scores(pdf = pdf) |>
     dplyr::mutate(
       date = m[,2] |>
         gsub(pattern = '([0-9]{1,})-([0-9]{1,})-([0-9]{1,})', replacement = '20\\3-\\1-\\2'),
       file_suffix = dplyr::coalesce(m[,3], m[,5]),
+      source_file = filename,
       course_name = m[,4] |>
         stringr::str_remove("_Results$|_RD[12]_Club_Championship$|_CC_Rd[12]$|_Club_Championship_Rd[12]$|_Club_Championship$") |>
         stringr::str_replace_all("_", " ") |>
@@ -601,9 +601,44 @@ dupes_scores <- purrr::map_dfr(dupes, function(path) {
       course_name == 'Silvberbell' ~ 'Silverbell',
       grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
       TRUE ~ course_name
-    )) |>
-    normalize_rounds()
+    ))
+  # extract_round_scores(pdf = pdf) |>
+  #   dplyr::mutate(
+  #     date = m[,2] |>
+  #       gsub(pattern = '([0-9]{1,})-([0-9]{1,})-([0-9]{1,})', replacement = '20\\3-\\1-\\2'),
+  #     file_suffix = dplyr::coalesce(m[,3], m[,5]),
+  #     course_name = m[,4] |>
+  #       stringr::str_remove("_Results$|_RD[12]_Club_Championship$|_CC_Rd[12]$|_Club_Championship_Rd[12]$|_Club_Championship$") |>
+  #       stringr::str_replace_all("_", " ") |>
+  #       stringr::str_trim(),
+  #     .before = 1
+  #   ) |>
+  #   dplyr::mutate(course_name = dplyr::case_when(
+  #     course_name == 'Silvberbell' ~ 'Silverbell',
+  #     grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
+  #     TRUE ~ course_name
+  #   ))
 }) |>
+  dplyr::filter(!grepl(player_name, pattern = '(Par)', ignore.case = T)) |> 
+  dedupe_score_duplicates() |>
+  fill_stub_player_names() |>
+  fill_missing_gross_from_net()
+
+qc(dupes_scores)$dedupe_flagged
+qc(dupes_scores)$dedupe_auto_resolved |> print(n = Inf)
+qc(dupes_scores)$fill_stub_review |> print(n = Inf)
+qc(dupes_scores)$fill_gross_net_only_summary |> print(n = Inf)
+
+dupes_scores <- dupes_scores |> 
+  dplyr::mutate(player_name = dplyr::case_when(player_name == 'Kardonchik-' ~ 'Amos Kardonchik-Koren',
+                                               grepl(player_name, pattern = 'Kardonchik- Amos Koren') ~ 'Amos Kardonchik-Koren',
+                                               TRUE ~ player_name)) |> 
+  normalize_rounds() |> 
+  tidyr::unnest(cols = c("gross":'tot_net')) |> 
+  dplyr::group_by(date, course_name, player_name, hole) |> 
+  dplyr::slice_head() |> 
+  dplyr::ungroup() |> 
+  dplyr::distinct() |> 
   dplyr::left_join(
     DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
       dplyr::mutate(
@@ -766,10 +801,60 @@ qc(filtered_scores)$fill_stub_review |>
                                                grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
                                                grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
                                                grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                               grepl(player_name, pattern = 'Mcgowan', ignore.case = T) ~ 'Robert Mcgowan',
                                                TRUE ~ player_name
                                                )) |> 
   dplyr::filter((grepl(rename_status, pattern = 'no', ignore.case = T) &
                    stringr::str_count(player_name, pattern = '(\\s){1,}')))
+
+filtered_scores <- filtered_scores |> 
+  dplyr::mutate(
+    player_name = dplyr::case_when(grepl(player_name, pattern = 'Valdez', ignore.case = T) ~ 'Norberto Valdez',
+                                   grepl(player_name, pattern = 'Throssell', ignore.case = T) ~ 'Stanley Throssell',
+                                   grepl(player_name, pattern = 'Mundinger', ignore.case = T) ~ 'Richard Mundinger',
+                                   grepl(player_name, pattern = 'Orndorff', ignore.case = T) ~ 'Christopher Orndorff',
+                                   grepl(player_name, pattern = 'Kardonchik', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                   grepl(player_name, pattern = 'Duschinski', ignore.case = T) ~ 'Matt Duschinski',
+                                   grepl(player_name, pattern = 'Alcombright', ignore.case = T) ~ 'Daniel Alcombright',
+                                   grepl(player_name, pattern = 'Singleton', ignore.case = T) ~ 'Jeff Singleton',
+                                   grepl(player_name, pattern = 'Brushwood', ignore.case = T) ~ 'James Brushwood',
+                                   grepl(player_name, pattern = 'Sharpe', ignore.case = T) ~ 'Michael Sharpe',
+                                   grepl(player_name, pattern = 'Osborne', ignore.case = T) ~ 'Buzz Osborne',
+                                   grepl(player_name, pattern = 'Lashley', ignore.case = T) ~ 'Wade Lashley',
+                                   grepl(player_name, pattern = 'Dmohowski', ignore.case = T) ~ 'John Dmohowski',
+                                   grepl(player_name, pattern = 'Nottingham', ignore.case = T) ~ 'Steve Nottingham',
+                                   grepl(player_name, pattern = 'Wilson', ignore.case = T) ~ 'James Wilson',
+                                   grepl(player_name, pattern = 'Dominguez', ignore.case = T) ~ 'Bernie Dominguez',
+                                   grepl(player_name, pattern = 'Russell', ignore.case = T) ~ 'Rick Russell',
+                                   grepl(player_name, pattern = 'Czechowski', ignore.case = T) ~ 'Mike Czechowski',
+                                   grepl(player_name, pattern = 'Lemaster', ignore.case = T) ~ 'Frank Lemaster',
+                                   grepl(player_name, pattern = 'Holly', ignore.case = T) ~ 'Stephen Holly',
+                                   grepl(player_name, pattern = 'Kennedy', ignore.case = T) ~ 'Gerome Kennedy',
+                                   grepl(player_name, pattern = 'Francis', ignore.case = T) ~ 'Curtis Francis',
+                                   grepl(player_name, pattern = 'Saunders', ignore.case = T) ~ 'Wendell Saunders',
+                                   grepl(player_name, pattern = 'Gusick', ignore.case = T) ~ 'Michael Gusick',
+                                   grepl(player_name, pattern = 'Fernandez', ignore.case = T) ~ 'Pablo Fernandez',
+                                   grepl(player_name, pattern = 'Townsend', ignore.case = T) ~ 'Ned Townsend',
+                                   grepl(player_name, pattern = 'Rickard', ignore.case = T) ~ 'Derek Rickard',
+                                   grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
+                                   grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
+                                   grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                   grepl(player_name, pattern = 'Mcgowan', ignore.case = T) ~ 'Robert Mcgowan',
+                                   grepl(player_name, pattern = 'Amos', ignore.case = T) &
+                                     grepl(player_name, pattern = 'Koren', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                   grepl(player_name, pattern = 'Amos Kor[a|e]n', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                   player_name == 'Harvey Brad' ~ 'Brad Harvey',
+                                   grepl(player_name, pattern = 'Chuck.+?Salter', ignore.case = T) ~ 'Chuck Salter',
+                                   player_name == 'L Pagel' ~ 'Larry Pagel',
+                                   player_name == 'J Kent' ~ 'Justin Kent',
+                                   player_name == 'C Rathbun' ~ 'Cody Rathbun',
+                                   player_name == 'T Freeh' ~ 'Tim Freeh',
+                                   player_name == 'P Giclas' ~ 'Patric Giclas',
+                                   player_name == 'J Smith' ~ 'Jim Smith',
+                                   TRUE ~ player_name
+    )
+  ) |> 
+  dplyr::distinct(player_name) |> print(n = Inf)
 
 qc(filtered_scores)$dedupe_flagged
 qc(filtered_scores)$dedupe_auto_resolved |> print(n = Inf)
@@ -797,6 +882,210 @@ filtered_scores |>
   dplyr::filter(rename_basis == "resolved_by_round_uniqueness") |>
   dplyr::distinct(source_file, date, player_name) |>
   print(n = Inf)
+
+
+# championship rounds
+clubchampionship_scores <- purrr::map_dfr(clubchampionship_rounds, function(path) {
+  pdf <- pdftools::pdf_data(path)
+  filename <- basename(path)
+  m <- stringr::str_match(
+    filename,
+    "^([0-9]{2}-[0-9]{2}-[0-9]{2})([a-z]|-[0-9]+)?_(.+?)(-[0-9]+)?\\.pdf$"
+  )
+  extract_round_scores(pdf = pdf) |>
+    dplyr::mutate(
+      date = m[,2] |>
+        gsub(pattern = '([0-9]{1,})-([0-9]{1,})-([0-9]{1,})', replacement = '20\\3-\\1-\\2'),
+      file_suffix = dplyr::coalesce(m[,3], m[,5]),
+      source_file = filename,
+      course_name = m[,4] |>
+        stringr::str_remove("_Results$|_RD[12]_Club_Championship$|_CC_Rd[12]$|_Club_Championship_Rd[12]$|_Club_Championship$") |>
+        stringr::str_replace_all("_", " ") |>
+        stringr::str_trim(),
+      .before = 1
+    ) |>
+    dplyr::mutate(course_name = dplyr::case_when(
+      course_name == 'Silvberbell' ~ 'Silverbell',
+      grepl(course_name, pattern = 'AZ National') ~ 'Arizona National',
+      TRUE ~ course_name
+    ))
+}) |>
+  dplyr::filter(!grepl(player_name, pattern = '(Par)', ignore.case = T)) |> 
+  dedupe_score_duplicates() |>
+  fill_stub_player_names() |>
+  fill_missing_gross_from_net()
+
+qc(clubchampionship_scores)$dedupe_flagged
+qc(clubchampionship_scores)$dedupe_auto_resolved
+qc(clubchampionship_scores)$fill_stub_review
+qc(clubchampionship_scores)$fill_gross_net_only_summary |> 
+  print(n = Inf)
+
+qc(clubchampionship_scores)$fill_stub_review |> 
+  dplyr::mutate(player_name = dplyr::case_when(grepl(player_name, pattern = 'Valdez', ignore.case = T) ~ 'Norberto Valdez',
+                                               grepl(player_name, pattern = 'Throssell', ignore.case = T) ~ 'Stanley Throssell',
+                                               grepl(player_name, pattern = 'Mundinger', ignore.case = T) ~ 'Richard Mundinger',
+                                               grepl(player_name, pattern = 'Orndorff', ignore.case = T) ~ 'Christopher Orndorff',
+                                               grepl(player_name, pattern = 'Kardonchik', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                               grepl(player_name, pattern = 'Duschinski', ignore.case = T) ~ 'Matt Duschinski',
+                                               grepl(player_name, pattern = 'Alcombright', ignore.case = T) ~ 'Daniel Alcombright',
+                                               grepl(player_name, pattern = 'Singleton', ignore.case = T) ~ 'Jeff Singleton',
+                                               grepl(player_name, pattern = 'Brushwood', ignore.case = T) ~ 'James Brushwood',
+                                               grepl(player_name, pattern = 'Sharpe', ignore.case = T) ~ 'Michael Sharpe',
+                                               grepl(player_name, pattern = 'Osborne', ignore.case = T) ~ 'Buzz Osborne',
+                                               grepl(player_name, pattern = 'Lashley', ignore.case = T) ~ 'Wade Lashley',
+                                               grepl(player_name, pattern = 'Dmohowski', ignore.case = T) ~ 'John Dmohowski',
+                                               grepl(player_name, pattern = 'Nottingham', ignore.case = T) ~ 'Steve Nottingham',
+                                               grepl(player_name, pattern = 'Wilson', ignore.case = T) ~ 'James Wilson',
+                                               grepl(player_name, pattern = 'Dominguez', ignore.case = T) ~ 'Bernie Dominguez',
+                                               grepl(player_name, pattern = 'Russell', ignore.case = T) ~ 'Rick Russell',
+                                               grepl(player_name, pattern = 'Czechowski', ignore.case = T) ~ 'Mike Czechowski',
+                                               grepl(player_name, pattern = 'Lemaster', ignore.case = T) ~ 'Frank Lemaster',
+                                               grepl(player_name, pattern = 'Holly', ignore.case = T) ~ 'Stephen Holly',
+                                               grepl(player_name, pattern = 'Kennedy', ignore.case = T) ~ 'Gerome Kennedy',
+                                               grepl(player_name, pattern = 'Francis', ignore.case = T) ~ 'Curtis Francis',
+                                               grepl(player_name, pattern = 'Saunders', ignore.case = T) ~ 'Wendell Saunders',
+                                               grepl(player_name, pattern = 'Gusick', ignore.case = T) ~ 'Michael Gusick',
+                                               grepl(player_name, pattern = 'Fernandez', ignore.case = T) ~ 'Pablo Fernandez',
+                                               grepl(player_name, pattern = 'Townsend', ignore.case = T) ~ 'Ned Townsend',
+                                               grepl(player_name, pattern = 'Rickard', ignore.case = T) ~ 'Derek Rickard',
+                                               grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
+                                               grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
+                                               grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                               grepl(player_name, pattern = 'Mcgowan', ignore.case = T) ~ 'Robert Mcgowan',
+                                               TRUE ~ player_name
+  )) |> 
+  dplyr::filter((grepl(rename_status, pattern = 'no', ignore.case = T) &
+                   stringr::str_count(player_name, pattern = '(\\s){1,}')))
+
+dupes_scores |> dplyr::distinct(player_name) |> print(n = Inf)
+
+all_scores <- dplyr::bind_rows(filtered_scores |> 
+                                 dplyr::mutate(player_name = dplyr::case_when(grepl(player_name, pattern = 'Valdez', ignore.case = T) ~ 'Norberto Valdez',
+                                                                              grepl(player_name, pattern = 'Throssell', ignore.case = T) ~ 'Stanley Throssell',
+                                                                              grepl(player_name, pattern = 'Mundinger', ignore.case = T) ~ 'Richard Mundinger',
+                                                                              grepl(player_name, pattern = 'Orndorff', ignore.case = T) ~ 'Christopher Orndorff',
+                                                                              grepl(player_name, pattern = 'Kardonchik', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                                                              grepl(player_name, pattern = 'Duschinski', ignore.case = T) ~ 'Matt Duschinski',
+                                                                              grepl(player_name, pattern = 'Alcombright', ignore.case = T) ~ 'Daniel Alcombright',
+                                                                              grepl(player_name, pattern = 'Singleton', ignore.case = T) ~ 'Jeff Singleton',
+                                                                              grepl(player_name, pattern = 'Brushwood', ignore.case = T) ~ 'James Brushwood',
+                                                                              grepl(player_name, pattern = 'Sharpe', ignore.case = T) ~ 'Michael Sharpe',
+                                                                              grepl(player_name, pattern = 'Osborne', ignore.case = T) ~ 'Buzz Osborne',
+                                                                              grepl(player_name, pattern = 'Lashley', ignore.case = T) ~ 'Wade Lashley',
+                                                                              grepl(player_name, pattern = 'Dmohowski', ignore.case = T) ~ 'John Dmohowski',
+                                                                              grepl(player_name, pattern = 'Nottingham', ignore.case = T) ~ 'Steve Nottingham',
+                                                                              grepl(player_name, pattern = 'Wilson', ignore.case = T) ~ 'James Wilson',
+                                                                              grepl(player_name, pattern = 'Dominguez', ignore.case = T) ~ 'Bernie Dominguez',
+                                                                              grepl(player_name, pattern = 'Russell', ignore.case = T) ~ 'Rick Russell',
+                                                                              grepl(player_name, pattern = 'Czechowski', ignore.case = T) ~ 'Mike Czechowski',
+                                                                              grepl(player_name, pattern = 'Lemaster', ignore.case = T) ~ 'Frank Lemaster',
+                                                                              grepl(player_name, pattern = 'Holly', ignore.case = T) ~ 'Stephen Holly',
+                                                                              grepl(player_name, pattern = 'Kennedy', ignore.case = T) ~ 'Gerome Kennedy',
+                                                                              grepl(player_name, pattern = 'Francis', ignore.case = T) ~ 'Curtis Francis',
+                                                                              grepl(player_name, pattern = 'Saunders', ignore.case = T) ~ 'Wendell Saunders',
+                                                                              grepl(player_name, pattern = 'Gusick', ignore.case = T) ~ 'Michael Gusick',
+                                                                              grepl(player_name, pattern = 'Fernandez', ignore.case = T) ~ 'Pablo Fernandez',
+                                                                              grepl(player_name, pattern = 'Townsend', ignore.case = T) ~ 'Ned Townsend',
+                                                                              grepl(player_name, pattern = 'Rickard', ignore.case = T) ~ 'Derek Rickard',
+                                                                              grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
+                                                                              grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
+                                                                              grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                                                              grepl(player_name, pattern = 'Mcgowan', ignore.case = T) ~ 'Robert Mcgowan',
+                                                                              TRUE ~ player_name
+                                 )),
+                               clubchampionship_scores |> 
+                                 dplyr::mutate(player_name = dplyr::case_when(grepl(player_name, pattern = 'Valdez', ignore.case = T) ~ 'Norberto Valdez',
+                                                                              grepl(player_name, pattern = 'Throssell', ignore.case = T) ~ 'Stanley Throssell',
+                                                                              grepl(player_name, pattern = 'Mundinger', ignore.case = T) ~ 'Richard Mundinger',
+                                                                              grepl(player_name, pattern = 'Orndorff', ignore.case = T) ~ 'Christopher Orndorff',
+                                                                              grepl(player_name, pattern = 'Kardonchik', ignore.case = T) ~ 'Amos Kardonchik-Koren',
+                                                                              grepl(player_name, pattern = 'Duschinski', ignore.case = T) ~ 'Matt Duschinski',
+                                                                              grepl(player_name, pattern = 'Alcombright', ignore.case = T) ~ 'Daniel Alcombright',
+                                                                              grepl(player_name, pattern = 'Singleton', ignore.case = T) ~ 'Jeff Singleton',
+                                                                              grepl(player_name, pattern = 'Brushwood', ignore.case = T) ~ 'James Brushwood',
+                                                                              grepl(player_name, pattern = 'Sharpe', ignore.case = T) ~ 'Michael Sharpe',
+                                                                              grepl(player_name, pattern = 'Osborne', ignore.case = T) ~ 'Buzz Osborne',
+                                                                              grepl(player_name, pattern = 'Lashley', ignore.case = T) ~ 'Wade Lashley',
+                                                                              grepl(player_name, pattern = 'Dmohowski', ignore.case = T) ~ 'John Dmohowski',
+                                                                              grepl(player_name, pattern = 'Nottingham', ignore.case = T) ~ 'Steve Nottingham',
+                                                                              grepl(player_name, pattern = 'Wilson', ignore.case = T) ~ 'James Wilson',
+                                                                              grepl(player_name, pattern = 'Dominguez', ignore.case = T) ~ 'Bernie Dominguez',
+                                                                              grepl(player_name, pattern = 'Russell', ignore.case = T) ~ 'Rick Russell',
+                                                                              grepl(player_name, pattern = 'Czechowski', ignore.case = T) ~ 'Mike Czechowski',
+                                                                              grepl(player_name, pattern = 'Lemaster', ignore.case = T) ~ 'Frank Lemaster',
+                                                                              grepl(player_name, pattern = 'Holly', ignore.case = T) ~ 'Stephen Holly',
+                                                                              grepl(player_name, pattern = 'Kennedy', ignore.case = T) ~ 'Gerome Kennedy',
+                                                                              grepl(player_name, pattern = 'Francis', ignore.case = T) ~ 'Curtis Francis',
+                                                                              grepl(player_name, pattern = 'Saunders', ignore.case = T) ~ 'Wendell Saunders',
+                                                                              grepl(player_name, pattern = 'Gusick', ignore.case = T) ~ 'Michael Gusick',
+                                                                              grepl(player_name, pattern = 'Fernandez', ignore.case = T) ~ 'Pablo Fernandez',
+                                                                              grepl(player_name, pattern = 'Townsend', ignore.case = T) ~ 'Ned Townsend',
+                                                                              grepl(player_name, pattern = 'Rickard', ignore.case = T) ~ 'Derek Rickard',
+                                                                              grepl(player_name, pattern = 'Ahern', ignore.case = T) ~ 'Michael Ahern',
+                                                                              grepl(player_name, pattern = 'Freedberg', ignore.case = T) ~ 'Eric Freedberg',
+                                                                              grepl(player_name, pattern = 'Quatraro', ignore.case = T) ~ 'Paul Quatraro',
+                                                                              grepl(player_name, pattern = 'Mcgowan', ignore.case = T) ~ 'Robert Mcgowan',
+                                                                              TRUE ~ player_name
+                                 ))) |> 
+  normalize_rounds() |> 
+  tidyr::unnest(cols = c("gross":"tot_net")) |> 
+  dplyr::left_join(
+    DBI::dbGetQuery(conn = con, statement = "SELECT DISTINCT course_name, hole, par, hole_handicap FROM courses ORDER BY course_name, hole;") |>
+      dplyr::mutate(
+        course_name = dplyr::case_when(
+          grepl(x = course_name, pattern = 'Ventana', ignore.case = T) ~ 'Ventana Canyon-Mountain',
+          grepl(x = course_name, pattern = 'Tucson National', ignore.case = T) ~ 'Tucson National',
+          TRUE ~ course_name
+        )
+      ),
+    by = c('course_name', 'hole')
+  ) |>
+  dplyr::relocate(par, .after = hole) |>
+  # tidyr::unnest(cols = c(gross:tot_net)) |> 
+  dplyr::mutate(
+    gross = as.numeric(gross),
+    net   = as.numeric(net)
+  ) |>
+  dplyr::group_by(player_name, date) |>
+  dplyr::mutate(
+    handicap_stroke = dplyr::case_when(
+      is.na(course_handicap) ~ NA_real_,
+      between(course_handicap + hole_handicap, -17, 0) ~ -1,
+      course_handicap + hole_handicap <= -18 ~ -2,
+      course_handicap + hole_handicap > 18 & course_handicap > 0 ~ 1,
+      TRUE ~ 0
+    ),
+    # per-hole net table digits equal gross digits in the source PDFs --
+    # net must be computed from handicap_stroke, never trusted as parsed
+    net_computed = handicap_stroke + gross,
+    net = net_computed,
+    OUT_net = dplyr::if_else(all(is.na(net_computed[c(1:9)])), NA_real_, sum(net_computed[c(1:9)], na.rm = T)),
+    IN_net  = dplyr::if_else(all(is.na(net_computed[c(10:18)])), NA_real_, sum(net_computed[c(10:18)], na.rm = T)),
+    # tot_net falls back to the value already parsed from NET_total
+    # (real round total) when gross is missing for the whole round
+    tot_net = dplyr::if_else(all(is.na(net_computed[c(1:18)])), dplyr::first(tot_net), sum(net_computed[c(1:18)], na.rm = T))
+  ) |>
+  dplyr::select(-net_computed) |>
+  dplyr::ungroup() |>
+  dplyr::relocate(c(hole_handicap, handicap_stroke), .after = net) |>
+  dplyr::mutate(
+    is_gross_birdie       = dplyr::case_when(gross - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_eagle_better = dplyr::case_when(gross - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_par          = dplyr::case_when(gross - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey        = dplyr::case_when(gross - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_gross_bogey_worse  = dplyr::case_when(gross - par > 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_birdie         = dplyr::case_when(net - par == -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_eagle_better   = dplyr::case_when(net - par < -1 ~ TRUE, TRUE ~ FALSE),
+    is_net_par            = dplyr::case_when(net - par == 0 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey          = dplyr::case_when(net - par == 1 ~ TRUE, TRUE ~ FALSE),
+    is_net_bogey_worse    = dplyr::case_when(net - par > 1 ~ TRUE, TRUE ~ FALSE)
+  ) |> 
+  dplyr::bind_rows(
+    dupes_scores
+  )
+
+dupes_scores
 
 all_scores |> 
   # dplyr::filter(is.na(par)) |> 
